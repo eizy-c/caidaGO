@@ -57,6 +57,11 @@ void main() {
       expect(find.text('Jugador'), findsOneWidget);
       expect(find.text('Estilo A'), findsOneWidget);
       expect(find.text('Estilo B'), findsOneWidget);
+      expect(find.text('Héroes'), findsOneWidget);
+
+      // Cambiar de pestana a Héroes
+      await tester.tap(find.text('Héroes'));
+      await tester.pumpAndSettle();
 
       // Cambiar de pestana a Estilo B
       await tester.tap(find.text('Estilo B'));
@@ -161,6 +166,7 @@ void main() {
               children: [
                 AvatarView(avatarId: 2, size: 48),
                 AvatarView(avatarId: 14, size: 48),
+                AvatarView(avatarId: 20, size: 48),
               ],
             ),
           ),
@@ -168,7 +174,7 @@ void main() {
       );
       await tester.pump();
 
-      expect(find.byType(AvatarView), findsNWidgets(2));
+      expect(find.byType(AvatarView), findsNWidgets(3));
     });
   });
 }

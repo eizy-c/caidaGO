@@ -96,7 +96,7 @@ class _ProfileAndLevelModalState extends State<ProfileAndLevelModal> with Single
   late int _tempAvatarIndex;
   late String _tempFrameId;
   late String _tempThemeId;
-  bool _isAvatarStyleB = false;
+  int _avatarTab = 0; // 0: Estilo A, 1: Estilo B, 2: Héroes
 
   @override
   void initState() {
@@ -106,7 +106,13 @@ class _ProfileAndLevelModalState extends State<ProfileAndLevelModal> with Single
     _tempAvatarIndex = widget.session.avatarIndex;
     _tempFrameId = widget.session.selectedFrameId;
     _tempThemeId = widget.session.selectedThemeId;
-    _isAvatarStyleB = _tempAvatarIndex >= 10;
+    if (_tempAvatarIndex >= 20) {
+      _avatarTab = 2;
+    } else if (_tempAvatarIndex >= 10) {
+      _avatarTab = 1;
+    } else {
+      _avatarTab = 0;
+    }
   }
 
   @override
@@ -609,7 +615,18 @@ class _ProfileAndLevelModalState extends State<ProfileAndLevelModal> with Single
 
   // --- PESTAÑA 4: AVATAR & NOMBRE ---
   Widget _buildAvatarTab() {
-    final currentPresets = AvatarPreset.allPresets.where((p) => p.isStyleB == _isAvatarStyleB).toList();
+    final List<AvatarPreset> currentPresets;
+    switch (_avatarTab) {
+      case 1:
+        currentPresets = AvatarPreset.styleBPresets;
+        break;
+      case 2:
+        currentPresets = AvatarPreset.heroesPresets;
+        break;
+      default:
+        currentPresets = AvatarPreset.styleAPresets;
+        break;
+    }
 
     return Column(
       children: [
@@ -637,25 +654,25 @@ class _ProfileAndLevelModalState extends State<ProfileAndLevelModal> with Single
           ),
         ),
 
-        // Selector Estilo A / Estilo B
+        // Selector Estilo A / Estilo B / Héroes
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Row(
             children: [
               Expanded(
                 child: GestureDetector(
-                  onTap: () => setState(() => _isAvatarStyleB = false),
+                  onTap: () => setState(() => _avatarTab = 0),
                   child: Container(
                     padding: const EdgeInsets.symmetric(vertical: 8),
                     decoration: BoxDecoration(
-                      color: !_isAvatarStyleB ? const Color(0xFF38BDF8) : const Color(0xFF1E293B),
+                      color: _avatarTab == 0 ? const Color(0xFF38BDF8) : const Color(0xFF1E293B),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     alignment: Alignment.center,
                     child: Text(
                       'Estilo A',
                       style: TextStyle(
-                        color: !_isAvatarStyleB ? const Color(0xFF0F172A) : Colors.white70,
+                        color: _avatarTab == 0 ? const Color(0xFF0F172A) : Colors.white70,
                         fontWeight: FontWeight.bold,
                         fontSize: 12,
                       ),
@@ -666,18 +683,40 @@ class _ProfileAndLevelModalState extends State<ProfileAndLevelModal> with Single
               const SizedBox(width: 8),
               Expanded(
                 child: GestureDetector(
-                  onTap: () => setState(() => _isAvatarStyleB = true),
+                  onTap: () => setState(() => _avatarTab = 1),
                   child: Container(
                     padding: const EdgeInsets.symmetric(vertical: 8),
                     decoration: BoxDecoration(
-                      color: _isAvatarStyleB ? const Color(0xFF38BDF8) : const Color(0xFF1E293B),
+                      color: _avatarTab == 1 ? const Color(0xFF38BDF8) : const Color(0xFF1E293B),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     alignment: Alignment.center,
                     child: Text(
                       'Estilo B',
                       style: TextStyle(
-                        color: _isAvatarStyleB ? const Color(0xFF0F172A) : Colors.white70,
+                        color: _avatarTab == 1 ? const Color(0xFF0F172A) : Colors.white70,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: GestureDetector(
+                  onTap: () => setState(() => _avatarTab = 2),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    decoration: BoxDecoration(
+                      color: _avatarTab == 2 ? const Color(0xFF38BDF8) : const Color(0xFF1E293B),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      'Héroes',
+                      style: TextStyle(
+                        color: _avatarTab == 2 ? const Color(0xFF0F172A) : Colors.white70,
                         fontWeight: FontWeight.bold,
                         fontSize: 12,
                       ),

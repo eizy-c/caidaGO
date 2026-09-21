@@ -24,14 +24,20 @@ class _ProfileOptionsDialogState extends State<ProfileOptionsDialog> {
   final _profileService = UserProfileService();
   late TextEditingController _nameController;
   late int _selectedAvatarId;
-  bool _isStyleB = false;
+  int _selectedTabIndex = 0; // 0: Estilo A, 1: Estilo B, 2: Héroes
 
   @override
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: _profileService.name);
     _selectedAvatarId = _profileService.avatarId;
-    _isStyleB = _selectedAvatarId >= 10;
+    if (_selectedAvatarId >= 20) {
+      _selectedTabIndex = 2;
+    } else if (_selectedAvatarId >= 10) {
+      _selectedTabIndex = 1;
+    } else {
+      _selectedTabIndex = 0;
+    }
   }
 
   @override
@@ -57,7 +63,18 @@ class _ProfileOptionsDialogState extends State<ProfileOptionsDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final currentPresets = AvatarPreset.allPresets.where((p) => p.isStyleB == _isStyleB).toList();
+    final List<AvatarPreset> currentPresets;
+    switch (_selectedTabIndex) {
+      case 1:
+        currentPresets = AvatarPreset.styleBPresets;
+        break;
+      case 2:
+        currentPresets = AvatarPreset.heroesPresets;
+        break;
+      default:
+        currentPresets = AvatarPreset.styleAPresets;
+        break;
+    }
 
     return Dialog(
       backgroundColor: Colors.transparent,
@@ -222,7 +239,7 @@ class _ProfileOptionsDialogState extends State<ProfileOptionsDialog> {
                         ),
                         const SizedBox(height: 14),
 
-                        // Botones de acción: Estilo A | Estilo B | Ok
+                        // Botones de acción: Estilo A | Estilo B | Héroes | Ok
                         Wrap(
                           alignment: WrapAlignment.center,
                           crossAxisAlignment: WrapCrossAlignment.center,
@@ -231,13 +248,18 @@ class _ProfileOptionsDialogState extends State<ProfileOptionsDialog> {
                           children: [
                             _buildTabButton(
                               label: 'Estilo A',
-                              isActive: !_isStyleB,
-                              onTap: () => setState(() => _isStyleB = false),
+                              isActive: _selectedTabIndex == 0,
+                              onTap: () => setState(() => _selectedTabIndex = 0),
                             ),
                             _buildTabButton(
                               label: 'Estilo B',
-                              isActive: _isStyleB,
-                              onTap: () => setState(() => _isStyleB = true),
+                              isActive: _selectedTabIndex == 1,
+                              onTap: () => setState(() => _selectedTabIndex = 1),
+                            ),
+                            _buildTabButton(
+                              label: 'Héroes',
+                              isActive: _selectedTabIndex == 2,
+                              onTap: () => setState(() => _selectedTabIndex = 2),
                             ),
                             _buildOkButton(),
                           ],

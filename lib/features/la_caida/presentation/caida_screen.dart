@@ -535,7 +535,7 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
       for (int i = 1; i < totalPlayers; i++) 'Player $i'
     ];
     final effectiveBotNames = _effectiveBotNames ?? defaultBotNames;
-    const botAvatars = [1, 14, 5];
+    const botAvatars = [20, 21, 22, 23, 24, 1, 14, 5];
     const botColors = [
       Color(0xFFF43F5E), // Izquierda / Rival 1 (Rojo)
       Color(0xFF10B981), // Frente / Compañero o Rival 2 (Verde)

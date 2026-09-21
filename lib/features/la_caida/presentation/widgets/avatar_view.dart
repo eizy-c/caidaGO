@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
-/// Definición de estilo y accesorios para cada uno de los 20 avatares disponibles.
+/// Definición de estilo y accesorios para cada uno de los avatares disponibles.
 class AvatarPreset {
   final int id;
+  final String name;
+  final String? imagePath;
   final Color bgColor;
   final Color skinColor;
   final Color hairColor;
@@ -13,9 +15,12 @@ class AvatarPreset {
   final bool hasBeard;
   final bool hasBowtie;
   final bool isStyleB;
+  final String category; // 'styleA', 'styleB', 'heroes'
 
   const AvatarPreset({
     required this.id,
+    this.name = '',
+    this.imagePath,
     required this.bgColor,
     required this.skinColor,
     required this.hairColor,
@@ -26,6 +31,7 @@ class AvatarPreset {
     this.hasBeard = false,
     this.hasBowtie = false,
     required this.isStyleB,
+    this.category = 'styleA',
   });
 
   static const List<AvatarPreset> allPresets = [
@@ -38,6 +44,7 @@ class AvatarPreset {
       shirtColor: Color(0xFF93C5FD),
       hairType: 'short',
       isStyleB: false,
+      category: 'styleA',
     ),
     AvatarPreset(
       id: 1,
@@ -49,6 +56,7 @@ class AvatarPreset {
       hasMustache: true,
       hasBowtie: true,
       isStyleB: false,
+      category: 'styleA',
     ),
     AvatarPreset(
       id: 2, // Avatar principal "Eizy"
@@ -59,6 +67,7 @@ class AvatarPreset {
       hairType: 'curly',
       hasGlasses: true,
       isStyleB: false,
+      category: 'styleA',
     ),
     AvatarPreset(
       id: 3,
@@ -69,6 +78,7 @@ class AvatarPreset {
       hairType: 'short',
       hasBeard: true,
       isStyleB: false,
+      category: 'styleA',
     ),
     AvatarPreset(
       id: 4,
@@ -79,6 +89,7 @@ class AvatarPreset {
       hairType: 'short',
       hasBeard: true,
       isStyleB: false,
+      category: 'styleA',
     ),
     AvatarPreset(
       id: 5,
@@ -89,6 +100,7 @@ class AvatarPreset {
       hairType: 'curly',
       hasGlasses: true,
       isStyleB: false,
+      category: 'styleA',
     ),
     AvatarPreset(
       id: 6,
@@ -100,6 +112,7 @@ class AvatarPreset {
       hasGlasses: true,
       hasBeard: true,
       isStyleB: false,
+      category: 'styleA',
     ),
     AvatarPreset(
       id: 7,
@@ -109,6 +122,7 @@ class AvatarPreset {
       shirtColor: Color(0xFF475569),
       hairType: 'spiky',
       isStyleB: false,
+      category: 'styleA',
     ),
     AvatarPreset(
       id: 8,
@@ -120,6 +134,7 @@ class AvatarPreset {
       hasGlasses: true,
       hasBeard: true,
       isStyleB: false,
+      category: 'styleA',
     ),
     AvatarPreset(
       id: 9,
@@ -129,6 +144,7 @@ class AvatarPreset {
       shirtColor: Color(0xFF1E293B),
       hairType: 'curly',
       isStyleB: false,
+      category: 'styleA',
     ),
 
     // --- ESTILO B (10 a 19) ---
@@ -140,6 +156,7 @@ class AvatarPreset {
       shirtColor: Colors.white,
       hairType: 'cowboy',
       isStyleB: true,
+      category: 'styleB',
     ),
     AvatarPreset(
       id: 11,
@@ -150,6 +167,7 @@ class AvatarPreset {
       hairType: 'short',
       hasBeard: true,
       isStyleB: true,
+      category: 'styleB',
     ),
     AvatarPreset(
       id: 12,
@@ -160,6 +178,7 @@ class AvatarPreset {
       hairType: 'curly',
       hasBeard: true,
       isStyleB: true,
+      category: 'styleB',
     ),
     AvatarPreset(
       id: 13,
@@ -170,6 +189,7 @@ class AvatarPreset {
       hairType: 'spiky',
       hasBeard: true,
       isStyleB: true,
+      category: 'styleB',
     ),
     AvatarPreset(
       id: 14,
@@ -179,16 +199,18 @@ class AvatarPreset {
       shirtColor: Color(0xFF94A3B8),
       hairType: 'long',
       isStyleB: true,
+      category: 'styleB',
     ),
     AvatarPreset(
       id: 15,
       bgColor: Color(0xFF78350F),
-      skinColor: Color(0xFFFFDBAC),
+      skinColor: Color(0xFFFFE0BD),
       hairColor: Color(0xFF292524),
       shirtColor: Color(0xFF334155),
       hairType: 'short',
       hasGlasses: true,
       isStyleB: true,
+      category: 'styleB',
     ),
     AvatarPreset(
       id: 16,
@@ -199,6 +221,7 @@ class AvatarPreset {
       hairType: 'short',
       hasBeard: true,
       isStyleB: true,
+      category: 'styleB',
     ),
     AvatarPreset(
       id: 17,
@@ -209,16 +232,18 @@ class AvatarPreset {
       hairType: 'short',
       hasBeard: true,
       isStyleB: true,
+      category: 'styleB',
     ),
     AvatarPreset(
       id: 18,
       bgColor: Color(0xFF0369A1),
-      skinColor: Color(0xFFFFDBAC),
+      skinColor: Color(0xFFFFE0BD),
       hairColor: Color(0xFF292524),
       shirtColor: Color(0xFF475569),
       hairType: 'short',
       hasBeard: true,
       isStyleB: true,
+      category: 'styleB',
     ),
     AvatarPreset(
       id: 19,
@@ -229,8 +254,78 @@ class AvatarPreset {
       hairType: 'medium',
       hasMustache: true,
       isStyleB: true,
+      category: 'styleB',
+    ),
+
+    // --- HÉROES RPG / ILUSTRADOS (20 a 24) ---
+    AvatarPreset(
+      id: 20,
+      name: 'Caballero',
+      imagePath: 'assets/player/avatar/1-AVATAR.png',
+      bgColor: Color(0xFF1E3A8A),
+      skinColor: Color(0xFFFFDBAC),
+      hairColor: Color(0xFF1E293B),
+      shirtColor: Color(0xFF3B82F6),
+      hairType: 'short',
+      isStyleB: false,
+      category: 'heroes',
+    ),
+    AvatarPreset(
+      id: 21,
+      name: 'Arquera',
+      imagePath: 'assets/player/avatar/2-AVATAR.png',
+      bgColor: Color(0xFF14532D),
+      skinColor: Color(0xFFFFE0BD),
+      hairColor: Color(0xFFB45309),
+      shirtColor: Color(0xFF16A34A),
+      hairType: 'long',
+      isStyleB: false,
+      category: 'heroes',
+    ),
+    AvatarPreset(
+      id: 22,
+      name: 'Vikingo',
+      imagePath: 'assets/player/avatar/3-AVATAR.png',
+      bgColor: Color(0xFF9A3412),
+      skinColor: Color(0xFFFFDBAC),
+      hairColor: Color(0xFF78350F),
+      shirtColor: Color(0xFFEA580C),
+      hairType: 'cowboy',
+      hasBeard: true,
+      isStyleB: false,
+      category: 'heroes',
+    ),
+    AvatarPreset(
+      id: 23,
+      name: 'Mago',
+      imagePath: 'assets/player/avatar/4-AVATAR.png',
+      bgColor: Color(0xFF581C87),
+      skinColor: Color(0xFFFFDBAC),
+      hairColor: Color(0xFFE2E8F0),
+      shirtColor: Color(0xFF7C3AED),
+      hairType: 'medium',
+      hasBeard: true,
+      isStyleB: false,
+      category: 'heroes',
+    ),
+    AvatarPreset(
+      id: 24,
+      name: 'Pícaro',
+      imagePath: 'assets/player/avatar/5-AVATAR.png',
+      bgColor: Color(0xFF1F2937),
+      skinColor: Color(0xFFFFDBAC),
+      hairColor: Color(0xFF0F172A),
+      shirtColor: Color(0xFF374151),
+      hairType: 'spiky',
+      hasMustache: true,
+      isStyleB: false,
+      category: 'heroes',
     ),
   ];
+
+  static List<AvatarPreset> get styleAPresets => allPresets.where((p) => p.category == 'styleA').toList();
+  static List<AvatarPreset> get styleBPresets => allPresets.where((p) => p.category == 'styleB').toList();
+  static List<AvatarPreset> get heroesPresets => allPresets.where((p) => p.category == 'heroes').toList();
 
   static AvatarPreset getById(int id) {
     return allPresets.firstWhere(
@@ -285,156 +380,15 @@ class AvatarView extends StatelessWidget {
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(size * 0.18 - 1),
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            // 1. Cuerpo / Camisa (abajo)
-            Positioned(
-              bottom: 0,
-              child: Container(
-                width: size * 0.72,
-                height: size * 0.38,
-                decoration: BoxDecoration(
-                  color: preset.shirtColor,
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(size * 0.25)),
-                ),
-              ),
-            ),
-
-            // Cuello
-            Positioned(
-              bottom: size * 0.28,
-              child: Container(
-                width: size * 0.22,
-                height: size * 0.16,
-                color: preset.skinColor.withValues(alpha: 0.9),
-              ),
-            ),
-
-            // Pajarita (si tiene)
-            if (preset.hasBowtie)
-              Positioned(
-                bottom: size * 0.26,
-                child: Icon(Icons.change_history_rounded, size: size * 0.16, color: Colors.amber),
-              ),
-
-            // 2. Cabeza / Rostro
-            Positioned(
-              top: size * 0.22,
-              child: Container(
-                width: size * 0.44,
-                height: size * 0.50,
-                decoration: BoxDecoration(
-                  color: preset.skinColor,
-                  borderRadius: BorderRadius.circular(size * 0.22),
-                ),
-              ),
-            ),
-
-            // Cabello
-            _buildHair(preset),
-
-            // Barba o Bigote
-            if (preset.hasBeard)
-              Positioned(
-                bottom: size * 0.28,
-                child: Container(
-                  width: size * 0.32,
-                  height: size * 0.22,
-                  decoration: BoxDecoration(
-                    color: preset.hairColor,
-                    borderRadius: BorderRadius.vertical(bottom: Radius.circular(size * 0.16)),
-                  ),
-                ),
-              ),
-            if (preset.hasMustache)
-              Positioned(
-                bottom: size * 0.38,
-                child: Container(
-                  width: size * 0.24,
-                  height: size * 0.08,
-                  decoration: BoxDecoration(
-                    color: preset.hairColor,
-                    borderRadius: BorderRadius.circular(size * 0.04),
-                  ),
-                ),
-              ),
-
-            // Ojos
-            Positioned(
-              top: size * 0.44,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: size * 0.06,
-                    height: size * 0.06,
-                    decoration: const BoxDecoration(color: Color(0xFF1E293B), shape: BoxShape.circle),
-                  ),
-                  SizedBox(width: size * 0.14),
-                  Container(
-                    width: size * 0.06,
-                    height: size * 0.06,
-                    decoration: const BoxDecoration(color: Color(0xFF1E293B), shape: BoxShape.circle),
-                  ),
-                ],
-              ),
-            ),
-
-            // Lentes (si tiene)
-            if (preset.hasGlasses)
-              Positioned(
-                top: size * 0.38,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      width: size * 0.15,
-                      height: size * 0.15,
-                      decoration: BoxDecoration(
-                        border: Border.all(color: const Color(0xFF18181B), width: 1.5),
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                    Container(width: size * 0.06, height: 1.5, color: const Color(0xFF18181B)),
-                    Container(
-                      width: size * 0.15,
-                      height: size * 0.15,
-                      decoration: BoxDecoration(
-                        border: Border.all(color: const Color(0xFF18181B), width: 1.5),
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-            // Sombrero Vaquero (si tiene)
-            if (preset.hairType == 'cowboy')
-              Positioned(
-                top: size * 0.08,
-                child: Container(
-                  width: size * 0.72,
-                  height: size * 0.26,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFDE68A), // Paja clara
-                    borderRadius: BorderRadius.circular(size * 0.08),
-                    border: Border.all(color: const Color(0xFFD97706), width: 1),
-                  ),
-                  child: Center(
-                    child: Container(
-                      width: size * 0.38,
-                      height: size * 0.18,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFD97706),
-                        borderRadius: BorderRadius.circular(size * 0.04),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-          ],
-        ),
+        child: preset.imagePath != null
+            ? Image.asset(
+                preset.imagePath!,
+                width: size,
+                height: size,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) => _buildProceduralStack(preset),
+              )
+            : _buildProceduralStack(preset),
       ),
     );
 
@@ -442,6 +396,159 @@ class AvatarView extends StatelessWidget {
       return GestureDetector(onTap: onTap, child: avatarContent);
     }
     return avatarContent;
+  }
+
+  Widget _buildProceduralStack(AvatarPreset preset) {
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        // 1. Cuerpo / Camisa (abajo)
+        Positioned(
+          bottom: 0,
+          child: Container(
+            width: size * 0.72,
+            height: size * 0.38,
+            decoration: BoxDecoration(
+              color: preset.shirtColor,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(size * 0.25)),
+            ),
+          ),
+        ),
+
+        // Cuello
+        Positioned(
+          bottom: size * 0.28,
+          child: Container(
+            width: size * 0.22,
+            height: size * 0.16,
+            color: preset.skinColor.withValues(alpha: 0.9),
+          ),
+        ),
+
+        // Pajarita (si tiene)
+        if (preset.hasBowtie)
+          Positioned(
+            bottom: size * 0.26,
+            child: Icon(Icons.change_history_rounded, size: size * 0.16, color: Colors.amber),
+          ),
+
+        // 2. Cabeza / Rostro
+        Positioned(
+          top: size * 0.22,
+          child: Container(
+            width: size * 0.44,
+            height: size * 0.50,
+            decoration: BoxDecoration(
+              color: preset.skinColor,
+              borderRadius: BorderRadius.circular(size * 0.22),
+            ),
+          ),
+        ),
+
+        // Cabello
+        _buildHair(preset),
+
+        // Barba o Bigote
+        if (preset.hasBeard)
+          Positioned(
+            bottom: size * 0.28,
+            child: Container(
+              width: size * 0.32,
+              height: size * 0.22,
+              decoration: BoxDecoration(
+                color: preset.hairColor,
+                borderRadius: BorderRadius.vertical(bottom: Radius.circular(size * 0.16)),
+              ),
+            ),
+          ),
+        if (preset.hasMustache)
+          Positioned(
+            bottom: size * 0.38,
+            child: Container(
+              width: size * 0.24,
+              height: size * 0.08,
+              decoration: BoxDecoration(
+                color: preset.hairColor,
+                borderRadius: BorderRadius.circular(size * 0.04),
+              ),
+            ),
+          ),
+
+        // Ojos
+        Positioned(
+          top: size * 0.44,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: size * 0.06,
+                height: size * 0.06,
+                decoration: const BoxDecoration(color: Color(0xFF1E293B), shape: BoxShape.circle),
+              ),
+              SizedBox(width: size * 0.14),
+              Container(
+                width: size * 0.06,
+                height: size * 0.06,
+                decoration: const BoxDecoration(color: Color(0xFF1E293B), shape: BoxShape.circle),
+              ),
+            ],
+          ),
+        ),
+
+        // Lentes (si tiene)
+        if (preset.hasGlasses)
+          Positioned(
+            top: size * 0.38,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: size * 0.15,
+                  height: size * 0.15,
+                  decoration: BoxDecoration(
+                    border: Border.all(color: const Color(0xFF18181B), width: 1.5),
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                Container(width: size * 0.06, height: 1.5, color: const Color(0xFF18181B)),
+                Container(
+                  width: size * 0.15,
+                  height: size * 0.15,
+                  decoration: BoxDecoration(
+                    border: Border.all(color: const Color(0xFF18181B), width: 1.5),
+                    shape: BoxShape.circle,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+        // Sombrero Vaquero (si tiene)
+        if (preset.hairType == 'cowboy')
+          Positioned(
+            top: size * 0.08,
+            child: Container(
+              width: size * 0.72,
+              height: size * 0.26,
+              decoration: BoxDecoration(
+                color: const Color(0xFFFDE68A), // Paja clara
+                borderRadius: BorderRadius.circular(size * 0.08),
+                border: Border.all(color: const Color(0xFFD97706), width: 1),
+              ),
+              child: Center(
+                child: Container(
+                  width: size * 0.38,
+                  height: size * 0.18,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFD97706),
+                    borderRadius: BorderRadius.circular(size * 0.04),
+                  ),
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
   }
 
   Widget _buildHair(AvatarPreset preset) {

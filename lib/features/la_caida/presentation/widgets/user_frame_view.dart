@@ -11,6 +11,7 @@ class UserFrameItem {
   final double borderWidth;
   final IconData? crownIcon;
   final String description;
+  final String? imagePath;
 
   const UserFrameItem({
     required this.id,
@@ -21,6 +22,7 @@ class UserFrameItem {
     this.borderWidth = 3.5,
     this.crownIcon,
     required this.description,
+    this.imagePath,
   });
 
   static const List<UserFrameItem> allFrames = [
@@ -32,15 +34,27 @@ class UserFrameItem {
       shadowColor: Color(0xFF451A03),
       borderWidth: 3.5,
       description: 'Marco tradicional de madera caoba pulida.',
+      imagePath: 'assets/player/marcos/MADERA-MARCOS.png',
+    ),
+    UserFrameItem(
+      id: 'bronze',
+      name: 'Bronce Rústico',
+      minLevel: 1,
+      borderGradient: [Color(0xFFD97706), Color(0xFFB45309), Color(0xFF78350F)],
+      shadowColor: Color(0xFF78350F),
+      borderWidth: 3.8,
+      description: 'Marco forjado en bronce de combate.',
+      imagePath: 'assets/player/marcos/BRONCE-MARCOS.png',
     ),
     UserFrameItem(
       id: 'silver',
       name: 'Plata Pulida',
-      minLevel: 1,
+      minLevel: 2,
       borderGradient: [Color(0xFFE2E8F0), Color(0xFF94A3B8), Color(0xFFF8FAFC)],
       shadowColor: Color(0xFF64748B),
       borderWidth: 4.0,
       description: 'Marco de plata brillante para aprendices destacados.',
+      imagePath: 'assets/player/marcos/PLATA-MARCOS.png',
     ),
     UserFrameItem(
       id: 'gold',
@@ -51,36 +65,73 @@ class UserFrameItem {
       borderWidth: 4.5,
       crownIcon: Icons.military_tech_rounded,
       description: 'Bisel forjado en oro puro con insignias reales.',
+      imagePath: 'assets/player/marcos/ORO-MARCOS.png',
     ),
     UserFrameItem(
-      id: 'neon',
-      name: 'Neón Cian',
-      minLevel: 5,
-      borderGradient: [Color(0xFF38BDF8), Color(0xFF06B6D4), Color(0xFF0284C7)],
-      shadowColor: Color(0xFF0284C7),
+      id: 'emerald',
+      name: 'Esmeralda Criolla',
+      minLevel: 4,
+      borderGradient: [Color(0xFF10B981), Color(0xFF059669), Color(0xFF047857)],
+      shadowColor: Color(0xFF047857),
       borderWidth: 4.5,
-      crownIcon: Icons.bolt_rounded,
-      description: 'Resplandor futurista de energía electro-cian.',
-    ),
-    UserFrameItem(
-      id: 'fire',
-      name: 'Fuego Carmesí',
-      minLevel: 7,
-      borderGradient: [Color(0xFFEF4444), Color(0xFFF97316), Color(0xFFB91C1C)],
-      shadowColor: Color(0xFFDC2626),
-      borderWidth: 4.8,
-      crownIcon: Icons.local_fire_department_rounded,
-      description: 'Llamas vivas para jugadores agresivos de Caída.',
+      crownIcon: Icons.diamond_rounded,
+      description: 'Piedra esmeralda venezolana con resplandor natural.',
+      imagePath: 'assets/player/marcos/ESMEALDA-MARCOS.png',
     ),
     UserFrameItem(
       id: 'diamond',
       name: 'Diamante Mítico',
-      minLevel: 10,
+      minLevel: 5,
       borderGradient: [Color(0xFFA855F7), Color(0xFFEC4899), Color(0xFF60A5FA)],
       shadowColor: Color(0xFF9333EA),
       borderWidth: 5.0,
       crownIcon: Icons.auto_awesome_rounded,
       description: 'Marco prismático exclusivo para leyendas criollas.',
+      imagePath: 'assets/player/marcos/DIAMANTE-MARCOS.png',
+    ),
+    UserFrameItem(
+      id: 'master',
+      name: 'Maestro de Caída',
+      minLevel: 6,
+      borderGradient: [Color(0xFFEF4444), Color(0xFFDC2626), Color(0xFF991B1B)],
+      shadowColor: Color(0xFF991B1B),
+      borderWidth: 5.0,
+      crownIcon: Icons.workspace_premium_rounded,
+      description: 'Insignia otorgada únicamente a los maestros consumados.',
+      imagePath: 'assets/player/marcos/MAESTRO-MARCOS.png',
+    ),
+    UserFrameItem(
+      id: 'grand_master',
+      name: 'Gran Maestro',
+      minLevel: 7,
+      borderGradient: [Color(0xFFF59E0B), Color(0xFFD97706), Color(0xFFB45309)],
+      shadowColor: Color(0xFF78350F),
+      borderWidth: 5.2,
+      crownIcon: Icons.emoji_events_rounded,
+      description: 'Marco de Gran Maestro con gemas relucientes.',
+      imagePath: 'assets/player/marcos/GRAN-MAESTRO-MARCOS.png',
+    ),
+    UserFrameItem(
+      id: 'heroic',
+      name: 'Heroico',
+      minLevel: 8,
+      borderGradient: [Color(0xFF6366F1), Color(0xFF4F46E5), Color(0xFF4338CA)],
+      shadowColor: Color(0xFF312E81),
+      borderWidth: 5.5,
+      crownIcon: Icons.shield_rounded,
+      description: 'Rango heroico forjado con metales legendarios.',
+      imagePath: 'assets/player/marcos/HEROICO-MARCOS.png',
+    ),
+    UserFrameItem(
+      id: 'legend',
+      name: 'Leyenda Suprema',
+      minLevel: 10,
+      borderGradient: [Color(0xFFE11D48), Color(0xFFBE123C), Color(0xFF881337)],
+      shadowColor: Color(0xFF4C0519),
+      borderWidth: 5.5,
+      crownIcon: Icons.star_rounded,
+      description: 'El pináculo absoluto del juego. La Caída Suprema.',
+      imagePath: 'assets/player/marcos/LEYENDA-MARCOS.png',
     ),
   ];
 
@@ -137,32 +188,55 @@ class UserFrameView extends StatelessWidget {
             ),
           ),
 
-          // 2. Marco Ornamental con Gradiente
-          Container(
-            width: size + 4,
-            height: size + 4,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: LinearGradient(
-                colors: frame.borderGradient,
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
+          // 2. Marco Ornamental (PNG Ilustrado o Gradiente procedural)
+          if (frame.imagePath != null)
+            SizedBox(
+              width: size + 4,
+              height: size + 4,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  AvatarView(
+                    avatarId: avatarIndex,
+                    size: size * 0.76,
+                    showBorder: false,
+                  ),
+                  Image.asset(
+                    frame.imagePath!,
+                    width: size + 4,
+                    height: size + 4,
+                    fit: BoxFit.contain,
+                    errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
+                  ),
+                ],
               ),
-              border: Border.all(
-                color: Colors.white.withValues(alpha: 0.6),
-                width: 1.0,
+            )
+          else
+            Container(
+              width: size + 4,
+              height: size + 4,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(
+                  colors: frame.borderGradient,
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.6),
+                  width: 1.0,
+                ),
               ),
-            ),
-            child: Padding(
-              padding: EdgeInsets.all(frame.borderWidth),
-              child: ClipOval(
-                child: AvatarView(
-                  avatarId: avatarIndex,
-                  size: size - (frame.borderWidth * 2),
+              child: Padding(
+                padding: EdgeInsets.all(frame.borderWidth),
+                child: ClipOval(
+                  child: AvatarView(
+                    avatarId: avatarIndex,
+                    size: size - (frame.borderWidth * 2),
+                  ),
                 ),
               ),
             ),
-          ),
 
           // 3. Ícono de Corona / Joya superior si tiene
           if (frame.crownIcon != null)
