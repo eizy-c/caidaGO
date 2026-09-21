@@ -14,6 +14,7 @@ class GameTableHeader extends StatelessWidget implements PreferredSizeWidget {
   final bool isMuted;
   final VoidCallback? onToggleMute;
   final bool showTrophies;
+  final Widget? titleWidget;
 
   const GameTableHeader({
     super.key,
@@ -28,6 +29,7 @@ class GameTableHeader extends StatelessWidget implements PreferredSizeWidget {
     this.isMuted = false,
     this.onToggleMute,
     this.showTrophies = true,
+    this.titleWidget,
   });
 
   @override
@@ -70,17 +72,18 @@ class GameTableHeader extends StatelessWidget implements PreferredSizeWidget {
 
             // Título central
             Expanded(
-              child: Text(
-                title,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 0.5,
-                ),
-              ),
+              child: titleWidget ??
+                  Text(
+                    title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
             ),
 
             // Indicador de Latencia / Ping (solo en partidas online o red local)

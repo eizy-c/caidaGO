@@ -29,6 +29,7 @@ class TablePlayerBadge extends StatelessWidget {
   final String? frameId;
   final int? playerLevel;
   final VoidCallback? onTap;
+  final bool isCompact;
 
   const TablePlayerBadge({
     super.key,
@@ -48,11 +49,12 @@ class TablePlayerBadge extends StatelessWidget {
     this.frameId,
     this.playerLevel,
     this.onTap,
+    this.isCompact = false,
   }) : assert(scoreOrCards != null || score != null, 'Debe especificarse score o scoreOrCards');
 
   @override
   Widget build(BuildContext context) {
-    const avatarSize = 56.0;
+    final avatarSize = isCompact ? 44.0 : 56.0;
     final frame = frameId != null ? UserFrameItem.getById(frameId!) : null;
 
     return Stack(
@@ -311,39 +313,46 @@ class TablePlayerBadge extends StatelessWidget {
   }
 
   Widget _buildCalloutBubble() {
+    final horizontalOffset = isCompact ? 46.0 : 58.0;
+    final verticalOffset = isCompact ? 60.0 : 76.0;
+
     switch (position) {
       case PlayerPositionOnTable.left:
         return Positioned(
-          left: 58,
+          left: horizontalOffset,
           top: 6,
           child: SpeechBubble.directional(
             text: calloutMessage!,
             arrowDirection: BubbleArrowDirection.left,
+            maxWidth: isCompact ? 130 : 155,
           ),
         );
       case PlayerPositionOnTable.right:
         return Positioned(
-          right: 58,
+          right: horizontalOffset,
           top: 6,
           child: SpeechBubble.directional(
             text: calloutMessage!,
             arrowDirection: BubbleArrowDirection.right,
+            maxWidth: isCompact ? 130 : 155,
           ),
         );
       case PlayerPositionOnTable.top:
         return Positioned(
-          top: 76,
+          top: verticalOffset,
           child: SpeechBubble.directional(
             text: calloutMessage!,
             arrowDirection: BubbleArrowDirection.up,
+            maxWidth: isCompact ? 130 : 155,
           ),
         );
       case PlayerPositionOnTable.bottom:
         return Positioned(
-          bottom: 76,
+          bottom: verticalOffset,
           child: SpeechBubble.directional(
             text: calloutMessage!,
             arrowDirection: BubbleArrowDirection.down,
+            maxWidth: isCompact ? 130 : 155,
           ),
         );
     }

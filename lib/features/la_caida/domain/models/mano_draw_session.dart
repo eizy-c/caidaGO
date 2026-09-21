@@ -97,8 +97,13 @@ class ManoDrawSession {
   List<ManoCardCandidate> get unchosenCandidates =>
       candidates.where((c) => c.isAvailable).toList();
 
+  /// Indica si el usuario local ya ha elegido su carta
+  bool get hasUserChosen => candidates.any((c) => c.chosenByPlayerIndex == 0);
+
   /// Asigna una carta a un jugador específico y la revela
   void pickCard(ManoCardCandidate candidate, int playerIndex) {
+    if (candidate.chosenByPlayerIndex != null) return;
+    if (playerIndex == 0 && hasUserChosen) return;
     candidate.chosenByPlayerIndex = playerIndex;
     candidate.isRevealed = true;
   }
