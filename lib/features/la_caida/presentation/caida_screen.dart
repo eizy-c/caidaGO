@@ -25,7 +25,14 @@ import '../domain/models/table_landing_zone.dart';
 import '../economy/chest_slot_model.dart';
 import '../economy/player_session.dart';
 import '../economy/player_stats_model.dart';
+import '../economy/rank_system.dart';
+import '../economy/booster_model.dart';
+import '../economy/daily_challenge_system.dart';
+import '../economy/achievement_catalog.dart';
 import '../economy/vip_tier.dart';
+import '../economy/match_history_model.dart';
+import 'widgets/game_toast_queue.dart';
+import 'widgets/table_auditor_panel.dart';
 import 'widgets/bot_customization_modal.dart';
 import 'widgets/caida_game_over_modal.dart';
 import 'widgets/card_flight_overlay.dart';
@@ -157,8 +164,7 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
   bool _isDealing = false;
   bool _isFirstRoundDealing = true;
 
-  // Acumulación persistente de trofeos de la sesión
-  int _sessionTrophies = 7500;
+  // Acumulación persistente de trofeos de la sesión (Migrado a Phase 2)
 
   // Selección individual de cartas en la mano del usuario
   SpanishCard? _selectedCard;
@@ -178,6 +184,29 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
   set _matchUserLimpias(int val) => _playTracker.userLimpias = val;
   int get _matchUserCantos => _playTracker.userCantos;
   set _matchUserCantos(int val) => _playTracker.userCantos = val;
+  int get _matchUserTrivilins => _playTracker.userTrivilins;
+  set _matchUserTrivilins(int val) => _playTracker.userTrivilins = val;
+
+  // Auditor de Mesa: lista cronológica de eventos
+  final List<MatchAuditItem> _matchAuditLogs = [];
+
+  void _addAuditLog({
+    required String playerName,
+    required AuditEntryType type,
+    required String description,
+    int points = 0,
+  }) {
+    _matchAuditLogs.add(
+      MatchAuditItem(
+        round: 'Ronda $_roundNumber',
+        playerName: playerName,
+        type: type,
+        description: description,
+        points: points,
+        timestamp: DateTime.now(),
+      ),
+    );
+  }
 
   // Canto de Mesa del repartidor
   DealDirection _cantoDirection = DealDirection.ascending;
@@ -408,7 +437,7 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
     _isResolvingMano = true;
 
     // 1. Revelar la carta del usuario de inmediato con efecto flick y sonido
-    AudioService().playCardSlide();
+    AudioService().playCardFlip();
     setState(() {
       _manoSession.pickCard(userChoice, 0);
       _manoAnnouncement = 'Tú sacas: ${userChoice.card.displayName}';
@@ -430,7 +459,7 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
         if (!mounted || !_isChoosingMano) return;
 
         final botPick = unchosen.removeLast();
-        AudioService().playCardSlide();
+        AudioService().playCardFlip();
         setState(() {
           _manoSession.pickCard(botPick, i);
           _manoAnnouncement = '${_players[i].name} sacó: ${botPick.card.displayName}';
@@ -692,6 +721,7 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
           totalPlayers: _players.length,
         );
 
+        AudioService().playCardDeal();
         setState(() {
           _activeTrajectories = [
             CardFlightTrajectory(
@@ -735,6 +765,7 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
         final tableCard = dealResult.tableCards[i];
         final placement = _computePlacementForCard(tableCard);
 
+        AudioService().playCardDeal();
         setState(() {
           _activeTrajectories = [
             CardFlightTrajectory(
@@ -967,12 +998,21 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
         _addPoints(p, canto.points);
         if (p.id == 'user' || (_isTeams && p.teamId == _players[0].teamId)) {
           _matchUserCantos++;
+          if (canto.name.toLowerCase().contains('trivil')) {
+            _matchUserTrivilins++;
+          }
           PlayerStatsModel.shared.recordCanto(canto.name);
         }
         final detail = canto is RondaCanto
             ? 'Ronda de ${canto.pairNumber}'
             : canto.name.replaceAll('¡', '').replaceAll('!', '');
         _triggerCallout(p, '¡$detail! (+${canto.points} pts)');
+        _addAuditLog(
+          playerName: p.name,
+          type: AuditEntryType.canto,
+          description: 'Cantó ¡$detail!',
+          points: canto.points,
+        );
         AudioService().playCanto(canto.name);
       } else if (p.pendingCanto != null) {
         final defeated = p.pendingCanto!;
@@ -980,6 +1020,12 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
             ? 'Ronda de ${defeated.pairNumber}'
             : defeated.name.replaceAll('¡', '').replaceAll('!', '');
         _triggerCallout(p, '$detail (Matada)');
+        _addAuditLog(
+          playerName: p.name,
+          type: AuditEntryType.canto,
+          description: '$detail (Canto matado por superior)',
+          points: 0,
+        );
       }
       p.pendingCanto = null;
     }
@@ -1089,6 +1135,7 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
 
     if (widget.animateDealing) {
       // 1. Quitar de la mano y lanzar el vuelo hacia la mesa / carta objetivo
+      AudioService().playCardDeal();
       setState(() {
         player.hand.remove(card);
         _selectedCard = null;
@@ -1179,8 +1226,19 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
         if (eval.totalPoints > 0) {
           _addPoints(player, eval.totalPoints);
           _triggerCallout(player, eval.breakdownMessage);
+          _addAuditLog(
+            playerName: player.name,
+            type: AuditEntryType.puntos,
+            description: eval.breakdownMessage,
+            points: eval.totalPoints,
+          );
         } else if (eval.capturedCards.length > 2) {
           _triggerCallout(player, eval.breakdownMessage);
+          _addAuditLog(
+            playerName: player.name,
+            type: AuditEntryType.jugada,
+            description: 'Recogió ${eval.capturedCards.length} cartas con ${card.displayName}',
+          );
         }
       } else {
         // No hubo captura: la carta se asienta sobre la mesa exactamente donde aterrizó el vuelo
@@ -1230,8 +1288,19 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
       if (eval.totalPoints > 0) {
         _addPoints(player, eval.totalPoints);
         _triggerCallout(player, eval.breakdownMessage);
+        _addAuditLog(
+          playerName: player.name,
+          type: AuditEntryType.puntos,
+          description: eval.breakdownMessage,
+          points: eval.totalPoints,
+        );
       } else if (eval.didCapture && eval.capturedCards.length > 2) {
         _triggerCallout(player, eval.breakdownMessage);
+        _addAuditLog(
+          playerName: player.name,
+          type: AuditEntryType.jugada,
+          description: 'Recogió ${eval.capturedCards.length} cartas con ${card.displayName}',
+        );
       }
 
       if (eval.isCaida && eval.isLimpia) {
@@ -1311,16 +1380,67 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
     // Acumulación persistente de puntos/trofeos y nivel
     final session = PlayerSession.shared;
     final initialLevel = session.level;
-    final int rawXpGained = userWon
-        ? (60 + (_players[0].totalMatchCardsWon * 2) + (_matchUserCaidas * 10) + (_matchUserLimpias * 15))
-        : (20 + (_players[0].totalMatchCardsWon * 1));
-    final int xpGained = _vipTier != null ? (rawXpGained * 1.25).round() : rawXpGained;
 
-    if (userWon) {
-      _sessionTrophies += 2000 + (_players[0].score * 50);
-    } else {
-      _sessionTrophies = math.max(0, _sessionTrophies - 500 + (_players[0].score * 20));
+    // --- POTENCIADORES ACTIVOS ---
+    final activeBoosters = session.activeBoosters;
+    final hasXpBooster = activeBoosters.contains(BoosterType.xp);
+    final hasCoinsBooster = activeBoosters.contains(BoosterType.coins);
+    final hasShieldBooster = activeBoosters.contains(BoosterType.shield);
+    final hasLuckyBooster = activeBoosters.contains(BoosterType.lucky);
+
+    // XP calculada por calidad de partida
+    final int baseCalculatedXp = userWon
+        ? (50                                          // Base victoria
+            + (_matchUserCaidas * 8)                   // +8 por cada caída hecha
+            + (_matchUserLimpias * 12)                 // +12 por mesa limpia
+            + (_matchUserCantos * 5)                   // +5 por canto cantado
+            + (_matchUserTrivilins * 25)               // +25 bonus trivilín
+            + (_players[0].totalMatchCardsWon * 1))    // +1 por carta recogida
+        : (10                                          // Base derrota (participación)
+            + (_players[0].totalMatchCardsWon ~/ 2));  // +0.5 por carta recogida
+    int rawXpGained = _vipTier != null ? (baseCalculatedXp * 1.5).round() : baseCalculatedXp;
+    if (hasXpBooster) {
+      rawXpGained *= 2; // Racha Dorada: x2 XP
     }
+    final int xpGained = rawXpGained;
+
+    // --- TROFEOS: calcular y aplicar ---
+    final stats = PlayerStatsModel.shared;
+    final previousTrophies = stats.trophies;
+    final previousRankInfo = RankInfo.forTrophies(previousTrophies);
+
+    final bool userHadTrivolin = _matchUserTrivilins > 0;
+    final bool userHadMesaLimpia = _matchUserLimpias > 0;
+    int trophyDelta = RankProgress.trophyDeltaForResult(
+      won: userWon,
+      trivolin: userHadTrivolin,
+      mesaLimpia: userHadMesaLimpia,
+      isTeams: _isTeams,
+      currentTrophies: previousTrophies,
+    );
+    if (hasLuckyBooster && userWon) {
+      trophyDelta += 10; // Comodín de Mesa: +10 trofeos al ganar
+    }
+    if (hasShieldBooster && !userWon) {
+      trophyDelta = 0; // Escudo de Trofeos: protegido contra pérdida
+    }
+    stats.addTrophies(trophyDelta);
+    final newTrophies = stats.trophies;
+    final newRankInfo = RankInfo.forTrophies(newTrophies);
+    final bool rankChanged = newRankInfo.tier != previousRankInfo.tier;
+    final bool isPromotion = rankChanged && newRankInfo.minTrophies > previousRankInfo.minTrophies;
+    int rankCoinReward = 0;
+    if (isPromotion) {
+      final newRankIndex = RankInfo.allRanks.indexOf(newRankInfo);
+      final isNewHighest = stats.markHighestRank(newRankIndex);
+      if (isNewHighest) {
+        rankCoinReward = RankProgress.coinRewardForRank(newRankInfo.tier);
+        if (rankCoinReward > 0) {
+          session.addCoins(rankCoinReward);
+        }
+      }
+    }
+
     _userLevel = session.level;
 
     // Recompensas del sistema de economía de Fase 2 (PlayerSession)
@@ -1330,7 +1450,11 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
 
     if (_vipTier != null) {
       if (userWon) {
-        vipCoinsWon = _vipWinnerReward ?? _vipTier!.calculateNetPrizePerWinner(isTeams: _isTeams);
+        int baseWinCoins = _vipWinnerReward ?? _vipTier!.calculateNetPrizePerWinner(isTeams: _isTeams);
+        if (hasCoinsBooster) {
+          baseWinCoins = (baseWinCoins * 1.5).round(); // Lluvia de Monedas: +50%
+        }
+        vipCoinsWon = baseWinCoins;
         session.rewardCoins(vipCoinsWon, xpGain: xpGained);
         chestAwarded = session.addChestOnWin();
         if (chestAwarded) {
@@ -1342,8 +1466,12 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
       }
     } else {
       if (userWon) {
-        vipCoinsWon = 150;
-        session.rewardCoins(150, xpGain: xpGained);
+        int baseWinCoins = 150;
+        if (hasCoinsBooster) {
+          baseWinCoins = (baseWinCoins * 1.5).round(); // Lluvia de Monedas: +50%
+        }
+        vipCoinsWon = baseWinCoins;
+        session.rewardCoins(vipCoinsWon, xpGain: xpGained);
         chestAwarded = session.addChestOnWin();
         if (chestAwarded) {
           chestSlotIndex = session.chests.indexWhere((c) => c.getState() == ChestState.unlocking);
@@ -1354,6 +1482,15 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
       }
     }
 
+    // Consumir potenciadores activos tras finalizar la partida
+    final consumedBoosters = session.consumeActiveBoostersForMatch();
+
+    // Logros antes de registrar estadísticas
+    final achievementsBefore = AchievementCatalog.allAchievements
+        .where((a) => a.getProgress(stats) >= a.targetProgress)
+        .map((a) => a.id)
+        .toSet();
+
     // Registrar en estadísticas persistentes del jugador
     PlayerStatsModel.shared.recordGameResult(
       won: userWon,
@@ -1361,6 +1498,74 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
       coinsWon: vipCoinsWon,
       cardsWon: _players[0].totalMatchCardsWon,
     );
+
+    // Nuevos logros desbloqueados tras esta partida
+    final newlyUnlockedAchievements = AchievementCatalog.allAchievements
+        .where((a) => a.getProgress(stats) >= a.targetProgress && !achievementsBefore.contains(a.id))
+        .toList();
+
+    // Registrar acciones en el sistema de Retos Diarios
+    final challengeSys = DailyChallengeSystem.instance;
+    final completedChallenges = <DailyChallengeInstance>[];
+
+    completedChallenges.addAll(challengeSys.recordAction(ChallengeActionType.playMatch, 1));
+    if (userWon) {
+      completedChallenges.addAll(challengeSys.recordAction(ChallengeActionType.winMatch, 1));
+      if (stats.winStreak >= 2) {
+        completedChallenges.addAll(challengeSys.recordAction(ChallengeActionType.winStreak, 1));
+      }
+    }
+    if (_isTeams) {
+      completedChallenges.addAll(challengeSys.recordAction(ChallengeActionType.playTeams, 1));
+      if (userWon) {
+        completedChallenges.addAll(challengeSys.recordAction(ChallengeActionType.winTeams, 1));
+      }
+    }
+    if (_vipTier != null) {
+      completedChallenges.addAll(challengeSys.recordAction(ChallengeActionType.playVip, 1));
+      if (userWon) {
+        completedChallenges.addAll(challengeSys.recordAction(ChallengeActionType.winVip, 1));
+      }
+    }
+    if (_matchUserCaidas > 0) {
+      completedChallenges.addAll(challengeSys.recordAction(ChallengeActionType.makeCaida, _matchUserCaidas));
+    }
+    if (_matchUserLimpias > 0) {
+      completedChallenges.addAll(challengeSys.recordAction(ChallengeActionType.mesaLimpia, _matchUserLimpias));
+    }
+    if (_matchUserCaidas > 0 && _matchUserLimpias > 0) {
+      completedChallenges.addAll(challengeSys.recordAction(ChallengeActionType.caidaAndLimpia, 1));
+    }
+    if (_matchUserTrivilins > 0) {
+      completedChallenges.addAll(challengeSys.recordAction(ChallengeActionType.cantoTrivilin, _matchUserTrivilins));
+    }
+    if (consumedBoosters.isNotEmpty) {
+      completedChallenges.addAll(challengeSys.recordAction(ChallengeActionType.useBooster, 1));
+    }
+    if (_players[0].totalMatchCardsWon > 0) {
+      completedChallenges.addAll(challengeSys.recordAction(ChallengeActionType.collectCards, _players[0].totalMatchCardsWon));
+    }
+
+    // Disparar toasts en cola: retos diarios primero, luego logros desbloqueados
+    for (final ch in completedChallenges) {
+      GameToastQueue.showChallenge(
+        context,
+        title: ch.title,
+        coinReward: ch.coinReward,
+        xpReward: ch.xpReward,
+      );
+    }
+    for (final ach in newlyUnlockedAchievements) {
+      GameToastQueue.showAchievement(
+        context,
+        title: ach.title,
+        subtitle: ach.description,
+        icon: ach.icon,
+        iconColor: ach.iconColor,
+        coinReward: ach.coinReward,
+        xpReward: ach.xpReward,
+      );
+    }
 
     final finalLevel = session.level;
     final didLevelUp = finalLevel > initialLevel;
@@ -1373,6 +1578,25 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
 
     final userTeamCards = userTeamPlayers.isNotEmpty ? userTeamPlayers.map((p) => p.totalMatchCardsWon).reduce(math.max) : _players[0].totalMatchCardsWon;
     final oppTeamCards = oppTeamPlayers.isNotEmpty ? oppTeamPlayers.map((p) => p.totalMatchCardsWon).reduce(math.max) : (sorted.length > 1 ? sorted[1].totalMatchCardsWon : 0);
+
+    // Guardar partida en el historial persistente
+    MatchHistoryStorage.instance.saveMatch(
+      MatchHistoryEntry(
+        id: 'm_${DateTime.now().millisecondsSinceEpoch}',
+        playedAt: DateTime.now(),
+        won: userWon,
+        gameMode: _isTeams ? '2 vs 2' : '1 vs 1',
+        userScore: userTeamScore,
+        opponentScore: oppTeamScore,
+        coinsEarned: userWon ? vipCoinsWon : 0,
+        xpEarned: xpGained,
+        trophyDelta: trophyDelta,
+        caidasCount: _matchUserCaidas,
+        limpiasCount: _matchUserLimpias,
+        cantosCount: _matchUserCantos,
+        auditLogs: List.from(_matchAuditLogs),
+      ),
+    );
 
     setState(() {});
 
@@ -1397,6 +1621,12 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
           cantosCount: _matchUserCantos,
           coinsWon: userWon ? vipCoinsWon : 0,
           xpWon: xpGained,
+          trophyDelta: trophyDelta,
+          previousRank: previousRankInfo,
+          newRank: newRankInfo,
+          rankChanged: rankChanged,
+          isPromotion: isPromotion,
+          coinRewardForRank: rankCoinReward,
           chestAwarded: chestAwarded,
           chestSlotIndex: chestSlotIndex,
           didLevelUp: didLevelUp,
@@ -1404,6 +1634,7 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
           finalLevel: finalLevel,
           customSubtitle: customSubtitle,
           isTeams: _isTeams,
+          consumedBoosters: consumedBoosters,
         );
 
         CaidaGameOverModal.show(
@@ -2220,17 +2451,47 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
                   ),
                 ),
 
-                // 6. Indicador sutil de jugadores en la esquina superior derecha
+                // 6. Auditor de Mesa e Indicador de jugadores en la esquina superior derecha
                 Positioned(
                   top: topOpponentY,
                   right: isCompact ? 8 : 12,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF1E1B4B).withValues(alpha: 0.65),
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: Colors.white24, width: 0.8),
-                    ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      GestureDetector(
+                        onTap: () => TableAuditorPanel.show(context, auditLogs: _matchAuditLogs),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF1E143C).withValues(alpha: 0.9),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: const Color(0xFFF59E0B), width: 1.1),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.assignment_rounded, color: Color(0xFFFDE047), size: 13),
+                              const SizedBox(width: 4),
+                              Text(
+                                'Auditor (${_matchAuditLogs.length})',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF1E1B4B).withValues(alpha: 0.65),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: Colors.white24, width: 0.8),
+                        ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -2256,7 +2517,9 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
                       ],
                     ),
                   ),
-                ),
+                ],
+              ),
+            ),
 
                 // 7. Capa superior de naipes en vuelo y efectos de impacto
                 Positioned.fill(

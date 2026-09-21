@@ -349,6 +349,7 @@ class TablePlayerBadge extends StatelessWidget {
       case PlayerPositionOnTable.bottom:
         return Positioned(
           bottom: verticalOffset,
+          left: 0,
           child: SpeechBubble.directional(
             text: calloutMessage!,
             arrowDirection: BubbleArrowDirection.down,

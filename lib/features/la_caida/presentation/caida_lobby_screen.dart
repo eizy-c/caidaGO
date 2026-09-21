@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../../core/presentation/widgets/app_3d_button.dart';
 import '../../../core/presentation/widgets/spanish_card_view.dart';
@@ -5,13 +6,18 @@ import '../../../core/rules/game_rules_data.dart';
 import '../../../core/services/feedback_service.dart';
 import '../../../core/services/user_profile_service.dart';
 import '../domain/models/caida_match_config.dart';
-import '../economy/daily_challenge.dart';
+import '../economy/daily_challenge_system.dart';
 import '../economy/player_session.dart';
+import '../economy/player_stats_model.dart';
+import 'widgets/game_toast_queue.dart';
 import 'caida_screen.dart';
+import 'widgets/rank_badge_widget.dart';
+import 'widgets/booster_selector_widget.dart';
 import 'widgets/bot_customization_modal.dart';
 import 'widgets/buy_tickets_modal.dart';
 import 'widgets/chest_slots_view.dart';
 import 'widgets/four_aces_display_view.dart';
+import 'widgets/match_history_modal.dart';
 import 'widgets/player_profile_stats_modal.dart';
 import 'widgets/profile_and_level_modal.dart';
 import 'widgets/user_frame_view.dart';
@@ -37,6 +43,7 @@ class CaidaLobbyScreen extends StatefulWidget {
 class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
   final _profileService = UserProfileService();
   late PlayerSession _session;
+  Timer? _ticketRegenTimer;
 
   // Estado del flujo del lobby
   LobbyViewMode _currentView = LobbyViewMode.main;
@@ -57,6 +64,14 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
     _session.addListener(_onProfileChanged);
     _profileService.addListener(_onProfileChanged);
     _loadSessionAsync();
+
+    _ticketRegenTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (mounted) {
+        setState(() {
+          _session.regenerateTicketsPassive();
+        });
+      }
+    });
   }
 
   Future<void> _loadSessionAsync() async {
@@ -78,6 +93,7 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
 
   @override
   void dispose() {
+    _ticketRegenTimer?.cancel();
     _session.removeListener(_onProfileChanged);
     _profileService.removeListener(_onProfileChanged);
     super.dispose();
@@ -125,8 +141,8 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
     );
   }
 
-  void _openBuyTicketsModal() {
-    BuyTicketsModal.show(context, session: _session);
+  void _openBuyTicketsModal({int initialTab = 0}) {
+    BuyTicketsModal.show(context, session: _session, initialTab: initialTab);
   }
 
   void _openTutorial() {
@@ -147,74 +163,146 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
     PlayerProfileStatsModal.show(context, session: _session);
   }
 
-  void _openChallengesDialog() {
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        backgroundColor: const Color(0xFF0F172A),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(24),
-          side: const BorderSide(color: Color(0xFFF59E0B), width: 1.5),
-        ),
-        title: const Row(
-          children: [
-            Icon(Icons.emoji_events_rounded, color: Color(0xFFFDE047), size: 28),
-            SizedBox(width: 10),
-            Text(
-              'Desafíos Diarios',
-              style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 18),
-            ),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: DailyChallenge.defaultChallenges
-              .map((c) => _buildChallengeItem(c))
-              .toList(),
-        ),
-        actions: [
-          App3dButton(
-            label: 'Aceptar',
-            variant: App3dButtonVariant.gold,
-            depth: 3.5,
-            borderRadius: 10,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-        ],
-      ),
-    );
+  void _openHistoryDialog() {
+    MatchHistoryModal.show(context);
   }
 
-  Widget _buildChallengeItem(DailyChallenge challenge) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: const Color(0xFF1E293B),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.white12, width: 1),
-      ),
-      child: Row(
-        children: [
-          Icon(
-            challenge.isCompleted ? Icons.check_circle_rounded : Icons.radio_button_unchecked_rounded,
-            color: challenge.isCompleted ? const Color(0xFF22C55E) : const Color(0xFFFDE047),
-            size: 20,
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+  void _openChallengesDialog() {
+    final system = DailyChallengeSystem.instance;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          final challenges = system.challenges;
+          final remaining = system.timeUntilNextReset();
+          final hours = remaining.inHours.toString().padLeft(2, '0');
+          final minutes = (remaining.inMinutes % 60).toString().padLeft(2, '0');
+          final seconds = (remaining.inSeconds % 60).toString().padLeft(2, '0');
+
+          return AlertDialog(
+            backgroundColor: const Color(0xFF0F172A),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(24),
+              side: const BorderSide(color: Color(0xFFF59E0B), width: 1.5),
+            ),
+            title: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(challenge.title, style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 2),
-                Text(challenge.rewardText, style: const TextStyle(color: Color(0xFFFDE047), fontSize: 11, fontWeight: FontWeight.w600)),
+                const Row(
+                  children: [
+                    Icon(Icons.emoji_events_rounded, color: Color(0xFFFDE047), size: 26),
+                    SizedBox(width: 8),
+                    Text(
+                      'Retos Diarios',
+                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 17),
+                    ),
+                  ],
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1E293B),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: Colors.white24),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.timer_rounded, size: 12, color: Color(0xFFFDE047)),
+                      const SizedBox(width: 4),
+                      Text(
+                        '$hours:$minutes:$seconds',
+                        style: const TextStyle(color: Color(0xFFFDE047), fontSize: 11, fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
-          ),
-          Text(challenge.progressText, style: const TextStyle(color: Colors.white54, fontSize: 11, fontWeight: FontWeight.bold)),
-        ],
+            content: SizedBox(
+              width: 420,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: challenges.map((c) {
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 10),
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1E293B),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                        color: c.isCompleted ? const Color(0xFF22C55E).withValues(alpha: 0.5) : Colors.white12,
+                        width: 1,
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          c.isCompleted ? Icons.check_circle_rounded : Icons.radio_button_unchecked_rounded,
+                          color: c.isCompleted ? const Color(0xFF22C55E) : const Color(0xFFFDE047),
+                          size: 22,
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(c.title, style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
+                              const SizedBox(height: 2),
+                              Text(c.rewardText, style: const TextStyle(color: Color(0xFFFDE047), fontSize: 11, fontWeight: FontWeight.w600)),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        if (c.isClaimed)
+                          const Text('Reclamado', style: TextStyle(color: Colors.white54, fontSize: 11, fontWeight: FontWeight.bold))
+                        else if (c.isCompleted)
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF22C55E),
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                              minimumSize: const Size(60, 28),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            ),
+                            onPressed: () {
+                              final claimed = system.claimReward(c.id);
+                              if (claimed != null) {
+                                _session.addCoins(claimed.coinReward);
+                                _session.addXp(claimed.xpReward);
+                                GameToastQueue.showChallenge(
+                                  context,
+                                  title: claimed.title,
+                                  coinReward: claimed.coinReward,
+                                  xpReward: claimed.xpReward,
+                                );
+                                setDialogState(() {});
+                                setState(() {});
+                              }
+                            },
+                            child: const Text('Reclamar', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900)),
+                          )
+                        else
+                          Text(c.progressText, style: const TextStyle(color: Colors.white54, fontSize: 11, fontWeight: FontWeight.bold)),
+                      ],
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+            actions: [
+              App3dButton(
+                label: 'Cerrar',
+                variant: App3dButtonVariant.gold,
+                depth: 3.5,
+                borderRadius: 10,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -778,18 +866,23 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
                   const Icon(Icons.confirmation_number_rounded, color: Color(0xFF38BDF8), size: 18),
                   const SizedBox(width: 6),
                   Text(
-                    '${_session.tickets}',
-                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 14),
+                    '${_session.tickets}/${_session.maxTickets}',
+                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 13),
                   ),
-                  const SizedBox(width: 6),
-                  Container(
-                    padding: const EdgeInsets.all(2),
-                    decoration: const BoxDecoration(
-                      color: Color(0xFF38BDF8),
-                      shape: BoxShape.circle,
+                  if (_session.tickets < _session.maxTickets) ...[
+                    const SizedBox(width: 6),
+                    _buildTicketRegenBadge(),
+                  ] else ...[
+                    const SizedBox(width: 6),
+                    Container(
+                      padding: const EdgeInsets.all(2),
+                      decoration: const BoxDecoration(
+                        color: Color(0xFF38BDF8),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.add, size: 10, color: Color(0xFF0F172A)),
                     ),
-                    child: const Icon(Icons.add, size: 10, color: Color(0xFF0F172A)),
-                  ),
+                  ],
                 ],
               ),
             ),
@@ -833,6 +926,36 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
     );
   }
 
+  /// Pequeña cápsula con el tiempo hasta el próximo ticket
+  Widget _buildTicketRegenBadge() {
+    final remaining = _session.timeUntilNextTicket();
+    final minutes = remaining.inMinutes.toString().padLeft(2, '0');
+    final seconds = (remaining.inSeconds % 60).toString().padLeft(2, '0');
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+      decoration: BoxDecoration(
+        color: const Color(0xFF0F172A),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: const Color(0xFF38BDF8).withValues(alpha: 0.5), width: 1),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.timer_rounded, size: 10, color: Color(0xFF38BDF8)),
+          const SizedBox(width: 3),
+          Text(
+            '$minutes:$seconds',
+            style: const TextStyle(
+              color: Color(0xFF38BDF8),
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   // --- VISTA PRINCIPAL SEGÚN EL BOCETO ---
   Widget _buildMainSketchLobbyView() {
     return Padding(
@@ -843,11 +966,18 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
           _buildSubHeaderRow(),
           const Spacer(),
 
-          // 2. Zona Central (Abanico de los 4 Ases de la Baraja | Botones JUGAR y TUTORIAL)
+          // 2. Selector de Potenciadores
+          BoosterSelectorWidget(
+            session: _session,
+            onOpenShop: () => _openBuyTicketsModal(initialTab: 1),
+          ),
+          const SizedBox(height: 12),
+
+          // 3. Zona Central (Abanico de los 4 Ases de la Baraja | Botones JUGAR y TUTORIAL)
           _buildCenterActionArea(),
           const Spacer(),
 
-          // 3. Fila Inferior (4 Ranuras de Cofres de Recompensa)
+          // 4. Fila Inferior (4 Ranuras de Cofres de Recompensa)
           ChestSlotsView(
             session: _session,
             onChestClaimed: (coins) {
@@ -904,12 +1034,22 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
           ),
           const SizedBox(width: 10),
 
-          // Columna Central: Botones "Estadística" y "Desafíos"
+          // Columna Central: Botones "Estadística", "Historial" y "Desafíos"
           Expanded(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                _buildSmallActionBtn('Estadística', Icons.leaderboard_rounded, const Color(0xFF38BDF8), _openStatisticsDialog),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildSmallActionBtn('Estadística', Icons.leaderboard_rounded, const Color(0xFF38BDF8), _openStatisticsDialog),
+                    ),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: _buildSmallActionBtn('Historial', Icons.history_rounded, const Color(0xFFA855F7), _openHistoryDialog),
+                    ),
+                  ],
+                ),
                 const SizedBox(height: 6),
                 _buildSmallActionBtn('Desafíos', Icons.emoji_events_rounded, const Color(0xFFFDE047), _openChallengesDialog),
               ],
@@ -917,15 +1057,26 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
           ),
           const SizedBox(width: 10),
 
-          // Tarjeta de Perfil del Usuario (Avatar + Marco + Insignia de Nivel)
+          // Tarjeta de Perfil del Usuario (Avatar + Marco + Insignia de Nivel y Rango)
           GestureDetector(
             onTap: () => _openProfileAndLevelModal(),
-            child: UserFrameView(
-              avatarIndex: _session.avatarIndex,
-              frameId: _session.selectedFrameId,
-              level: _session.level,
-              size: 58,
-              showLevelBadge: true,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                UserFrameView(
+                  avatarIndex: _session.avatarIndex,
+                  frameId: _session.selectedFrameId,
+                  level: _session.level,
+                  size: 58,
+                  showLevelBadge: true,
+                ),
+                const SizedBox(height: 4),
+                RankBadgeWidget(
+                  trophies: PlayerStatsModel.shared.trophies,
+                  compact: true,
+                  fontSize: 10,
+                ),
+              ],
             ),
           ),
         ],
@@ -933,12 +1084,19 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
     );
   }
 
-  Widget _buildSmallActionBtn(String title, IconData icon, Color color, VoidCallback onTap) {
+  Widget _buildSmallActionBtn(
+    String title,
+    IconData icon,
+    Color color,
+    VoidCallback onTap, {
+    double fontSize = 11,
+    EdgeInsetsGeometry? padding,
+  }) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
         height: 31,
-        padding: const EdgeInsets.symmetric(horizontal: 10),
+        padding: padding ?? const EdgeInsets.symmetric(horizontal: 6),
         decoration: BoxDecoration(
           color: const Color(0xFF1E293B),
           borderRadius: BorderRadius.circular(10),
@@ -948,13 +1106,17 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(icon, color: color, size: 14),
-            const SizedBox(width: 6),
-            Text(
-              title,
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 12,
+            const SizedBox(width: 4),
+            Flexible(
+              child: Text(
+                title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: fontSize,
+                ),
               ),
             ),
           ],

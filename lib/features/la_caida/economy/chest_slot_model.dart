@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'booster_model.dart';
 
 enum ChestState {
   empty,
@@ -100,6 +101,17 @@ class ChestSlotModel {
   int generateRewardXp({math.Random? random}) {
     final rng = random ?? math.Random();
     return 30 + rng.nextInt(121);
+  }
+
+  /// Genera un potenciador aleatorio con 60% de probabilidad
+  BoosterType? generateRewardBooster({math.Random? random}) {
+    final rng = random ?? math.Random();
+    // 60% probabilidad de entregar un booster aleatorio
+    if (rng.nextDouble() < 0.60) {
+      const types = BoosterType.values;
+      return types[rng.nextInt(types.length)];
+    }
+    return null;
   }
 
   Map<String, dynamic> toJson() => {

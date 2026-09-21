@@ -8,12 +8,17 @@ import '../../../core/services/debug_logger.dart';
 class PlayerStatsModel extends ChangeNotifier {
   static const String storageKey = 'caida_player_game_stats_v3';
 
+  // --- TROFEOS Y RANGO ---
+  int trophies;
+  int highestRankIndex;
+
   // --- ESTADÍSTICAS GENERALES ---
   int totalEarnings;
   int gamesPlayed;
   int gamesWon;
   int currentStreak;
   int maxStreak;
+  int get winStreak => currentStreak;
   int soloWins;
   int teamWins;
 
@@ -35,6 +40,8 @@ class PlayerStatsModel extends ChangeNotifier {
   final Set<String> claimedAchievementIds;
 
   PlayerStatsModel({
+    this.trophies = 0,
+    this.highestRankIndex = 0,
     this.totalEarnings = 0,
     this.gamesPlayed = 0,
     this.gamesWon = 0,
@@ -155,7 +162,28 @@ class PlayerStatsModel extends ChangeNotifier {
 
   // --- SERIALIZACIÓN JSON Y PERSISTENCIA LOCAL ---
 
+  /// Agrega o quita trofeos. Respeta la protección de Novato (mínimo 0).
+  void addTrophies(int delta) {
+    trophies = (trophies + delta).clamp(0, 999999);
+    notifyListeners();
+    save();
+  }
+
+  /// Marca un nuevo rango máximo alcanzado (por índice en RankInfo.allRanks).
+  /// Retorna true si es un nuevo máximo (para entregar recompensa).
+  bool markHighestRank(int rankIndex) {
+    if (rankIndex > highestRankIndex) {
+      highestRankIndex = rankIndex;
+      notifyListeners();
+      save();
+      return true;
+    }
+    return false;
+  }
+
   Map<String, dynamic> toJson() => {
+        'trophies': trophies,
+        'highestRankIndex': highestRankIndex,
         'totalEarnings': totalEarnings,
         'gamesPlayed': gamesPlayed,
         'gamesWon': gamesWon,
@@ -183,6 +211,8 @@ class PlayerStatsModel extends ChangeNotifier {
         <String>{};
 
     return PlayerStatsModel(
+      trophies: json['trophies'] as int? ?? 0,
+      highestRankIndex: json['highestRankIndex'] as int? ?? 0,
       totalEarnings: json['totalEarnings'] as int? ?? 0,
       gamesPlayed: json['gamesPlayed'] as int? ?? 0,
       gamesWon: json['gamesWon'] as int? ?? 0,
@@ -206,6 +236,8 @@ class PlayerStatsModel extends ChangeNotifier {
 
   /// Restablece todas las estadísticas a 0 (útil para pruebas y reinicios).
   void reset() {
+    trophies = 0;
+    highestRankIndex = 0;
     totalEarnings = 0;
     gamesPlayed = 0;
     gamesWon = 0;
@@ -261,6 +293,8 @@ class PlayerStatsModel extends ChangeNotifier {
   }
 
   void _copyFrom(PlayerStatsModel other) {
+    trophies = other.trophies;
+    highestRankIndex = other.highestRankIndex;
     totalEarnings = other.totalEarnings;
     gamesPlayed = other.gamesPlayed;
     gamesWon = other.gamesWon;

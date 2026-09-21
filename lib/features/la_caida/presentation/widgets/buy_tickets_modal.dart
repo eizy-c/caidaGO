@@ -2,28 +2,31 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../economy/player_session.dart';
 import '../../economy/ticket_shop_offer.dart';
+import '../../economy/booster_model.dart';
 import '../../../../core/presentation/widgets/app_3d_button.dart';
 
-/// Modal de Tienda de Tickets para partidas normales / casuales de La Caída.
-/// Ofrece recarga gratuita mediante video y compra individual o en paquetes con monedas blandas.
+/// Modal de Tienda de Tickets y Potenciadores para partidas de La Caída.
 class BuyTicketsModal extends StatefulWidget {
   final PlayerSession session;
+  final int initialTab;
 
   const BuyTicketsModal({
     super.key,
     required this.session,
+    this.initialTab = 0,
   });
 
   /// Muestra el modal en un bottom sheet estilizado de alta gama.
   static Future<void> show(
     BuildContext context, {
     required PlayerSession session,
+    int initialTab = 0,
   }) {
     return showModalBottomSheet<void>(
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      builder: (ctx) => BuyTicketsModal(session: session),
+      builder: (ctx) => BuyTicketsModal(session: session, initialTab: initialTab),
     );
   }
 
@@ -32,14 +35,44 @@ class BuyTicketsModal extends StatefulWidget {
 }
 
 class _BuyTicketsModalState extends State<BuyTicketsModal> {
+  late int _selectedTab;
   String? _feedbackMessage;
   Color _feedbackColor = const Color(0xFF10B981);
   Timer? _feedbackTimer;
 
   @override
+  void initState() {
+    super.initState();
+    _selectedTab = widget.initialTab;
+  }
+
+  @override
   void dispose() {
     _feedbackTimer?.cancel();
     super.dispose();
+  }
+
+  void _buyBoosterOffer(BoosterType type) {
+    final def = BoosterDefinition.getByType(type);
+    final success = widget.session.buyBooster(type);
+    if (success) {
+      _showFeedback('¡Compraste 1x ${def.name}!');
+    } else {
+      _showFeedback('Monedas insuficientes (necesitas ${def.coinCost} monedas).', isError: true);
+    }
+  }
+
+  void _buyChampionBundle() {
+    const cost = 900;
+    final success = widget.session.buyBoosterBundle(
+      cost: cost,
+      boosters: [BoosterType.xp, BoosterType.shield, BoosterType.coins],
+    );
+    if (success) {
+      _showFeedback('¡Paquete Campeón adquirido! (3 potenciadores agregados)');
+    } else {
+      _showFeedback('Monedas insuficientes (necesitas 900 monedas).', isError: true);
+    }
   }
 
   void _showFeedback(String message, {bool isError = false}) {
@@ -223,109 +256,104 @@ class _BuyTicketsModalState extends State<BuyTicketsModal> {
                   ],
                 ),
 
-                const SizedBox(height: 16),
+                const SizedBox(height: 14),
 
-                // Barra de energía / tickets actuales
-                Container(
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF1A102E),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.white12, width: 1),
-                  ),
-                  child: Column(
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Flexible(
-                            child: Text(
-                              'TICKETS DISPONIBLES',
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                color: Colors.white.withValues(alpha: 0.7),
-                                fontSize: 11,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 1.0,
-                              ),
+                // Selector de pestañas: Tickets vs Potenciadores
+                Row(
+                  children: [
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () => setState(() => _selectedTab = 0),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          decoration: BoxDecoration(
+                            color: _selectedTab == 0
+                                ? const Color(0xFF38BDF8).withValues(alpha: 0.25)
+                                : Colors.white.withValues(alpha: 0.05),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: _selectedTab == 0
+                                  ? const Color(0xFF38BDF8)
+                                  : Colors.white12,
+                              width: 1.2,
                             ),
                           ),
-                          const SizedBox(width: 8),
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
                             children: [
+                              Icon(
+                                Icons.confirmation_num_rounded,
+                                size: 16,
+                                color: _selectedTab == 0
+                                    ? const Color(0xFF38BDF8)
+                                    : Colors.white54,
+                              ),
+                              const SizedBox(width: 6),
                               Text(
-                                '${session.tickets} / ${session.maxTickets}',
-                                style: const TextStyle(
-                                  color: Color(0xFF38BDF8),
-                                  fontSize: 14,
+                                'Tickets',
+                                style: TextStyle(
+                                  color: _selectedTab == 0
+                                      ? Colors.white
+                                      : Colors.white54,
                                   fontWeight: FontWeight.w900,
+                                  fontSize: 13,
                                 ),
                               ),
-                              const SizedBox(width: 4),
-                              const Icon(Icons.confirmation_num_rounded, color: Color(0xFF38BDF8), size: 16),
                             ],
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(6),
-                        child: LinearProgressIndicator(
-                          value: session.tickets / session.maxTickets,
-                          minHeight: 8,
-                          backgroundColor: Colors.white10,
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            isMaxTickets
-                                ? const Color(0xFF10B981)
-                                : const Color(0xFF38BDF8),
                           ),
                         ),
                       ),
-                      const SizedBox(height: 6),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Flexible(
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  isMaxTickets ? Icons.bolt_rounded : Icons.timer_outlined,
-                                  size: 13,
-                                  color: isMaxTickets ? const Color(0xFF10B981) : Colors.white54,
-                                ),
-                                const SizedBox(width: 4),
-                                Flexible(
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () => setState(() => _selectedTab = 1),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          decoration: BoxDecoration(
+                            color: _selectedTab == 1
+                                ? const Color(0xFFA855F7).withValues(alpha: 0.25)
+                                : Colors.white.withValues(alpha: 0.05),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: _selectedTab == 1
+                                  ? const Color(0xFFA855F7)
+                                  : Colors.white12,
+                              width: 1.2,
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.bolt_rounded,
+                                size: 16,
+                                color: _selectedTab == 1
+                                    ? const Color(0xFFFDE047)
+                                    : Colors.white54,
+                              ),
+                              const SizedBox(width: 6),
+                              Flexible(
+                                child: FittedBox(
+                                  fit: BoxFit.scaleDown,
                                   child: Text(
-                                    isMaxTickets
-                                        ? '¡Energía al 100%!'
-                                        : '1 ticket cada 20 min',
-                                    overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(
-                                      color: Colors.white54,
-                                      fontSize: 10,
+                                    'Potenciadores',
+                                    style: TextStyle(
+                                      color: _selectedTab == 1
+                                          ? Colors.white
+                                          : Colors.white54,
+                                      fontWeight: FontWeight.w900,
+                                      fontSize: 13,
                                     ),
                                   ),
                                 ),
-                              ],
-                            ),
-                          ),
-                          if (!isMaxTickets) ...[
-                            const SizedBox(width: 8),
-                            const Text(
-                              'Activa',
-                              style: TextStyle(
-                                color: Color(0xFF34D399),
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
                               ),
-                            ),
-                          ],
-                        ],
+                            ],
+                          ),
+                        ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
 
                 if (_feedbackMessage != null) ...[
@@ -349,29 +377,175 @@ class _BuyTicketsModalState extends State<BuyTicketsModal> {
                   ),
                 ],
 
-                const SizedBox(height: 16),
+                const SizedBox(height: 14),
 
-                // Opciones oficiales de la tienda basadas en el objeto TicketShopOffer
-                ...TicketShopOffer.standardOffers.map((offer) {
-                  return Padding(
+                if (_selectedTab == 0) ...[
+                  // Barra de energía / tickets actuales
+                  Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1A102E),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: Colors.white12, width: 1),
+                    ),
+                    child: Column(
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Flexible(
+                              child: Text(
+                                'TICKETS DISPONIBLES',
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  color: Colors.white.withValues(alpha: 0.7),
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 1.0,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  '${session.tickets} / ${session.maxTickets}',
+                                  style: const TextStyle(
+                                    color: Color(0xFF38BDF8),
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w900,
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                const Icon(Icons.confirmation_num_rounded, color: Color(0xFF38BDF8), size: 16),
+                              ],
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(6),
+                          child: LinearProgressIndicator(
+                            value: session.tickets / session.maxTickets,
+                            minHeight: 8,
+                            backgroundColor: Colors.white10,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              isMaxTickets
+                                  ? const Color(0xFF10B981)
+                                  : const Color(0xFF38BDF8),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Flexible(
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    isMaxTickets ? Icons.bolt_rounded : Icons.timer_outlined,
+                                    size: 13,
+                                    color: isMaxTickets ? const Color(0xFF10B981) : Colors.white54,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Flexible(
+                                    child: Text(
+                                      isMaxTickets
+                                          ? '¡Energía al 100%!'
+                                          : '1 ticket cada 20 min',
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                        color: Colors.white54,
+                                        fontSize: 10,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            if (!isMaxTickets) ...[
+                              const SizedBox(width: 8),
+                              const Text(
+                                'Activa',
+                                style: TextStyle(
+                                  color: Color(0xFF34D399),
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 14),
+
+                  // Opciones oficiales de la tienda basadas en el objeto TicketShopOffer
+                  ...TicketShopOffer.standardOffers.map((offer) {
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: _buildOptionCard(
+                        icon: offer.icon,
+                        iconColor: offer.iconColor,
+                        title: offer.title,
+                        subtitle: offer.subtitle,
+                        priceLabel: offer.priceLabel,
+                        isPriceCoin: offer.isPriceCoin,
+                        isEnabled: offer.isEnabled(isMaxTickets: isMaxTickets, playerCoins: session.coins),
+                        disabledLabel: offer.disabledLabel(isMaxTickets: isMaxTickets, playerCoins: session.coins),
+                        badgeText: offer.badgeText,
+                        badgeColor: offer.badgeColor,
+                        oldPriceLabel: offer.oldPriceLabel,
+                        isHighlighted: offer.isHighlighted,
+                        onTap: () => _executeOffer(offer),
+                      ),
+                    );
+                  }),
+                ] else ...[
+                  // PESTAÑA: POTENCIADORES
+                  // Oferta Destacada: Paquete Campeón
+                  Padding(
                     padding: const EdgeInsets.only(bottom: 10),
                     child: _buildOptionCard(
-                      icon: offer.icon,
-                      iconColor: offer.iconColor,
-                      title: offer.title,
-                      subtitle: offer.subtitle,
-                      priceLabel: offer.priceLabel,
-                      isPriceCoin: offer.isPriceCoin,
-                      isEnabled: offer.isEnabled(isMaxTickets: isMaxTickets, playerCoins: session.coins),
-                      disabledLabel: offer.disabledLabel(isMaxTickets: isMaxTickets, playerCoins: session.coins),
-                      badgeText: offer.badgeText,
-                      badgeColor: offer.badgeColor,
-                      oldPriceLabel: offer.oldPriceLabel,
-                      isHighlighted: offer.isHighlighted,
-                      onTap: () => _executeOffer(offer),
+                      icon: Icons.workspace_premium_rounded,
+                      iconColor: const Color(0xFFFDE047),
+                      title: 'Paquete Campeón (3x)',
+                      subtitle: '1x Racha Dorada, 1x Escudo, 1x Lluvia',
+                      priceLabel: '900',
+                      oldPriceLabel: '1,150',
+                      badgeText: 'AHORRA 22%',
+                      badgeColor: const Color(0xFFD97706),
+                      isPriceCoin: true,
+                      isHighlighted: true,
+                      isEnabled: session.coins >= 900,
+                      disabledLabel: 'SIN MONEDAS',
+                      onTap: _buyChampionBundle,
                     ),
-                  );
-                }),
+                  ),
+
+                  // Ofertas Individuales
+                  ...BoosterDefinition.catalog.map((def) {
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: _buildOptionCard(
+                        icon: def.icon,
+                        iconColor: def.color,
+                        title: '${def.name} (1x)',
+                        subtitle: def.description,
+                        priceLabel: '${def.coinCost}',
+                        isPriceCoin: true,
+                        isEnabled: session.coins >= def.coinCost,
+                        disabledLabel: 'SIN MONEDAS',
+                        onTap: () => _buyBoosterOffer(def.type),
+                      ),
+                    );
+                  }),
+                ],
               ],
             ),
           ),

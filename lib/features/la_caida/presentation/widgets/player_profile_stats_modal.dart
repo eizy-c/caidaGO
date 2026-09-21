@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import '../../economy/player_session.dart';
 import '../../economy/player_stats_model.dart';
 import '../../economy/user_progress.dart';
+import '../../economy/achievement_catalog.dart';
 import 'profile_and_level_modal.dart';
 import 'user_frame_view.dart';
+import 'rank_badge_widget.dart';
+import 'game_toast_queue.dart';
 
 /// Modal oficial "Perfil del Jugador" que unifica la vista de estadísticas de juego
 /// detalladas (Generales, Jugadas de Caída y Cantos Tradicionales) y la pestaña de Logros.
@@ -318,7 +321,43 @@ class _PlayerProfileStatsModalState extends State<PlayerProfileStatsModal> {
           // 1. Tarjeta Superior de Identidad del Jugador
           _buildPlayerHeaderCard(progress, level, currentTierXp, neededTierXp, progressRatio),
 
-          const SizedBox(height: 14),
+          // Tarjeta de Rango
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 14), // Quitado horizontal margin porque el parent tiene padding
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: const Color(0xFFE2E8F0), width: 1.2),
+              boxShadow: const [
+                BoxShadow(color: Colors.black12, blurRadius: 4, offset: Offset(0, 2)),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const Icon(Icons.emoji_events_rounded, size: 18, color: Color(0xFFEAB308)),
+                    const SizedBox(width: 6),
+                    const Text(
+                      'Rango Competitivo',
+                      style: TextStyle(
+                        color: Color(0xFF0F172A),
+                        fontSize: 13,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const Spacer(),
+                    RankBadgeWidget(trophies: _stats.trophies),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                RankProgressBar(trophies: _stats.trophies, height: 8),
+              ],
+            ),
+          ),
+
           const Divider(color: Color(0xFFE2D8C9), height: 1, thickness: 1.2),
           const SizedBox(height: 12),
 
@@ -651,98 +690,9 @@ class _PlayerProfileStatsModalState extends State<PlayerProfileStatsModal> {
     );
   }
 
-  /// Pestaña 2: Logros y Misiones de La Caída
+  /// Pestaña 2: Logros y Misiones de La Caída (25 logros en 3 categorías)
   Widget _buildAchievementsTab() {
-    final achievements = [
-      _AchievementDef(
-        id: 'ach_trivilin',
-        title: 'Maestro del Trivilín',
-        description: 'Cantar 3 Trivilines en partidas oficiales.',
-        icon: Icons.auto_awesome_rounded,
-        iconColor: const Color(0xFF7C3AED),
-        currentProgress: _stats.trivilines,
-        targetProgress: 3,
-        coinReward: 500,
-        xpReward: 100,
-      ),
-      _AchievementDef(
-        id: 'ach_limpia',
-        title: 'Rey de la Mesa Limpia',
-        description: 'Realizar 10 Mesas Limpias en partidas.',
-        icon: Icons.cleaning_services_rounded,
-        iconColor: const Color(0xFF0D9488),
-        currentProgress: _stats.mesasLimpias,
-        targetProgress: 10,
-        coinReward: 300,
-        xpReward: 75,
-      ),
-      _AchievementDef(
-        id: 'ach_caidas',
-        title: 'Cazador de Caídas',
-        description: 'Cantar 25 Caídas a tus rivales.',
-        icon: Icons.flash_on_rounded,
-        iconColor: const Color(0xFFE11D48),
-        currentProgress: _stats.caidasMade,
-        targetProgress: 25,
-        coinReward: 250,
-        xpReward: 50,
-      ),
-      _AchievementDef(
-        id: 'ach_vip',
-        title: 'Gallo de Oro',
-        description: 'Ganar 5 partidas en Mesas VIP.',
-        icon: Icons.military_tech_rounded,
-        iconColor: const Color(0xFFEAB308),
-        currentProgress: _stats.gamesWon,
-        targetProgress: 5,
-        coinReward: 1000,
-        xpReward: 200,
-      ),
-      _AchievementDef(
-        id: 'ach_teams',
-        title: 'Invicto en Parejas',
-        description: 'Ganar 3 partidas en modo 2 vs 2.',
-        icon: Icons.groups_rounded,
-        iconColor: const Color(0xFF2563EB),
-        currentProgress: _stats.teamWins,
-        targetProgress: 3,
-        coinReward: 400,
-        xpReward: 80,
-      ),
-      _AchievementDef(
-        id: 'ach_ases',
-        title: 'Coleccionista de Ases',
-        description: 'Acumular 50 cartas ganadas en mesa.',
-        icon: Icons.style_rounded,
-        iconColor: const Color(0xFF059669),
-        currentProgress: _stats.totalCardsWon,
-        targetProgress: 50,
-        coinReward: 350,
-        xpReward: 70,
-      ),
-      _AchievementDef(
-        id: 'ach_registro',
-        title: 'Canto de Gala',
-        description: 'Cantar un Registro en partida oficial.',
-        icon: Icons.workspace_premium_rounded,
-        iconColor: const Color(0xFFD97706),
-        currentProgress: _stats.registros,
-        targetProgress: 1,
-        coinReward: 200,
-        xpReward: 40,
-      ),
-      _AchievementDef(
-        id: 'ach_games',
-        title: 'Veterano de Caída',
-        description: 'Jugar 20 partidas oficiales de La Caída.',
-        icon: Icons.emoji_events_rounded,
-        iconColor: const Color(0xFF9333EA),
-        currentProgress: _stats.gamesPlayed,
-        targetProgress: 20,
-        coinReward: 500,
-        xpReward: 150,
-      ),
-    ];
+    final achievements = AchievementCatalog.allAchievements;
 
     return ListView.separated(
       physics: const BouncingScrollPhysics(),
@@ -751,9 +701,10 @@ class _PlayerProfileStatsModalState extends State<PlayerProfileStatsModal> {
       separatorBuilder: (_, _) => const SizedBox(height: 8),
       itemBuilder: (context, index) {
         final ach = achievements[index];
+        final currentProgress = ach.getProgress(_stats);
         final isClaimed = _stats.claimedAchievementIds.contains(ach.id);
-        final isCompleted = ach.currentProgress >= ach.targetProgress;
-        final progressRatio = (ach.currentProgress / ach.targetProgress).clamp(0.0, 1.0);
+        final isCompleted = currentProgress >= ach.targetProgress;
+        final progressRatio = (currentProgress / ach.targetProgress).clamp(0.0, 1.0);
 
         return Container(
           padding: const EdgeInsets.all(10),
@@ -840,7 +791,7 @@ class _PlayerProfileStatsModalState extends State<PlayerProfileStatsModal> {
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          '${ach.currentProgress.clamp(0, ach.targetProgress)} / ${ach.targetProgress}',
+                          '${currentProgress.clamp(0, ach.targetProgress)} / ${ach.targetProgress}',
                           style: const TextStyle(
                             color: Color(0xFF64748B),
                             fontSize: 10,
@@ -892,6 +843,16 @@ class _PlayerProfileStatsModalState extends State<PlayerProfileStatsModal> {
                     _stats.claimAchievement(ach.id);
                     _session.addCoins(ach.coinReward);
                     _session.addXp(ach.xpReward);
+                    GameToastQueue.showAchievement(
+                      context,
+                      title: ach.title,
+                      description: ach.description,
+                      icon: ach.icon,
+                      iconColor: ach.iconColor,
+                      coinReward: ach.coinReward,
+                      xpReward: ach.xpReward,
+                    );
+                    setState(() {});
                   },
                   child: const Text(
                     'Reclamar',
@@ -920,28 +881,4 @@ class _PlayerProfileStatsModalState extends State<PlayerProfileStatsModal> {
       },
     );
   }
-}
-
-class _AchievementDef {
-  final String id;
-  final String title;
-  final String description;
-  final IconData icon;
-  final Color iconColor;
-  final int currentProgress;
-  final int targetProgress;
-  final int coinReward;
-  final int xpReward;
-
-  _AchievementDef({
-    required this.id,
-    required this.title,
-    required this.description,
-    required this.icon,
-    required this.iconColor,
-    required this.currentProgress,
-    required this.targetProgress,
-    required this.coinReward,
-    required this.xpReward,
-  });
 }

@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+
 /// Cálculo matemático puro de nivel y progreso porcentual mediante curva exponencial.
 /// Todos los jugadores inician formalmente en Nivel 0 (0 XP).
 class UserProgress {
@@ -10,17 +12,17 @@ class UserProgress {
   /// Nivel 1: 100 XP
   /// Nivel N: 100 * (N ^ 1.5)
   static const List<int> _levelThresholds = [
-    0,     // Nivel 0: Pichón (0 XP)
-    100,   // Nivel 1: Caimanero (100 XP - 1 victoria)
-    300,   // Nivel 2: El Avillao (300 XP - ~2-3 victorias)
-    650,   // Nivel 3: Arrastrador (650 XP - ~5-6 victorias)
-    1150,  // Nivel 4: Gallo Fino (1,150 XP - ~10 victorias)
-    1850,  // Nivel 5: El Tigre (1,850 XP - ~17 victorias)
-    2800,  // Nivel 6: El Baquiano (2,800 XP - ~26 victorias)
-    4000,  // Nivel 7: Pana Bravo (4,000 XP - ~38 victorias)
-    5500,  // Nivel 8: El Caballo (5,500 XP - ~52 victorias)
-    7500,  // Nivel 9: El Papá de los Helados (7,500 XP - ~70 victorias)
-    10000, // Nivel 10: Cacique del Trivilín (10,000 XP - ~95+ victorias)
+    0,       // Nivel 0: Pichón
+    300,     // Nivel 1: Caimanero (~5 victorias)
+    800,     // Nivel 2: El Avillao (~13 victorias)
+    1800,    // Nivel 3: Arrastrador (~30 victorias)
+    3500,    // Nivel 4: Gallo Fino (~58 victorias)
+    6000,    // Nivel 5: El Tigre (~100 victorias)
+    9500,    // Nivel 6: El Baquiano (~158 victorias)
+    14000,   // Nivel 7: Pana Bravo (~233 victorias)
+    19500,   // Nivel 8: El Caballo (~325 victorias)
+    26000,   // Nivel 9: El Papá de los Helados (~433 victorias)
+    34000,   // Nivel 10: Cacique del Trivilín (~566 victorias)
   ];
 
   /// XP total acumulada requerida para alcanzar un nivel dado.
@@ -31,7 +33,7 @@ class UserProgress {
     }
     // Niveles de prestigio mayores a 10
     final extra = level - 10;
-    return 10000 + (extra * 3000);
+    return 34000 + (extra * 8000);
   }
 
   /// Nivel actual basado en la XP total acumulada (iniciando en 0).
@@ -90,6 +92,17 @@ class UserProgress {
       default:
         return 'Cacique del Trivilín';
     }
+  }
+
+  /// Color del badge de nivel según el nivel alcanzado.
+  static Color levelBadgeColor(int level) {
+    if (level >= 10) return const Color(0xFFEAB308); // Dorado — Cacique
+    if (level >= 9)  return const Color(0xFF9333EA);  // Púrpura — El Papá
+    if (level >= 7)  return const Color(0xFF4F46E5);  // Índigo — Elite
+    if (level >= 5)  return const Color(0xFF0D9488);  // Cyan — Veterano
+    if (level >= 3)  return const Color(0xFF16A34A);  // Verde — En forma
+    if (level >= 1)  return const Color(0xFFEA580C);  // Naranja — Novato ardiente
+    return const Color(0xFF6B7280);                   // Gris — Sin brillo
   }
 }
 

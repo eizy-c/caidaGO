@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'avatar_view.dart';
+import '../../economy/user_progress.dart';
 
 /// Definición de un marco cosmético para el avatar del usuario.
 class UserFrameItem {
   final String id;
   final String name;
-  final int minLevel;
+  final int minTrophies;
   final List<Color> borderGradient;
   final Color shadowColor;
   final double borderWidth;
@@ -16,7 +17,7 @@ class UserFrameItem {
   const UserFrameItem({
     required this.id,
     required this.name,
-    required this.minLevel,
+    required this.minTrophies,
     required this.borderGradient,
     required this.shadowColor,
     this.borderWidth = 3.5,
@@ -25,112 +26,114 @@ class UserFrameItem {
     this.imagePath,
   });
 
+  bool isUnlockedByTrophies(int trophies) => trophies >= minTrophies;
+
   static const List<UserFrameItem> allFrames = [
     UserFrameItem(
-      id: 'wood',
+      id: 'rank_novato',
       name: 'Madera Clásica',
-      minLevel: 0,
+      minTrophies: 0,
       borderGradient: [Color(0xFF854D0E), Color(0xFFD97706), Color(0xFF78350F)],
       shadowColor: Color(0xFF451A03),
       borderWidth: 3.5,
-      description: 'Marco tradicional de madera caoba pulida.',
+      description: 'Marco de novato. Todos empiezan aquí.',
       imagePath: 'assets/player/marcos/MADERA-MARCOS.png',
     ),
     UserFrameItem(
-      id: 'bronze',
+      id: 'rank_bronce',
       name: 'Bronce Rústico',
-      minLevel: 1,
+      minTrophies: 150,
       borderGradient: [Color(0xFFD97706), Color(0xFFB45309), Color(0xFF78350F)],
       shadowColor: Color(0xFF78350F),
       borderWidth: 3.8,
-      description: 'Marco forjado en bronce de combate.',
+      description: 'Marco de rango Bronce. 150+ trofeos.',
       imagePath: 'assets/player/marcos/BRONCE-MARCOS.png',
     ),
     UserFrameItem(
-      id: 'silver',
+      id: 'rank_plata',
       name: 'Plata Pulida',
-      minLevel: 2,
+      minTrophies: 450,
       borderGradient: [Color(0xFFE2E8F0), Color(0xFF94A3B8), Color(0xFFF8FAFC)],
       shadowColor: Color(0xFF64748B),
       borderWidth: 4.0,
-      description: 'Marco de plata brillante para aprendices destacados.',
+      description: 'Marco de rango Plata. 450+ trofeos.',
       imagePath: 'assets/player/marcos/PLATA-MARCOS.png',
     ),
     UserFrameItem(
-      id: 'gold',
+      id: 'rank_oro',
       name: 'Oro Imperial',
-      minLevel: 3,
+      minTrophies: 900,
       borderGradient: [Color(0xFFFDE047), Color(0xFFEAB308), Color(0xFFCA8A04)],
       shadowColor: Color(0xFFCA8A04),
       borderWidth: 4.5,
       crownIcon: Icons.military_tech_rounded,
-      description: 'Bisel forjado en oro puro con insignias reales.',
+      description: 'Marco de rango Oro. 900+ trofeos.',
       imagePath: 'assets/player/marcos/ORO-MARCOS.png',
     ),
     UserFrameItem(
-      id: 'emerald',
+      id: 'rank_esmeralda',
       name: 'Esmeralda Criolla',
-      minLevel: 4,
+      minTrophies: 1500,
       borderGradient: [Color(0xFF10B981), Color(0xFF059669), Color(0xFF047857)],
       shadowColor: Color(0xFF047857),
       borderWidth: 4.5,
       crownIcon: Icons.diamond_rounded,
-      description: 'Piedra esmeralda venezolana con resplandor natural.',
+      description: 'Marco de rango Esmeralda. 1500+ trofeos.',
       imagePath: 'assets/player/marcos/ESMEALDA-MARCOS.png',
     ),
     UserFrameItem(
-      id: 'diamond',
+      id: 'rank_diamante',
       name: 'Diamante Mítico',
-      minLevel: 5,
+      minTrophies: 2300,
       borderGradient: [Color(0xFFA855F7), Color(0xFFEC4899), Color(0xFF60A5FA)],
       shadowColor: Color(0xFF9333EA),
       borderWidth: 5.0,
       crownIcon: Icons.auto_awesome_rounded,
-      description: 'Marco prismático exclusivo para leyendas criollas.',
+      description: 'Marco de rango Diamante. 2300+ trofeos.',
       imagePath: 'assets/player/marcos/DIAMANTE-MARCOS.png',
     ),
     UserFrameItem(
-      id: 'master',
+      id: 'rank_maestro',
       name: 'Maestro de Caída',
-      minLevel: 6,
+      minTrophies: 3300,
       borderGradient: [Color(0xFFEF4444), Color(0xFFDC2626), Color(0xFF991B1B)],
       shadowColor: Color(0xFF991B1B),
       borderWidth: 5.0,
       crownIcon: Icons.workspace_premium_rounded,
-      description: 'Insignia otorgada únicamente a los maestros consumados.',
+      description: 'Marco de rango Maestro I. 3300+ trofeos.',
       imagePath: 'assets/player/marcos/MAESTRO-MARCOS.png',
     ),
     UserFrameItem(
-      id: 'grand_master',
+      id: 'rank_gran_maestro',
       name: 'Gran Maestro',
-      minLevel: 7,
+      minTrophies: 3700,
       borderGradient: [Color(0xFFF59E0B), Color(0xFFD97706), Color(0xFFB45309)],
       shadowColor: Color(0xFF78350F),
       borderWidth: 5.2,
       crownIcon: Icons.emoji_events_rounded,
-      description: 'Marco de Gran Maestro con gemas relucientes.',
+      description: 'Marco de rango Maestro II. 3700+ trofeos.',
       imagePath: 'assets/player/marcos/GRAN-MAESTRO-MARCOS.png',
     ),
     UserFrameItem(
-      id: 'heroic',
+      id: 'rank_heroico',
       name: 'Heroico',
-      minLevel: 8,
+      minTrophies: 4100,
       borderGradient: [Color(0xFF6366F1), Color(0xFF4F46E5), Color(0xFF4338CA)],
       shadowColor: Color(0xFF312E81),
       borderWidth: 5.5,
       crownIcon: Icons.shield_rounded,
-      description: 'Rango heroico forjado con metales legendarios.',
+      description: 'Marco de rango Maestro III. 4100+ trofeos.',
       imagePath: 'assets/player/marcos/HEROICO-MARCOS.png',
     ),
     UserFrameItem(
-      id: 'legend',
+      id: 'rank_leyenda',
       name: 'Leyenda Suprema',
-      minLevel: 10,
+      minTrophies: 4500,
       borderGradient: [Color(0xFFE11D48), Color(0xFFBE123C), Color(0xFF881337)],
       shadowColor: Color(0xFF4C0519),
       borderWidth: 5.5,
       crownIcon: Icons.star_rounded,
-      description: 'El pináculo absoluto del juego. La Caída Suprema.',
+      description: 'Marco de rango Leyenda. 4500+ trofeos.',
       imagePath: 'assets/player/marcos/LEYENDA-MARCOS.png',
     ),
   ];
@@ -153,7 +156,7 @@ class UserFrameView extends StatelessWidget {
   const UserFrameView({
     super.key,
     required this.avatarIndex,
-    this.frameId = 'wood',
+    this.frameId = 'rank_novato',
     this.level = 0,
     this.size = 64,
     this.showLevelBadge = true,
@@ -273,18 +276,19 @@ class UserFrameView extends StatelessWidget {
   }
 
   Widget _buildLevelShield(double badgeSize) {
+    final badgeColor = UserProgress.levelBadgeColor(level);
     return Container(
       width: badgeSize,
       height: badgeSize,
       decoration: BoxDecoration(
-        color: const Color(0xFF1E1B4B),
+        color: const Color(0xFF0F172A),
         shape: BoxShape.circle,
-        border: Border.all(color: const Color(0xFFFDE047), width: 1.8),
-        boxShadow: const [
+        border: Border.all(color: badgeColor, width: 1.8),
+        boxShadow: [
           BoxShadow(
-            color: Colors.black54,
-            blurRadius: 4,
-            offset: Offset(0, 2),
+            color: badgeColor.withValues(alpha: 0.5),
+            blurRadius: 6,
+            spreadRadius: 1,
           ),
         ],
       ),
@@ -292,7 +296,7 @@ class UserFrameView extends StatelessWidget {
         child: Text(
           '$level',
           style: TextStyle(
-            color: const Color(0xFFFDE047),
+            color: badgeColor,
             fontWeight: FontWeight.w900,
             fontSize: badgeSize * 0.52,
             height: 1.0,

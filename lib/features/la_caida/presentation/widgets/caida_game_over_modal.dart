@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import '../../../../core/presentation/widgets/app_3d_button.dart';
 import '../../economy/player_session.dart';
 import '../../economy/user_progress.dart';
+import '../../economy/rank_system.dart';
+import '../../economy/booster_model.dart';
+import 'rank_up_modal.dart';
 
 /// Datos estadísticos de la partida jugada para el resumen final.
 class CaidaMatchSummary {
@@ -15,6 +18,12 @@ class CaidaMatchSummary {
   final int cantosCount;
   final int coinsWon;
   final int xpWon;
+  final int trophyDelta;
+  final RankInfo? previousRank;
+  final RankInfo? newRank;
+  final bool rankChanged;
+  final bool isPromotion;
+  final int coinRewardForRank;
   final bool chestAwarded;
   final int? chestSlotIndex;
   final bool didLevelUp;
@@ -22,6 +31,7 @@ class CaidaMatchSummary {
   final int finalLevel;
   final String? customSubtitle;
   final bool isTeams;
+  final List<BoosterType> consumedBoosters;
 
   const CaidaMatchSummary({
     required this.userWon,
@@ -34,6 +44,12 @@ class CaidaMatchSummary {
     this.cantosCount = 0,
     required this.coinsWon,
     required this.xpWon,
+    this.trophyDelta = 0,
+    this.previousRank,
+    this.newRank,
+    this.rankChanged = false,
+    this.isPromotion = false,
+    this.coinRewardForRank = 0,
     this.chestAwarded = false,
     this.chestSlotIndex,
     this.didLevelUp = false,
@@ -41,6 +57,7 @@ class CaidaMatchSummary {
     this.finalLevel = 0,
     this.customSubtitle,
     this.isTeams = false,
+    this.consumedBoosters = const [],
   });
 }
 
@@ -115,6 +132,21 @@ class _CaidaGameOverModalState extends State<CaidaGameOverModal>
     );
 
     _animController.forward();
+
+    if (widget.summary.rankChanged) {
+      Future.delayed(const Duration(milliseconds: 1500), () {
+        if (mounted) {
+          RankUpModal.show(
+            context,
+            previousRank: widget.summary.previousRank!,
+            newRank: widget.summary.newRank!,
+            isPromotion: widget.summary.isPromotion,
+            trophyDelta: widget.summary.trophyDelta,
+            coinReward: widget.summary.coinRewardForRank,
+          );
+        }
+      });
+    }
   }
 
   @override
@@ -539,6 +571,59 @@ class _CaidaGameOverModalState extends State<CaidaGameOverModal>
             ],
           ),
           const SizedBox(height: 12),
+          
+          // Trofeos ganados/perdidos
+          if (summary.trophyDelta != 0) ...[
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  summary.trophyDelta > 0
+                      ? '+${summary.trophyDelta} 🏆'
+                      : '${summary.trophyDelta} 🏆',
+                  style: TextStyle(
+                    color: summary.trophyDelta > 0
+                        ? const Color(0xFF22C55E)
+                        : const Color(0xFFEF4444),
+                    fontSize: 16,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+          ],
+
+          // Potenciadores aplicados en la partida
+          if (summary.consumedBoosters.isNotEmpty) ...[
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              margin: const EdgeInsets.only(bottom: 12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFA855F7).withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: const Color(0xFFA855F7).withValues(alpha: 0.4)),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.bolt_rounded, size: 16, color: Color(0xFFFDE047)),
+                  const SizedBox(width: 6),
+                  Flexible(
+                    child: Text(
+                      'Potenciadores aplicados: ${summary.consumedBoosters.map((b) => BoosterDefinition.getByType(b).name).join(", ")}',
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Color(0xFFE9D5FF),
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
 
           // Subida de nivel banner (si ocurrió)
           if (summary.didLevelUp) ...[

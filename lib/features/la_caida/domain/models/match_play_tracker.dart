@@ -6,6 +6,7 @@ class MatchPlayTracker {
   int userCaidas = 0;
   int userLimpias = 0;
   int userCantos = 0;
+  int userTrivilins = 0;
 
   SpanishCard? lastPlayedCard;
   int? lastPlayedPlayerIndex;
@@ -46,6 +47,7 @@ class MatchPlayTracker {
     userCaidas = 0;
     userLimpias = 0;
     userCantos = 0;
+    userTrivilins = 0;
     lastPlayedCard = null;
     lastPlayedPlayerIndex = null;
     lastCapturingPlayerIndex = null;

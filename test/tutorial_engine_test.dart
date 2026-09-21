@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:gme/core/models/cards/card_suit.dart';
 import 'package:gme/core/models/cards/spanish_card.dart';
+import 'package:gme/core/services/audio_service.dart';
 import 'package:gme/features/la_caida/economy/player_session.dart';
 import 'package:gme/features/la_caida/tutorial/tutorial_engine.dart';
 
@@ -11,6 +12,7 @@ void main() {
   group('TutorialEngine - Tour de Novatos (Fase 3)', () {
     setUp(() {
       SharedPreferences.setMockInitialValues({});
+      AudioService().isMuted = true;
       PlayerSession.setShared(PlayerSession.createDefault(coins: 0, hasCompletedTutorial: false));
     });
 

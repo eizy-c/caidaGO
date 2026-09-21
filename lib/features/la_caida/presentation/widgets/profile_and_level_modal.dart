@@ -458,7 +458,7 @@ class _ProfileAndLevelModalState extends State<ProfileAndLevelModal> with Single
       itemCount: UserFrameItem.allFrames.length,
       itemBuilder: (context, i) {
         final frame = UserFrameItem.allFrames[i];
-        final isUnlocked = progress.currentLevel >= frame.minLevel;
+        final isUnlocked = frame.isUnlockedByTrophies(progress.totalXp);
         final isSelected = _tempFrameId == frame.id;
 
         return Container(
@@ -499,7 +499,7 @@ class _ProfileAndLevelModalState extends State<ProfileAndLevelModal> with Single
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      isUnlocked ? 'Desbloqueado' : 'Requiere Nivel ${frame.minLevel}',
+                      isUnlocked ? 'Desbloqueado' : 'Requiere ${frame.minTrophies} Trofeos',
                       style: TextStyle(
                         color: isUnlocked ? const Color(0xFF4ADE80) : const Color(0xFFF87171),
                         fontSize: 10,

@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/services/debug_logger.dart';
 import 'chest_slot_model.dart';
 import 'user_progress.dart';
+import 'booster_model.dart';
 
 /// Modelo y gestor de sesión local persistente del jugador para La Caída.
 /// Implementa regeneración pasiva por tiempo (1 ticket cada 20 min), personalización (fondos, marcos, avatares),
@@ -31,12 +32,14 @@ class PlayerSession extends ChangeNotifier {
   bool _isFirstTime;
   List<ChestSlotModel> _chests;
   List<String> _botNames;
+  Map<BoosterType, int> _boosterInventory;
+  List<BoosterType> _activeBoosters;
 
   PlayerSession({
     required this._id,
     required this._name,
     this._avatarIndex = 2,
-    this._selectedFrameId = 'wood',
+    this._selectedFrameId = 'rank_novato',
     this._selectedThemeId = 'royal_blue',
     this._coins = 0,
     int tickets = defaultMaxTickets,
@@ -48,12 +51,16 @@ class PlayerSession extends ChangeNotifier {
     this._isFirstTime = true,
     List<ChestSlotModel>? chests,
     List<String>? botNames,
+    Map<BoosterType, int>? boosterInventory,
+    List<BoosterType>? activeBoosters,
   })  : _tickets = tickets.clamp(0, _maxTickets),
         _lastTicketRegen = (lastTicketRegen ?? DateTime.now()).toUtc(),
         _chests = chests ?? List.generate(4, (i) => ChestSlotModel.empty(i)),
         _botNames = botNames != null && botNames.length >= 3
             ? List<String>.from(botNames)
-            : List<String>.from(defaultBotNames);
+            : List<String>.from(defaultBotNames),
+        _boosterInventory = boosterInventory ?? {},
+        _activeBoosters = activeBoosters ?? [];
 
   static PlayerSession? _shared;
 
@@ -81,7 +88,7 @@ class PlayerSession extends ChangeNotifier {
       id: 'user_${DateTime.now().millisecondsSinceEpoch}',
       name: name ?? 'Jugador',
       avatarIndex: avatarIndex ?? 2,
-      selectedFrameId: selectedFrameId ?? 'wood',
+      selectedFrameId: selectedFrameId ?? 'rank_novato',
       selectedThemeId: selectedThemeId ?? 'royal_blue',
       coins: coins ?? 0,
       tickets: tickets ?? defaultMaxTickets,
@@ -93,6 +100,8 @@ class PlayerSession extends ChangeNotifier {
       isFirstTime: isFirstTime,
       chests: List.generate(4, (i) => ChestSlotModel.empty(i)),
       botNames: botNames,
+      boosterInventory: {BoosterType.xp: 1}, // 1 Racha Dorada de regalo
+      activeBoosters: [],
     );
   }
 
@@ -112,6 +121,9 @@ class PlayerSession extends ChangeNotifier {
   bool get isFirstTime => _isFirstTime;
   List<ChestSlotModel> get chests => List.unmodifiable(_chests);
   List<String> get botNames => List.unmodifiable(_botNames);
+  Map<BoosterType, int> get boosterInventory => Map.unmodifiable(_boosterInventory);
+  List<BoosterType> get activeBoosters => List.unmodifiable(_activeBoosters);
+  int getBoosterCount(BoosterType type) => _boosterInventory[type] ?? 0;
 
   // Setters de personalización
   void updateCustomization({
@@ -376,6 +388,68 @@ class PlayerSession extends ChangeNotifier {
     _level = progress.currentLevel;
   }
 
+  // --- GESTIÓN DE POTENCIADORES ---
+
+  void addBooster(BoosterType type, [int quantity = 1]) {
+    _boosterInventory[type] = (_boosterInventory[type] ?? 0) + quantity;
+    notifyListeners();
+    save();
+  }
+
+  bool activateBooster(BoosterType type) {
+    if (_activeBoosters.length >= 3) return false;
+    if (getBoosterCount(type) <= 0) return false;
+    
+    _boosterInventory[type] = (_boosterInventory[type] ?? 0) - 1;
+    _activeBoosters.add(type);
+    notifyListeners();
+    save();
+    return true;
+  }
+
+  bool deactivateBooster(BoosterType type) {
+    if (!_activeBoosters.contains(type)) return false;
+    
+    _activeBoosters.remove(type);
+    _boosterInventory[type] = (_boosterInventory[type] ?? 0) + 1;
+    notifyListeners();
+    save();
+    return true;
+  }
+
+  List<BoosterType> consumeActiveBoostersForMatch() {
+    final consumed = List<BoosterType>.from(_activeBoosters);
+    _activeBoosters.clear();
+    notifyListeners();
+    save();
+    return consumed;
+  }
+
+  bool buyBooster(BoosterType type, {int? customCost}) {
+    final def = BoosterDefinition.getByType(type);
+    final cost = customCost ?? def.coinCost;
+    
+    if (_coins >= cost) {
+      _coins -= cost;
+      addBooster(type);
+      return true;
+    }
+    return false;
+  }
+
+  bool buyBoosterBundle({required int cost, required List<BoosterType> boosters}) {
+    if (_coins >= cost) {
+      _coins -= cost;
+      for (final b in boosters) {
+        _boosterInventory[b] = (_boosterInventory[b] ?? 0) + 1;
+      }
+      notifyListeners();
+      save();
+      return true;
+    }
+    return false;
+  }
+
   // --- GESTIÓN DE COFRES DE RECOMPENSA (4 SLOTS) ---
 
   /// Asigna un cofre de recompensa tras ganar una partida.
@@ -431,9 +505,14 @@ class PlayerSession extends ChangeNotifier {
 
     final coinsReward = chest.generateRewardCoins();
     final xpReward = chest.generateRewardXp();
+    final boosterReward = chest.generateRewardBooster();
 
     _coins += coinsReward;
     _addXpInternal(xpReward);
+    
+    if (boosterReward != null) {
+      addBooster(boosterReward);
+    }
 
     _chests[slotIndex] = ChestSlotModel.empty(slotIndex);
     notifyListeners();
@@ -460,6 +539,8 @@ class PlayerSession extends ChangeNotifier {
       'isFirstTime': _isFirstTime,
       'chests': _chests.map((c) => c.toJson()).toList(),
       'botNames': _botNames,
+      'boosterInventory': _boosterInventory.map((k, v) => MapEntry(k.name, v)),
+      'activeBoosters': _activeBoosters.map((e) => e.name).toList(),
     };
   }
 
@@ -486,12 +567,35 @@ class PlayerSession extends ChangeNotifier {
     if (json['botNames'] is List) {
       parsedBotNames = (json['botNames'] as List).map((e) => e.toString()).toList();
     }
+    
+    Map<BoosterType, int> parsedInventory = {};
+    if (json['boosterInventory'] is Map) {
+      final map = json['boosterInventory'] as Map;
+      map.forEach((k, v) {
+        final type = BoosterType.values.firstWhere(
+          (t) => t.name == k,
+          orElse: () => BoosterType.xp,
+        );
+        parsedInventory[type] = v as int;
+      });
+    }
+
+    List<BoosterType> parsedActive = [];
+    if (json['activeBoosters'] is List) {
+      final list = json['activeBoosters'] as List;
+      parsedActive = list.map((e) {
+        return BoosterType.values.firstWhere(
+          (t) => t.name == e,
+          orElse: () => BoosterType.xp,
+        );
+      }).toList();
+    }
 
     return PlayerSession(
       id: json['id'] as String? ?? 'user_${DateTime.now().millisecondsSinceEpoch}',
       name: json['name'] as String? ?? 'Jugador',
       avatarIndex: json['avatarIndex'] as int? ?? 2,
-      selectedFrameId: json['selectedFrameId'] as String? ?? 'wood',
+      selectedFrameId: json['selectedFrameId'] as String? ?? 'rank_novato',
       selectedThemeId: json['selectedThemeId'] as String? ?? 'royal_blue',
       coins: json['coins'] as int? ?? 0,
       tickets: parsedTickets,
@@ -503,6 +607,8 @@ class PlayerSession extends ChangeNotifier {
       isFirstTime: json['isFirstTime'] as bool? ?? false,
       chests: parsedChests,
       botNames: parsedBotNames,
+      boosterInventory: parsedInventory,
+      activeBoosters: parsedActive,
     );
   }
 

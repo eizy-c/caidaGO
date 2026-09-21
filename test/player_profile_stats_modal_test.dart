@@ -130,7 +130,7 @@ void main() {
       expect(find.text('🇻🇪'), findsOneWidget);
       expect(find.text('EDITAR'), findsOneWidget);
       expect(find.textContaining('Nivel 0'), findsWidgets);
-      expect(find.text('0 de 100 XP'), findsOneWidget);
+      expect(find.text('0 de 300 XP'), findsOneWidget);
       expect(find.text('Título: "Pichón"'), findsOneWidget);
     });
 

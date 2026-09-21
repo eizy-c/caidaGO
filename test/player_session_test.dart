@@ -295,10 +295,10 @@ void main() {
         level: 1,
       );
 
-      session.rewardCoins(2000, xpGain: 600);
+      session.rewardCoins(2000, xpGain: 900);
       expect(session.coins, equals(3000));
-      expect(session.xp, equals(600));
-      expect(session.level, greaterThan(1), reason: '600 XP debe subir al jugador de nivel');
+      expect(session.xp, equals(900));
+      expect(session.level, greaterThan(1), reason: '900 XP debe subir al jugador de nivel');
     });
   });
 
