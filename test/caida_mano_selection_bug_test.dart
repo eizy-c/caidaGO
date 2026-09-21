@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:gme/core/presentation/widgets/table_player_badge.dart';
 import 'package:gme/features/la_caida/domain/models/mano_draw_session.dart';
 import 'package:gme/features/la_caida/economy/vip_tier.dart';
 import 'package:gme/features/la_caida/presentation/caida_screen.dart';
@@ -74,6 +75,72 @@ void main() {
       // 4. Verificar que ambos jugadores estén presentes en la mesa
       expect(find.text('Tú'), findsOneWidget);
       expect(find.text('Chupetin'), findsOneWidget);
+    });
+
+    testWidgets('CaidaScreen con Semantics activado no falla en hasSize', (tester) async {
+      final handle = tester.ensureSemantics();
+
+      tester.view.physicalSize = const Size(800 * 2.0, 340 * 2.0);
+      tester.view.devicePixelRatio = 2.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: CaidaScreen(
+            initialPlayers: 2,
+            autoStart: true,
+            animateDealing: false,
+            vipTier: VipTierOffer.tiers[1],
+            vipPrizePool: 2000,
+            userName: 'Tú',
+            botNames: const ['Chupetin'],
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      handle.dispose();
+    });
+
+    testWidgets('TablePlayerBadge con calloutMessage y Semantics no falla', (tester) async {
+      final handle = tester.ensureSemantics();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Stack(
+              alignment: Alignment.center,
+              children: [
+                Positioned(
+                  top: 10,
+                  child: TablePlayerBadge(
+                    name: 'Chupetin',
+                    score: 4,
+                    cardsWon: 6,
+                    isBot: true,
+                    isCurrentTurn: true,
+                    turnProgress: 0.5,
+                    position: PlayerPositionOnTable.top,
+                    calloutMessage: '¡Arrastre! Levantó 3 cartas.',
+                    cardsInHandCount: 3,
+                    avatarColor: Colors.blue,
+                    avatarId: 1,
+                    isCompact: true,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      handle.dispose();
     });
   });
 }

@@ -1689,21 +1689,23 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
         appBar: GameTableHeader(
           title: 'CaidaGO',
           titleWidget: (_vipTier != null)
-              ? Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Text(
-                      'CaidaGO',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 0.5,
+              ? FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text(
+                        'CaidaGO',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 0.5,
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 8),
-                    Flexible(
-                      child: Container(
+                      const SizedBox(width: 8),
+                      Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
@@ -1723,16 +1725,14 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
                           children: [
                             const Icon(Icons.workspace_premium_rounded, color: Color(0xFFFDE047), size: 13),
                             const SizedBox(width: 4),
-                            Flexible(
-                              child: Text(
-                                'Mesa ${_vipTier!.name} • Pozo: ${_vipPrizePool ?? _vipTier!.calculatePrizePool(isTeams: _isTeams)}',
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 10.5,
-                                  fontWeight: FontWeight.w900,
-                                ),
+                            Text(
+                              'Mesa ${_vipTier!.name} • Pozo: ${_vipPrizePool ?? _vipTier!.calculatePrizePool(isTeams: _isTeams)}',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 10.5,
+                                fontWeight: FontWeight.w900,
                               ),
                             ),
                             const SizedBox(width: 3),
@@ -1740,8 +1740,8 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
                           ],
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 )
               : null,
           onBack: _confirmAbandonMatch,
@@ -2259,15 +2259,17 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
                 ),
 
                 // 7. Capa superior de naipes en vuelo y efectos de impacto
-                CardFlightOverlay(
-                  activeTrajectories: _activeTrajectories,
-                  onAllCompleted: () {
-                    if (mounted) {
-                      setState(() {
-                        _activeTrajectories.clear();
-                      });
-                    }
-                  },
+                Positioned.fill(
+                  child: CardFlightOverlay(
+                    activeTrajectories: _activeTrajectories,
+                    onAllCompleted: () {
+                      if (mounted) {
+                        setState(() {
+                          _activeTrajectories.clear();
+                        });
+                      }
+                    },
+                  ),
                 ),
               ],
             );
@@ -2537,65 +2539,64 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
     return Center(
       child: FittedBox(
         fit: BoxFit.scaleDown,
-        child: Transform.scale(
-          scale: scale.clamp(0.70, 1.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Indicador sutil e inobstructivo en el centro de la mesa (sin tapar el avatar norte)
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 6.5),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF1E1B4B).withValues(alpha: 0.88),
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: const Color(0xFFFDE047), width: 1.2),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Colors.black45,
-                      blurRadius: 8,
-                      offset: Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: Text(
-                  _manoAnnouncement ?? '¡ELIGE UNA CARTA!',
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: Color(0xFFFDE047),
-                    fontSize: 13.5,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 0.8,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Indicador sutil e inobstructivo en el centro de la mesa (sin tapar el avatar norte)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 6.5),
+              decoration: BoxDecoration(
+                color: const Color(0xFF1E1B4B).withValues(alpha: 0.88),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: const Color(0xFFFDE047), width: 1.2),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Colors.black45,
+                    blurRadius: 8,
+                    offset: Offset(0, 2),
                   ),
+                ],
+              ),
+              child: Text(
+                _manoAnnouncement ?? '¡ELIGE UNA CARTA!',
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: Color(0xFFFDE047),
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 0.8,
                 ),
               ),
-              const SizedBox(height: 10),
+            ),
+            const SizedBox(height: 10),
 
-              // Mesa con cartas esparcidas boca abajo y efecto flick 3D
-              SizedBox(
-                width: 340,
-                height: 330,
-                child: Stack(
-                  clipBehavior: Clip.none,
-                  alignment: Alignment.center,
-                  children: sortedCandidates.map((cand) {
-                    final isChosen = cand.chosenByPlayerIndex != null;
-                    final player = isChosen ? _players[cand.chosenByPlayerIndex!] : null;
-                    final canTap = !_hasUserChosenManoCard && !_isResolvingMano && !isChosen;
+            // Mesa con cartas esparcidas boca abajo y efecto flick 3D
+            SizedBox(
+              width: 340,
+              height: 330,
+              child: Stack(
+                clipBehavior: Clip.none,
+                alignment: Alignment.center,
+                children: sortedCandidates.map((cand) {
+                  final isChosen = cand.chosenByPlayerIndex != null;
+                  final player = isChosen ? _players[cand.chosenByPlayerIndex!] : null;
+                  final canTap = !_hasUserChosenManoCard && !_isResolvingMano && !isChosen;
 
-                    return Positioned(
-                      top: 125 + cand.topOffset,
-                      left: 140 + cand.leftOffset,
-                      child: _ManoCandidateFlickCard(
-                        candidate: cand,
-                        player: player,
-                        onTap: canTap ? () => _onCandidateCardTapped(cand) : null,
-                      ),
-                    );
-                  }).toList(),
-                ),
+                  return Positioned(
+                    key: ValueKey('mano_pos_${cand.id}'),
+                    top: 125 + cand.topOffset,
+                    left: 140 + cand.leftOffset,
+                    child: _ManoCandidateFlickCard(
+                      key: ValueKey('mano_card_${cand.id}'),
+                      candidate: cand,
+                      player: player,
+                      onTap: canTap ? () => _onCandidateCardTapped(cand) : null,
+                    ),
+                  );
+                }).toList(),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -2802,6 +2803,7 @@ class _ManoCandidateFlickCard extends StatelessWidget {
   final VoidCallback? onTap;
 
   const _ManoCandidateFlickCard({
+    super.key,
     required this.candidate,
     this.player,
     this.onTap,
@@ -2813,8 +2815,10 @@ class _ManoCandidateFlickCard extends StatelessWidget {
     final isWinner = candidate.isWinner;
 
     return GestureDetector(
+      key: ValueKey('gesture_${candidate.id}'),
       onTap: onTap,
       child: TweenAnimationBuilder<double>(
+        key: ValueKey('tween_${candidate.id}'),
         tween: Tween(begin: 0.0, end: isRevealed ? 1.0 : 0.0),
         duration: const Duration(milliseconds: 450),
         curve: Curves.easeOutBack,
