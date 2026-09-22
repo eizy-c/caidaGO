@@ -8,10 +8,9 @@ import '../../../core/services/user_profile_service.dart';
 import '../domain/models/caida_match_config.dart';
 import '../economy/daily_challenge_system.dart';
 import '../economy/player_session.dart';
-import '../economy/player_stats_model.dart';
+import '../economy/user_progress.dart';
 import 'widgets/game_toast_queue.dart';
 import 'caida_screen.dart';
-import 'widgets/rank_badge_widget.dart';
 import 'widgets/booster_selector_widget.dart';
 import 'widgets/bot_customization_modal.dart';
 import 'widgets/buy_tickets_modal.dart';
@@ -24,6 +23,7 @@ import 'widgets/profile_and_level_modal.dart';
 import 'widgets/user_frame_view.dart';
 import 'widgets/vip_tier_selector_modal.dart';
 import 'widgets/privacy_policy_dialog.dart';
+import '../multiplayer/presentation/multiplayer_hub_screen.dart';
 import '../tutorial/presentation/tutorial_screen.dart';
 
 /// Modo de visualización de navegación del lobby
@@ -507,179 +507,16 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
     );
   }
 
-  void _openChapasInfoDialog() {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF161616),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(22),
-          side: const BorderSide(color: Color(0xFF2E2E2E), width: 1.0),
-        ),
-        title: const Row(
-          children: [
-            Icon(Icons.stars_rounded, color: Color(0xFF38BDF8), size: 26),
-            SizedBox(width: 8),
-            Text(
-              'Chapas Virtuales',
-              style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 17),
-            ),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: const Color(0xFF222222),
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: const Color(0xFF2E2E2E)),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.stars_rounded, color: Colors.white70, size: 32),
-                  const SizedBox(width: 12),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Balance Actual',
-                        style: TextStyle(color: Colors.white60, fontSize: 11),
-                      ),
-                      Text(
-                        '${_session.chapas} Chapas',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.w900,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 12),
-            const Text(
-              '¿Qué son las Chapas?',
-              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
-            ),
-            const SizedBox(height: 4),
-            const Text(
-              'Es la moneda premium del juego. Muy escasa y exclusiva. Se adquiere en la Tienda o subiendo de nivel.',
-              style: TextStyle(color: Colors.white70, fontSize: 11.5, height: 1.3),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              '• Servirá para comprar marcos míticos, tapetes y personalizaciones exclusivas.\n• Tienda de Chapas disponible próximamente.',
-              style: TextStyle(color: Color(0xFF94A3B8), fontSize: 11, height: 1.3),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Entendido', style: TextStyle(color: Colors.white70, fontWeight: FontWeight.bold)),
-          ),
-        ],
-      ),
-    );
-  }
+
 
   void _openMultiplayerComingSoonDialog() {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF161616),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(22),
-          side: const BorderSide(color: Color(0xFF2E2E2E), width: 1.0),
-        ),
-        title: const Row(
-          children: [
-            Icon(Icons.wifi_rounded, color: Colors.white70, size: 26),
-            SizedBox(width: 8),
-            Text(
-              'Modo Multijugador',
-              style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 17),
-            ),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: const Color(0xFF222222),
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: const Color(0xFF2E2E2E)),
-              ),
-              child: const Row(
-                children: [
-                  Icon(Icons.hub_rounded, color: Color(0xFFA5B4FC), size: 30),
-                  SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '¡Muy pronto!',
-                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 14),
-                        ),
-                        Text(
-                          'Estamos desarrollando la arena multijugador.',
-                          style: TextStyle(color: Colors.white70, fontSize: 11),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 14),
-            _buildMultiplayerFeatureRow(Icons.wifi_tethering_rounded, 'Multiplayer Local (P2P / Wi-Fi)', 'Juega con amigos en la misma red o dispositivo.'),
-            const SizedBox(height: 10),
-            _buildMultiplayerFeatureRow(Icons.public_rounded, 'Multiplayer Online', 'Compite con jugadores de todo el mundo y sube en el ranking global.'),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('¡Genial!', style: TextStyle(color: Color(0xFF818CF8), fontWeight: FontWeight.bold)),
-          ),
-        ],
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => const MultiplayerHubScreen(),
       ),
     );
   }
 
-  Widget _buildMultiplayerFeatureRow(IconData icon, String title, String subtitle) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Icon(icon, size: 18, color: const Color(0xFF38BDF8)),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
-              ),
-              Text(
-                subtitle,
-                style: const TextStyle(color: Colors.white60, fontSize: 10.5),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
 
   void _showGamePreferencesDialog({
     required int players,
@@ -982,111 +819,102 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
     );
   }
 
-  // --- BARRA SUPERIOR ---
+  // --- BARRA SUPERIOR SEGÚN REFERENCIA ---
   Widget _buildTopBar() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       decoration: BoxDecoration(
-        color: const Color(0xFF0F172A).withValues(alpha: 0.65),
-        border: const Border(bottom: BorderSide(color: Colors.white12, width: 1)),
+        color: const Color(0xFF0B1120).withValues(alpha: 0.8),
+        border: const Border(bottom: BorderSide(color: Colors.white10, width: 1)),
       ),
       child: Row(
         children: [
-          // Engranaje de Ajustes
-          IconButton(
-            icon: const Icon(Icons.settings_rounded, color: Colors.white, size: 26),
-            tooltip: 'Ajustes',
-            onPressed: _openSettingsDialog,
+          // Botón de Ajustes (Engranaje)
+          GestureDetector(
+            onTap: _openSettingsDialog,
+            child: Container(
+              padding: const EdgeInsets.all(7),
+              decoration: BoxDecoration(
+                color: const Color(0xFF1E293B),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: Colors.white12, width: 1),
+              ),
+              child: const Icon(Icons.settings_rounded, color: Colors.white, size: 20),
+            ),
           ),
           const Spacer(),
 
-          // Contador de Tickets: "10 +"
-          // Contador de Tickets: limpio sin box
+          // Chip de Tickets: 🎫 7/10 con temporizador mini ⏱ 08:02
           GestureDetector(
             onTap: _openBuyTicketsModal,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 5),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: const Color(0xFF0284C7).withValues(alpha: 0.9),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFF38BDF8), width: 1.1),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF0284C7).withValues(alpha: 0.35),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.confirmation_number_rounded, color: Color(0xFF38BDF8), size: 20),
+                  const Icon(Icons.confirmation_number_rounded, color: Colors.white, size: 15),
                   const SizedBox(width: 5),
                   Text(
                     '${_session.tickets}/${_session.maxTickets}',
-                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 14),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w900,
+                      fontSize: 12.5,
+                    ),
                   ),
                   if (_session.tickets < _session.maxTickets) ...[
                     const SizedBox(width: 6),
                     _buildTicketRegenBadge(),
-                  ] else ...[
-                    const SizedBox(width: 4),
-                    const Icon(Icons.add_circle_rounded, size: 14, color: Color(0xFF38BDF8)),
                   ],
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(width: 10),
-
-          // Contador de Monedas: "0 +" / "1000 +"
-          GestureDetector(
-            onTap: _openBuyTicketsModal,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-              decoration: BoxDecoration(
-                color: const Color(0xFF1E293B),
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: const Color(0xFF2E2E2E), width: 1.2),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.monetization_on_rounded, color: Color(0xFFFDE047), size: 18),
-                  const SizedBox(width: 6),
-                  Text(
-                    '${_session.coins}',
-                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 14),
-                  ),
-                  const SizedBox(width: 6),
-                  Container(
-                    padding: const EdgeInsets.all(2),
-                    decoration: const BoxDecoration(
-                      color: Color(0xFFFDE047),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(Icons.add, size: 10, color: Color(0xFF0F172A)),
-                  ),
                 ],
               ),
             ),
           ),
           const SizedBox(width: 8),
 
-          // Contador de Chapas (Moneda Escasa Premium)
+          // Chip de Monedas: 💰 2506 (+)
           GestureDetector(
-            onTap: _openChapasInfoDialog,
+            onTap: () => _openBuyTicketsModal(initialTab: 1),
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
                 color: const Color(0xFF1E293B),
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: const Color(0xFF2E2E2E), width: 1.2),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Colors.black26,
-                    blurRadius: 4,
-                    offset: Offset(0, 2),
-                  ),
-                ],
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFFF59E0B), width: 1.1),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.stars_rounded, color: Color(0xFF38BDF8), size: 18),
+                  const Icon(Icons.monetization_on_rounded, color: Color(0xFFFDE047), size: 16),
                   const SizedBox(width: 5),
                   Text(
-                    '${_session.chapas}',
-                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 14),
+                    '${_session.coins}',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w900,
+                      fontSize: 12.5,
+                    ),
+                  ),
+                  const SizedBox(width: 5),
+                  Container(
+                    padding: const EdgeInsets.all(1.5),
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFFDE047),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.add, size: 10, color: Color(0xFF0F172A)),
                   ),
                 ],
               ),
@@ -1103,22 +931,22 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
     final minutes = remaining.inMinutes.toString().padLeft(2, '0');
     final seconds = (remaining.inSeconds % 60).toString().padLeft(2, '0');
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1.5),
       decoration: BoxDecoration(
         color: const Color(0xFF0F172A),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: const Color(0xFF2E2E2E), width: 1),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: const Color(0xFF38BDF8), width: 0.8),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.timer_rounded, size: 10, color: Color(0xFF38BDF8)),
-          const SizedBox(width: 3),
+          const Icon(Icons.timer_rounded, size: 9, color: Color(0xFF38BDF8)),
+          const SizedBox(width: 2),
           Text(
             '$minutes:$seconds',
             style: const TextStyle(
               color: Color(0xFF38BDF8),
-              fontSize: 10,
+              fontSize: 9.5,
               fontWeight: FontWeight.w700,
             ),
           ),
@@ -1127,28 +955,37 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
     );
   }
 
-  // --- VISTA PRINCIPAL SEGÚN EL BOCETO ---
+  // --- VISTA PRINCIPAL SEGÚN LA REFERENCIA ---
   Widget _buildMainSketchLobbyView() {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+    return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsets.fromLTRB(16, 10, 16, 14),
       child: Column(
         children: [
-          // 1. Fila Superior (Logo del Juego | Estadística / Desafíos | Perfil + Marco + Nivel)
-          _buildSubHeaderRow(),
-          const Spacer(),
+          // 1. Tarjeta de Perfil y Nivel
+          _buildProfileLevelCard(),
+          const SizedBox(height: 12),
 
-          // 2. Selector de Potenciadores
+          // 2. Área Hero con 4 Ases y Botón JUGAR
+          _buildHeroPlaySection(),
+          const SizedBox(height: 12),
+
+          // 3. Modos Secundarios (TUTORIAL y MULTIJUGADOR)
+          _buildSecondaryModesRow(),
+          const SizedBox(height: 12),
+
+          // 4. Fila de 4 Tarjetas (Estadística, Historial, Desafíos, Inventario)
+          _buildNavigationCardsRow(),
+          const SizedBox(height: 12),
+
+          // 5. Barra de Potenciadores
           BoosterSelectorWidget(
             session: _session,
             onOpenShop: () => _openBuyTicketsModal(initialTab: 1),
           ),
           const SizedBox(height: 12),
 
-          // 3. Zona Central (Abanico de los 4 Ases de la Baraja | Botones JUGAR y TUTORIAL)
-          _buildCenterActionArea(),
-          const Spacer(),
-
-          // 4. Fila Inferior (4 Ranuras de Cofres de Recompensa)
+          // 6. Fila de 4 Ranuras de Cofres de Recompensa
           ChestSlotsView(
             session: _session,
             onChestClaimed: (coins) {
@@ -1160,145 +997,126 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
     );
   }
 
-  Widget _buildSubHeaderRow() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-      decoration: BoxDecoration(
-        color: const Color(0xFF0F172A).withValues(alpha: 0.7),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white12, width: 1),
-      ),
-      child: Row(
-        children: [
-          // GAME LOGO Box
-          Container(
-            width: 78,
-            height: 70,
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFFF59E0B), Color(0xFFB45309)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
+  /// Tarjeta de Perfil y Nivel del Usuario (Horizontal superior)
+  Widget _buildProfileLevelCard() {
+    final userProg = UserProgress(totalXp: _session.xp);
+    final xpCurrent = userProg.currentTierXp;
+    final xpRequired = userProg.neededInCurrentTier;
+    final progress = userProg.levelProgressPercentage;
+    final level = userProg.currentLevel;
+
+    return GestureDetector(
+      onTap: () => _openProfileAndLevelModal(),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        decoration: BoxDecoration(
+          color: const Color(0xFF1E293B).withValues(alpha: 0.8),
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: Colors.white12, width: 1),
+          boxShadow: const [
+            BoxShadow(color: Colors.black38, blurRadius: 6, offset: Offset(0, 2)),
+          ],
+        ),
+        child: Row(
+          children: [
+            // Badge naranja CAIDAGO con icono de baraja
+            Container(
+              width: 58,
+              height: 52,
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFFF59E0B), Color(0xFFD97706)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: const [
+                  BoxShadow(color: Colors.black26, blurRadius: 4, offset: Offset(0, 2)),
+                ],
               ),
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: const Color(0xFF2E2E2E), width: 1.2),
-              boxShadow: const [
-                BoxShadow(color: Colors.black45, blurRadius: 4, offset: Offset(0, 2)),
-              ],
-            ),
-            child: const Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.style_rounded, color: Colors.white, size: 24),
-                SizedBox(height: 2),
-                Text(
-                  'CAIDAGO',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w900,
-                    fontSize: 10.5,
-                    letterSpacing: 1.0,
+              child: const Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.style_rounded, color: Colors.white, size: 18),
+                  SizedBox(height: 2),
+                  Text(
+                    'CAIDAGO',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w900,
+                      fontSize: 8.5,
+                      letterSpacing: 0.6,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          const SizedBox(width: 10),
+            const SizedBox(width: 12),
 
-          // Columna Central: Botones "Estadística", "Historial" y "Desafíos"
-          Expanded(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildSmallActionBtn('Estadística', Icons.leaderboard_rounded, const Color(0xFF38BDF8), _openStatisticsDialog),
+            // Centro: Nivel y Barra de Progreso XP
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Nivel $level',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w900,
                     ),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: _buildSmallActionBtn('Historial', Icons.history_rounded, const Color(0xFFA855F7), _openHistoryDialog),
+                  ),
+                  const SizedBox(height: 4),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(6),
+                    child: Container(
+                      height: 8,
+                      width: double.infinity,
+                      color: const Color(0xFF0F172A),
+                      child: FractionallySizedBox(
+                        alignment: Alignment.centerLeft,
+                        widthFactor: progress,
+                        child: Container(
+                          decoration: const BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [Color(0xFFFDE047), Color(0xFFF59E0B)],
+                            ),
+                          ),
+                        ),
+                      ),
                     ),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildSmallActionBtn('Desafíos', Icons.emoji_events_rounded, const Color(0xFFFDE047), _openChallengesDialog),
+                  ),
+                  const SizedBox(height: 3),
+                  Center(
+                    child: Text(
+                      '$xpCurrent / $xpRequired XP',
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.6),
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: _buildSmallActionBtn('Inventario', Icons.backpack_rounded, const Color(0xFF10B981), _openInventoryModal),
-                    ),
-                  ],
-                ),
-              ],
+                  ),
+                ],
+              ),
             ),
-          ),
-          const SizedBox(width: 10),
+            const SizedBox(width: 10),
 
-          // Tarjeta de Perfil del Usuario (Avatar + Marco + Insignia de Nivel y Rango)
-          GestureDetector(
-            onTap: () => _openProfileAndLevelModal(),
-            child: Column(
+            // Derecha: Avatar con marco y flecha >
+            Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 UserFrameView(
                   avatarIndex: _session.avatarIndex,
                   frameId: _session.selectedFrameId,
                   level: _session.level,
-                  size: 58,
+                  size: 50,
                   showLevelBadge: true,
                 ),
-                const SizedBox(height: 4),
-                RankBadgeWidget(
-                  trophies: PlayerStatsModel.shared.trophies,
-                  compact: true,
-                  fontSize: 10,
-                ),
+                const SizedBox(width: 4),
+                const Icon(Icons.chevron_right_rounded, color: Colors.white54, size: 20),
               ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSmallActionBtn(
-    String title,
-    IconData icon,
-    Color color,
-    VoidCallback onTap, {
-    double fontSize = 11,
-    EdgeInsetsGeometry? padding,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        height: 31,
-        padding: padding ?? const EdgeInsets.symmetric(horizontal: 6),
-        decoration: BoxDecoration(
-          color: const Color(0xFF1E293B),
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: const Color(0xFF2E2E2E), width: 1.2),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, color: color, size: 14),
-            const SizedBox(width: 4),
-            Flexible(
-              child: Text(
-                title,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: fontSize,
-                ),
-              ),
             ),
           ],
         ),
@@ -1306,82 +1124,235 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
     );
   }
 
-  Widget _buildCenterActionArea() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      crossAxisAlignment: CrossAxisAlignment.center,
+  /// Área Hero Central con 4 Ases y Gran Botón 3D de JUGAR
+  Widget _buildHeroPlaySection() {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        // Izquierda: Abanico de los 4 Ases de la Baraja Española tradicional
-        const FourAcesDisplayView(cardWidth: 68),
-        const SizedBox(width: 14),
-
-        // Derecha: Botones grandes de JUGAR y TUTORIAL
-        Expanded(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Botón JOGAR / JUGAR
-              App3dButton(
-                onPressed: () {
-                  setState(() => _currentView = LobbyViewMode.unJugador);
-                },
-                expand: true,
-                height: 58,
-                depth: 6,
-                borderRadius: 20,
-                variant: App3dButtonVariant.gold,
-                label: 'JUGAR',
-                textStyle: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 23,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 2,
+        // Resplandor de rayos y Abanico de los 4 Ases
+        Stack(
+          alignment: Alignment.center,
+          children: [
+            // Resplandor azul detrás de las cartas
+            Container(
+              width: 220,
+              height: 100,
+              decoration: BoxDecoration(
+                gradient: RadialGradient(
+                  colors: [
+                    const Color(0xFF38BDF8).withValues(alpha: 0.35),
+                    const Color(0xFF0284C7).withValues(alpha: 0.1),
+                    Colors.transparent,
+                  ],
                 ),
               ),
-              const SizedBox(height: 14),
+            ),
+            const FourAcesDisplayView(cardWidth: 62),
+          ],
+        ),
+        const SizedBox(height: 12),
 
-              // Botón TUTORIAL
-              App3dButton.icon(
-                onPressed: _openTutorial,
-                expand: true,
-                height: 46,
-                depth: 4.5,
-                borderRadius: 16,
-                variant: App3dButtonVariant.olive,
-                icon: Icons.school_rounded,
-                iconSize: 18,
-                label: 'TUTORIAL',
-                textStyle: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 15,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 1.1,
-                ),
+        // Botón Gigante 3D Amarillo/Dorado: ▶ JUGAR (Demuestra tu habilidad)
+        GestureDetector(
+          onTap: () {
+            setState(() => _currentView = LobbyViewMode.unJugador);
+          },
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFFFDE047), Color(0xFFF59E0B), Color(0xFFD97706)],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
               ),
-              const SizedBox(height: 10),
-
-              // Botón MULTIJUGADOR (Online / Local)
-              App3dButton.icon(
-                onPressed: _openMultiplayerComingSoonDialog,
-                expand: true,
-                height: 46,
-                depth: 4.5,
-                borderRadius: 16,
-                variant: App3dButtonVariant.crimson,
-                icon: Icons.wifi_rounded,
-                iconSize: 18,
-                label: 'MULTIJUGADOR',
-                textStyle: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 14.5,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 1.1,
+              borderRadius: BorderRadius.circular(26),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.6), width: 2),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFFD97706).withValues(alpha: 0.6),
+                  blurRadius: 16,
+                  spreadRadius: 1,
+                  offset: const Offset(0, 4),
                 ),
-              ),
-            ],
+                const BoxShadow(
+                  color: Colors.black45,
+                  blurRadius: 8,
+                  offset: Offset(0, 6),
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.play_arrow_rounded, color: Colors.white, size: 36),
+                const SizedBox(width: 8),
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'JUGAR',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 26,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 2.0,
+                        shadows: [
+                          Shadow(color: Colors.black38, blurRadius: 4, offset: Offset(0, 2)),
+                        ],
+                      ),
+                    ),
+                    Text(
+                      'Demuestra tu habilidad',
+                      style: TextStyle(
+                        color: const Color(0xFF78350F).withValues(alpha: 0.95),
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.4,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ],
+    );
+  }
+
+  /// Fila de Modos Secundarios (TUTORIAL y MULTIJUGADOR)
+  Widget _buildSecondaryModesRow() {
+    return Row(
+      children: [
+        // Botón TUTORIAL (Verde oliva / Caqui)
+        Expanded(
+          child: App3dButton.icon(
+            onPressed: _openTutorial,
+            height: 48,
+            depth: 4,
+            borderRadius: 16,
+            variant: App3dButtonVariant.olive,
+            icon: Icons.school_rounded,
+            iconSize: 18,
+            label: 'TUTORIAL',
+            textStyle: const TextStyle(
+              color: Colors.white,
+              fontSize: 14,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 0.8,
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
+
+        // Botón MULTIJUGADOR (Coral / Rojo)
+        Expanded(
+          child: App3dButton.icon(
+            onPressed: _openMultiplayerComingSoonDialog,
+            height: 48,
+            depth: 4,
+            borderRadius: 16,
+            variant: App3dButtonVariant.crimson,
+            icon: Icons.wifi_rounded,
+            iconSize: 18,
+            label: 'MULTIJUGADOR',
+            textStyle: const TextStyle(
+              color: Colors.white,
+              fontSize: 14,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 0.8,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Fila de 4 Tarjetas de Navegación (Estadística, Historial, Desafíos, Inventario)
+  Widget _buildNavigationCardsRow() {
+    return Row(
+      children: [
+        Expanded(
+          child: _buildSquareFeatureCard(
+            title: 'Estadística',
+            icon: Icons.bar_chart_rounded,
+            color: const Color(0xFF0284C7),
+            onTap: _openStatisticsDialog,
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: _buildSquareFeatureCard(
+            title: 'Historial',
+            icon: Icons.history_rounded,
+            color: const Color(0xFFA855F7),
+            onTap: _openHistoryDialog,
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: _buildSquareFeatureCard(
+            title: 'Desafíos',
+            icon: Icons.emoji_events_rounded,
+            color: const Color(0xFFF59E0B),
+            onTap: _openChallengesDialog,
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: _buildSquareFeatureCard(
+            title: 'Inventario',
+            icon: Icons.backpack_rounded,
+            color: const Color(0xFF14B8A6),
+            onTap: _openInventoryModal,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSquareFeatureCard({
+    required String title,
+    required IconData icon,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
+        decoration: BoxDecoration(
+          color: const Color(0xFF1E293B).withValues(alpha: 0.8),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: color.withValues(alpha: 0.5), width: 1.2),
+          boxShadow: [
+            BoxShadow(
+              color: color.withValues(alpha: 0.15),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, color: color, size: 24),
+            const SizedBox(height: 5),
+            Text(
+              title,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 10.5,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
