@@ -163,10 +163,31 @@ class UserFrameView extends StatelessWidget {
     this.onTap,
   });
 
+  /// Precarga todos los marcos y avatares oficiales en la memoria de Flutter
+  /// para renderizado instantáneo sin demoras ni recargas.
+  /// [context] must come from a mounted widget; caller should check mounted.
+  static Future<void> precacheAllAssets(BuildContext context) async {
+    for (final frame in UserFrameItem.allFrames) {
+      if (frame.imagePath != null) {
+        try {
+          // ignore: use_build_context_synchronously
+          await precacheImage(AssetImage(frame.imagePath!), context);
+        } catch (_) {}
+      }
+    }
+    for (int i = 1; i <= 5; i++) {
+      try {
+        // ignore: use_build_context_synchronously
+        await precacheImage(AssetImage('assets/player/avatar/$i-AVATAR.png'), context);
+      } catch (_) {}
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final frame = UserFrameItem.getById(frameId);
     final badgeSize = size * 0.38;
+    final borderRadius = BorderRadius.circular(size * 0.22);
 
     Widget content = SizedBox(
       width: size + 8,
@@ -180,7 +201,7 @@ class UserFrameView extends StatelessWidget {
             width: size + 4,
             height: size + 4,
             decoration: BoxDecoration(
-              shape: BoxShape.circle,
+              borderRadius: borderRadius,
               boxShadow: [
                 BoxShadow(
                   color: frame.shadowColor.withValues(alpha: 0.5),
@@ -201,7 +222,7 @@ class UserFrameView extends StatelessWidget {
                 children: [
                   AvatarView(
                     avatarId: avatarIndex,
-                    size: size * 0.76,
+                    size: size * 0.78,
                     showBorder: false,
                   ),
                   Image.asset(
@@ -219,7 +240,7 @@ class UserFrameView extends StatelessWidget {
               width: size + 4,
               height: size + 4,
               decoration: BoxDecoration(
-                shape: BoxShape.circle,
+                borderRadius: borderRadius,
                 gradient: LinearGradient(
                   colors: frame.borderGradient,
                   begin: Alignment.topLeft,
@@ -232,7 +253,8 @@ class UserFrameView extends StatelessWidget {
               ),
               child: Padding(
                 padding: EdgeInsets.all(frame.borderWidth),
-                child: ClipOval(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(size * 0.18),
                   child: AvatarView(
                     avatarId: avatarIndex,
                     size: size - (frame.borderWidth * 2),
@@ -255,7 +277,7 @@ class UserFrameView extends StatelessWidget {
               ),
             ),
 
-          // 4. Insignia de Nivel en forma de escudo en la esquina superior derecha
+          // 4. Insignia de Nivel en la esquina superior derecha
           if (showLevelBadge)
             Positioned(
               top: -2,
@@ -282,7 +304,7 @@ class UserFrameView extends StatelessWidget {
       height: badgeSize,
       decoration: BoxDecoration(
         color: const Color(0xFF0F172A),
-        shape: BoxShape.circle,
+        borderRadius: BorderRadius.circular(badgeSize * 0.30),
         border: Border.all(color: badgeColor, width: 1.8),
         boxShadow: [
           BoxShadow(

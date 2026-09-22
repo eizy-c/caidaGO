@@ -34,6 +34,7 @@ void main() {
       expect(parsed.type, AuditEntryType.canto);
       expect(parsed.description, 'Cantó Trivilín de Reyes');
       expect(parsed.points, 5);
+      expect(parsed.isUserTeam, true);
       expect(parsed.timestamp.toIso8601String(), now.toIso8601String());
     });
   });

@@ -66,11 +66,11 @@ class UserProgress {
     return (currentTierXp / neededInCurrentTier).clamp(0.0, 1.0);
   }
 
-  /// Título criollo venezolano según el nivel alcanzado.
+  /// Título criollo según el nivel alcanzado.
   String get rankTitle {
     switch (currentLevel) {
       case 0:
-        return 'Pichón';
+        return 'Novato';
       case 1:
         return 'Caimanero';
       case 2:
@@ -122,7 +122,7 @@ class LevelMilestone {
 
   /// Catálogo oficial de hitos de nivel para La Caída
   static const List<LevelMilestone> catalog = [
-    LevelMilestone(level: 0, title: 'Nivel 0: Pichón', reward: '10 Tickets de cortesía, Modo Normal, Marco Madera Rústica'),
+    LevelMilestone(level: 0, title: 'Nivel 0: Novato', reward: '10 Tickets de cortesía, Modo Normal, Marco Madera Rústica'),
     LevelMilestone(level: 1, title: 'Nivel 1: Caimanero', reward: '+150 Monedas, Escuela de Novatos completada'),
     LevelMilestone(level: 2, title: 'Nivel 2: El Avillao', reward: 'Desbloqueo de Marco Plata Pulida'),
     LevelMilestone(level: 3, title: 'Nivel 3: Arrastrador', reward: '+250 Monedas, Desbloqueo Mesa VIP Bronce'),

@@ -127,11 +127,11 @@ void main() {
 
       // Identidad del jugador
       expect(find.text('Yoangel Eizaga'), findsOneWidget);
-      expect(find.text('🇻🇪'), findsOneWidget);
+      expect(find.text('🇻🇪'), findsNothing);
       expect(find.text('EDITAR'), findsOneWidget);
       expect(find.textContaining('Nivel 0'), findsWidgets);
       expect(find.text('0 de 300 XP'), findsOneWidget);
-      expect(find.text('Título: "Pichón"'), findsOneWidget);
+      expect(find.text('Título: "Novato"'), findsOneWidget);
     });
 
     testWidgets('Muestra todas las secciones de Estadísticas Generales en 0', (tester) async {
@@ -211,7 +211,7 @@ void main() {
 
       expect(find.text('Perfil del jugador'), findsOneWidget);
       expect(find.text('ESTADÍSTICAS GENERALES'), findsOneWidget);
-      expect(find.text('Título: "Pichón"'), findsOneWidget);
+      expect(find.text('Título: "Novato"'), findsOneWidget);
 
       // Tocar botón de cerrar [X]
       final closeIcon = find.byIcon(Icons.close_rounded);

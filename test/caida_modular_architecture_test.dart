@@ -110,7 +110,7 @@ void main() {
     test('UserProgress calcula progresión exponencial correctamente', () {
       const prog0 = UserProgress(totalXp: 0);
       expect(prog0.currentLevel, equals(0));
-      expect(prog0.rankTitle, equals('Pichón'));
+      expect(prog0.rankTitle, equals('Novato'));
 
       const prog1 = UserProgress(totalXp: 300);
       expect(prog1.currentLevel, equals(1));

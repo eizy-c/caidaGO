@@ -17,6 +17,7 @@ import 'widgets/bot_customization_modal.dart';
 import 'widgets/buy_tickets_modal.dart';
 import 'widgets/chest_slots_view.dart';
 import 'widgets/four_aces_display_view.dart';
+import 'widgets/inventory_modal.dart';
 import 'widgets/match_history_modal.dart';
 import 'widgets/player_profile_stats_modal.dart';
 import 'widgets/profile_and_level_modal.dart';
@@ -89,6 +90,7 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     SpanishCardView.precacheAllCards(context);
+    UserFrameView.precacheAllAssets(context);
   }
 
   @override
@@ -167,13 +169,24 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
     MatchHistoryModal.show(context);
   }
 
+  void _openInventoryModal() {
+    InventoryModal.show(context);
+  }
+
   void _openChallengesDialog() {
     final system = DailyChallengeSystem.instance;
+    Timer? liveTimer;
 
     showDialog(
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (context, setDialogState) {
+          liveTimer ??= Timer.periodic(const Duration(seconds: 1), (_) {
+            if (context.mounted) {
+              setDialogState(() {});
+            }
+          });
+
           final challenges = system.challenges;
           final remaining = system.timeUntilNextReset();
           final hours = remaining.inHours.toString().padLeft(2, '0');
@@ -298,13 +311,16 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
                 depth: 3.5,
                 borderRadius: 10,
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                onPressed: () => Navigator.of(context).pop(),
+                onPressed: () {
+                  liveTimer?.cancel();
+                  Navigator.of(context).pop();
+                },
               ),
             ],
           );
         },
       ),
-    );
+    ).then((_) => liveTimer?.cancel());
   }
 
   void _openSettingsDialog() {
@@ -851,37 +867,26 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
           const Spacer(),
 
           // Contador de Tickets: "10 +"
+          // Contador de Tickets: limpio sin box
           GestureDetector(
             onTap: _openBuyTicketsModal,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-              decoration: BoxDecoration(
-                color: const Color(0xFF1E293B),
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: const Color(0xFF38BDF8), width: 1.2),
-              ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 5),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.confirmation_number_rounded, color: Color(0xFF38BDF8), size: 18),
-                  const SizedBox(width: 6),
+                  const Icon(Icons.confirmation_number_rounded, color: Color(0xFF38BDF8), size: 20),
+                  const SizedBox(width: 5),
                   Text(
                     '${_session.tickets}/${_session.maxTickets}',
-                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 13),
+                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 14),
                   ),
                   if (_session.tickets < _session.maxTickets) ...[
                     const SizedBox(width: 6),
                     _buildTicketRegenBadge(),
                   ] else ...[
-                    const SizedBox(width: 6),
-                    Container(
-                      padding: const EdgeInsets.all(2),
-                      decoration: const BoxDecoration(
-                        color: Color(0xFF38BDF8),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(Icons.add, size: 10, color: Color(0xFF0F172A)),
-                    ),
+                    const SizedBox(width: 4),
+                    const Icon(Icons.add_circle_rounded, size: 14, color: Color(0xFF38BDF8)),
                   ],
                 ],
               ),
@@ -1051,7 +1056,17 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
                   ],
                 ),
                 const SizedBox(height: 6),
-                _buildSmallActionBtn('Desafíos', Icons.emoji_events_rounded, const Color(0xFFFDE047), _openChallengesDialog),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildSmallActionBtn('Desafíos', Icons.emoji_events_rounded, const Color(0xFFFDE047), _openChallengesDialog),
+                    ),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: _buildSmallActionBtn('Inventario', Icons.backpack_rounded, const Color(0xFF10B981), _openInventoryModal),
+                    ),
+                  ],
+                ),
               ],
             ),
           ),

@@ -102,11 +102,11 @@ class _TableAuditorPanelState extends State<TableAuditorPanel> {
             // Selector de 3 pestañas: Cantos | Puntos | Jugadas
             Row(
               children: [
-                _buildTabButton(0, '💬 Cantos (${cantos.length})'),
+                _buildTabButton(0, 'Cantos (${cantos.length})'),
                 const SizedBox(width: 6),
-                _buildTabButton(1, '📊 Puntos (${puntos.length})'),
+                _buildTabButton(1, 'Puntos (${puntos.length})'),
                 const SizedBox(width: 6),
-                _buildTabButton(2, '🃏 Jugadas (${jugadas.length})'),
+                _buildTabButton(2, 'Jugadas (${jugadas.length})'),
               ],
             ),
 
@@ -201,18 +201,44 @@ class _TableAuditorPanelState extends State<TableAuditorPanel> {
               ),
               const SizedBox(width: 10),
 
-              // Descripción y Jugador
+              // Descripción y Jugador con equipo
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      item.playerName,
-                      style: const TextStyle(
-                        color: Color(0xFFFDE047),
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold,
-                      ),
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                          decoration: BoxDecoration(
+                            color: item.isUserTeam
+                                ? const Color(0xFF10B981).withValues(alpha: 0.2)
+                                : const Color(0xFFEF4444).withValues(alpha: 0.2),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            item.isUserTeam ? 'Tu equipo' : 'Rival',
+                            style: TextStyle(
+                              color: item.isUserTeam ? const Color(0xFF10B981) : const Color(0xFFEF4444),
+                              fontSize: 9.5,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            item.playerName,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: Color(0xFFFDE047),
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 2),
                     Text(

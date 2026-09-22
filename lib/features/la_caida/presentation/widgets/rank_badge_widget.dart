@@ -47,9 +47,10 @@ class RankBadgeWidget extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            rank.emoji,
-            style: TextStyle(fontSize: compact ? fontSize - 1 : fontSize + 1),
+          Icon(
+            rank.icon,
+            size: compact ? fontSize + 1 : fontSize + 3,
+            color: rank.secondaryColor,
           ),
           if (!compact) const SizedBox(width: 4),
           if (!compact)

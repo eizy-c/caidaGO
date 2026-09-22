@@ -438,11 +438,9 @@ class _PlayerProfileStatsModalState extends State<PlayerProfileStatsModal> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Fila 1: Bandera 🇻🇪 + Nombre + Botón [ EDITAR ]
+              // Fila 1: Nombre + Botón [ EDITAR ]
               Row(
                 children: [
-                  const Text('🇻🇪', style: TextStyle(fontSize: 18)),
-                  const SizedBox(width: 6),
                   Expanded(
                     child: Text(
                       playerName,
@@ -739,13 +737,34 @@ class _PlayerProfileStatsModalState extends State<PlayerProfileStatsModal> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          ach.title,
-                          style: TextStyle(
-                            color: isClaimed ? const Color(0xFF64748B) : const Color(0xFF0F172A),
-                            fontSize: 12.5,
-                            fontWeight: FontWeight.bold,
-                          ),
+                        Row(
+                          children: [
+                            Text(
+                              ach.title,
+                              style: TextStyle(
+                                color: isClaimed ? const Color(0xFF64748B) : const Color(0xFF0F172A),
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                              decoration: BoxDecoration(
+                                color: ach.levelColor.withValues(alpha: 0.14),
+                                borderRadius: BorderRadius.circular(5),
+                                border: Border.all(color: ach.levelColor.withValues(alpha: 0.4), width: 0.8),
+                              ),
+                              child: Text(
+                                ach.levelBadge,
+                                style: TextStyle(
+                                  color: ach.levelColor,
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                         Row(
                           mainAxisSize: MainAxisSize.min,

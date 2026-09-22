@@ -15,6 +15,7 @@ class MatchAuditItem {
   final String description;
   final int points;
   final DateTime timestamp;
+  final bool isUserTeam;
 
   const MatchAuditItem({
     required this.round,
@@ -23,6 +24,7 @@ class MatchAuditItem {
     required this.description,
     this.points = 0,
     required this.timestamp,
+    this.isUserTeam = true,
   });
 
   Map<String, dynamic> toJson() => {
@@ -32,6 +34,7 @@ class MatchAuditItem {
     'description': description,
     'points': points,
     'timestamp': timestamp.toIso8601String(),
+    'isUserTeam': isUserTeam,
   };
 
   factory MatchAuditItem.fromJson(Map<String, dynamic> json) {
@@ -49,6 +52,7 @@ class MatchAuditItem {
       timestamp: json['timestamp'] != null
           ? DateTime.tryParse(json['timestamp'] as String) ?? DateTime.now()
           : DateTime.now(),
+      isUserTeam: json['isUserTeam'] as bool? ?? true,
     );
   }
 }

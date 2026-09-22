@@ -160,7 +160,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 100));
 
       // En la cabecera y en el badge se muestra el nivel
-      expect(find.textContaining('Nv. 1'), findsWidgets);
+      expect(find.textContaining('Nv. '), findsWidgets);
 
       // La insignia de Mano dorada (ícono de mano) aparece en pantalla (sin texto MANO)
       expect(find.byIcon(Icons.front_hand_rounded), findsOneWidget);

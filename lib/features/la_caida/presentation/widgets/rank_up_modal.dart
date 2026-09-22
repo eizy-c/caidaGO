@@ -206,8 +206,8 @@ class _RankUpModalState extends State<RankUpModal>
       opacity: dim ? 0.5 : 1.0,
       child: Column(
         children: [
-          Text(rank.emoji, style: const TextStyle(fontSize: 32)),
-          const SizedBox(height: 4),
+          Icon(rank.icon, size: 36, color: dim ? Colors.white38 : rank.primaryColor),
+          const SizedBox(height: 6),
           Text(
             rank.name,
             style: TextStyle(

@@ -18,6 +18,7 @@ class AchievementItem {
   final int coinReward;
   final int xpReward;
   final int Function(PlayerStatsModel stats) getProgress;
+  final int level;
 
   const AchievementItem({
     required this.id,
@@ -30,7 +31,38 @@ class AchievementItem {
     required this.coinReward,
     required this.xpReward,
     required this.getProgress,
+    this.level = 1,
   });
+
+  String get levelBadge {
+    switch (level) {
+      case 1:
+        return 'Bronce';
+      case 2:
+        return 'Plata';
+      case 3:
+        return 'Oro';
+      case 4:
+        return 'Diamante';
+      default:
+        return 'Nivel $level';
+    }
+  }
+
+  Color get levelColor {
+    switch (level) {
+      case 1:
+        return const Color(0xFFB45309);
+      case 2:
+        return const Color(0xFF64748B);
+      case 3:
+        return const Color(0xFFF59E0B);
+      case 4:
+        return const Color(0xFF0284C7);
+      default:
+        return const Color(0xFF334155);
+    }
+  }
 }
 
 class AchievementCatalog {
@@ -43,6 +75,7 @@ class AchievementCatalog {
       icon: Icons.auto_awesome_rounded,
       iconColor: const Color(0xFF9333EA),
       category: AchievementCategory.jugadas,
+      level: 3,
       targetProgress: 1,
       coinReward: 500,
       xpReward: 100,
@@ -55,6 +88,7 @@ class AchievementCatalog {
       icon: Icons.waves_rounded,
       iconColor: const Color(0xFF059669),
       category: AchievementCategory.jugadas,
+      level: 2,
       targetProgress: 10,
       coinReward: 700,
       xpReward: 140,
@@ -67,6 +101,7 @@ class AchievementCatalog {
       icon: Icons.bolt_rounded,
       iconColor: const Color(0xFFBE123C),
       category: AchievementCategory.jugadas,
+      level: 2,
       targetProgress: 25,
       coinReward: 600,
       xpReward: 120,
@@ -79,6 +114,7 @@ class AchievementCatalog {
       icon: Icons.military_tech_rounded,
       iconColor: const Color(0xFFEAB308),
       category: AchievementCategory.economia,
+      level: 3,
       targetProgress: 5,
       coinReward: 1000,
       xpReward: 200,
@@ -91,6 +127,7 @@ class AchievementCatalog {
       icon: Icons.groups_rounded,
       iconColor: const Color(0xFF3B82F6),
       category: AchievementCategory.economia,
+      level: 1,
       targetProgress: 3,
       coinReward: 400,
       xpReward: 80,
@@ -103,6 +140,7 @@ class AchievementCatalog {
       icon: Icons.style_rounded,
       iconColor: const Color(0xFF10B981),
       category: AchievementCategory.economia,
+      level: 1,
       targetProgress: 50,
       coinReward: 300,
       xpReward: 60,
@@ -117,6 +155,7 @@ class AchievementCatalog {
       icon: Icons.play_arrow_rounded,
       iconColor: const Color(0xFF38BDF8),
       category: AchievementCategory.partidas,
+      level: 1,
       targetProgress: 1,
       coinReward: 100,
       xpReward: 20,
@@ -129,6 +168,7 @@ class AchievementCatalog {
       icon: Icons.history_edu_rounded,
       iconColor: const Color(0xFF60A5FA),
       category: AchievementCategory.partidas,
+      level: 2,
       targetProgress: 10,
       coinReward: 300,
       xpReward: 60,
@@ -141,6 +181,7 @@ class AchievementCatalog {
       icon: Icons.military_tech_rounded,
       iconColor: const Color(0xFF818CF8),
       category: AchievementCategory.partidas,
+      level: 3,
       targetProgress: 50,
       coinReward: 800,
       xpReward: 150,
@@ -153,6 +194,7 @@ class AchievementCatalog {
       icon: Icons.workspace_premium_rounded,
       iconColor: const Color(0xFFA855F7),
       category: AchievementCategory.partidas,
+      level: 4,
       targetProgress: 100,
       coinReward: 2000,
       xpReward: 400,
@@ -165,6 +207,7 @@ class AchievementCatalog {
       icon: Icons.emoji_events_rounded,
       iconColor: const Color(0xFFFBBF24),
       category: AchievementCategory.partidas,
+      level: 1,
       targetProgress: 1,
       coinReward: 150,
       xpReward: 30,
@@ -177,6 +220,7 @@ class AchievementCatalog {
       icon: Icons.military_tech_rounded,
       iconColor: const Color(0xFFF59E0B),
       category: AchievementCategory.partidas,
+      level: 2,
       targetProgress: 10,
       coinReward: 500,
       xpReward: 100,
@@ -189,6 +233,7 @@ class AchievementCatalog {
       icon: Icons.auto_awesome_rounded,
       iconColor: const Color(0xFFEAB308),
       category: AchievementCategory.partidas,
+      level: 3,
       targetProgress: 50,
       coinReward: 1500,
       xpReward: 300,
@@ -201,6 +246,7 @@ class AchievementCatalog {
       icon: Icons.local_fire_department_rounded,
       iconColor: const Color(0xFFEA580C),
       category: AchievementCategory.partidas,
+      level: 1,
       targetProgress: 3,
       coinReward: 400,
       xpReward: 80,
@@ -213,6 +259,7 @@ class AchievementCatalog {
       icon: Icons.whatshot_rounded,
       iconColor: const Color(0xFFDC2626),
       category: AchievementCategory.partidas,
+      level: 2,
       targetProgress: 5,
       coinReward: 1000,
       xpReward: 200,
@@ -227,6 +274,7 @@ class AchievementCatalog {
       icon: Icons.flash_on_rounded,
       iconColor: const Color(0xFFE11D48),
       category: AchievementCategory.jugadas,
+      level: 1,
       targetProgress: 1,
       coinReward: 100,
       xpReward: 20,
@@ -239,6 +287,7 @@ class AchievementCatalog {
       icon: Icons.dangerous_rounded,
       iconColor: const Color(0xFF881337),
       category: AchievementCategory.jugadas,
+      level: 3,
       targetProgress: 100,
       coinReward: 2000,
       xpReward: 400,
@@ -251,6 +300,7 @@ class AchievementCatalog {
       icon: Icons.cleaning_services_rounded,
       iconColor: const Color(0xFF0D9488),
       category: AchievementCategory.jugadas,
+      level: 1,
       targetProgress: 1,
       coinReward: 150,
       xpReward: 30,
@@ -263,6 +313,7 @@ class AchievementCatalog {
       icon: Icons.music_note_rounded,
       iconColor: const Color(0xFF10B981),
       category: AchievementCategory.jugadas,
+      level: 1,
       targetProgress: 5,
       coinReward: 250,
       xpReward: 50,
@@ -275,6 +326,7 @@ class AchievementCatalog {
       icon: Icons.shield_moon_rounded,
       iconColor: const Color(0xFF2563EB),
       category: AchievementCategory.jugadas,
+      level: 1,
       targetProgress: 5,
       coinReward: 300,
       xpReward: 60,
@@ -287,6 +339,7 @@ class AchievementCatalog {
       icon: Icons.visibility_rounded,
       iconColor: const Color(0xFF7C3AED),
       category: AchievementCategory.jugadas,
+      level: 2,
       targetProgress: 3,
       coinReward: 350,
       xpReward: 70,
@@ -299,6 +352,7 @@ class AchievementCatalog {
       icon: Icons.workspace_premium_rounded,
       iconColor: const Color(0xFFD97706),
       category: AchievementCategory.jugadas,
+      level: 2,
       targetProgress: 1,
       coinReward: 200,
       xpReward: 40,
@@ -313,6 +367,7 @@ class AchievementCatalog {
       icon: Icons.inventory_2_rounded,
       iconColor: const Color(0xFF047857),
       category: AchievementCategory.economia,
+      level: 2,
       targetProgress: 200,
       coinReward: 800,
       xpReward: 150,
@@ -325,6 +380,7 @@ class AchievementCatalog {
       icon: Icons.emoji_events_rounded,
       iconColor: const Color(0xFFD97706),
       category: AchievementCategory.economia,
+      level: 1,
       targetProgress: 150,
       coinReward: 300,
       xpReward: 60,
@@ -337,6 +393,7 @@ class AchievementCatalog {
       icon: Icons.star_rounded,
       iconColor: const Color(0xFFFDE047),
       category: AchievementCategory.economia,
+      level: 3,
       targetProgress: 900,
       coinReward: 1000,
       xpReward: 200,

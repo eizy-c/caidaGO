@@ -18,18 +18,18 @@ enum RankTier {
 class RankInfo {
   final RankTier tier;
   final String name;
-  final String emoji;
+  final IconData icon;
   final String frameId;
   final int minTrophies;
   final int maxTrophies; // -1 para Leyenda (sin techo)
-  final int divisions;   // número de divisiones (I, II, III), 1 para Leyenda
+  final int divisions;   // número de divisiones (ej: 4, 3, 2, 1)
   final Color primaryColor;
   final Color secondaryColor;
 
   const RankInfo({
     required this.tier,
     required this.name,
-    required this.emoji,
+    required this.icon,
     required this.frameId,
     required this.minTrophies,
     required this.maxTrophies,
@@ -38,89 +38,97 @@ class RankInfo {
     required this.secondaryColor,
   });
 
-  /// Retorna el número de división (1, 2 o 3) según los trofeos del jugador
+  /// Retorna el nivel de división actual (ej: 4, 3, 2, 1) según los trofeos del jugador
+  /// División más alta dentro del rango es 1 (ej: Oro 3 -> Oro 2 -> Oro 1)
   int divisionFor(int trophies) {
     if (divisions <= 1 || maxTrophies < 0) return 1;
     final range = maxTrophies - minTrophies;
-    final divSize = range ~/ divisions;
+    final divSize = (range / divisions).ceil();
+    if (divSize <= 0) return 1;
     final offset = trophies - minTrophies;
-    final div = (offset ~/ divSize) + 1;
+    final divIndex = (offset ~/ divSize).clamp(0, divisions - 1);
+    final div = divisions - divIndex;
     return div.clamp(1, divisions);
   }
 
-  /// Nombre completo con división (ej: "Bronce II")
+  /// Nombre completo con división (ej: "Novato 4", "Oro 3", "Plata 2")
   String fullNameFor(int trophies) {
     if (divisions <= 1) return name;
     final div = divisionFor(trophies);
-    const divNames = ['I', 'II', 'III'];
-    return '$name ${divNames[(div - 1).clamp(0, 2)]}';
+    return '$name $div';
   }
 
   static const List<RankInfo> allRanks = [
     RankInfo(
       tier: RankTier.novato,
       name: 'Novato',
-      emoji: '🪨',
+      icon: Icons.shield_outlined,
       frameId: 'rank_novato',
       minTrophies: 0,
       maxTrophies: 149,
+      divisions: 4,
       primaryColor: Color(0xFF6B7280),
       secondaryColor: Color(0xFF9CA3AF),
     ),
     RankInfo(
       tier: RankTier.bronce,
       name: 'Bronce',
-      emoji: '🥉',
+      icon: Icons.military_tech_rounded,
       frameId: 'rank_bronce',
       minTrophies: 150,
       maxTrophies: 449,
+      divisions: 3,
       primaryColor: Color(0xFFD97706),
       secondaryColor: Color(0xFFF59E0B),
     ),
     RankInfo(
       tier: RankTier.plata,
       name: 'Plata',
-      emoji: '🥈',
+      icon: Icons.workspace_premium_rounded,
       frameId: 'rank_plata',
       minTrophies: 450,
       maxTrophies: 899,
+      divisions: 3,
       primaryColor: Color(0xFF94A3B8),
       secondaryColor: Color(0xFFCBD5E1),
     ),
     RankInfo(
       tier: RankTier.oro,
       name: 'Oro',
-      emoji: '🥇',
+      icon: Icons.emoji_events_rounded,
       frameId: 'rank_oro',
       minTrophies: 900,
       maxTrophies: 1499,
+      divisions: 3,
       primaryColor: Color(0xFFEAB308),
       secondaryColor: Color(0xFFFDE047),
     ),
     RankInfo(
       tier: RankTier.esmeralda,
       name: 'Esmeralda',
-      emoji: '💎',
+      icon: Icons.diamond_rounded,
       frameId: 'rank_esmeralda',
       minTrophies: 1500,
       maxTrophies: 2299,
+      divisions: 3,
       primaryColor: Color(0xFF059669),
       secondaryColor: Color(0xFF10B981),
     ),
     RankInfo(
       tier: RankTier.diamante,
       name: 'Diamante',
-      emoji: '💠',
+      icon: Icons.auto_awesome_rounded,
       frameId: 'rank_diamante',
       minTrophies: 2300,
       maxTrophies: 3299,
+      divisions: 3,
       primaryColor: Color(0xFF6366F1),
       secondaryColor: Color(0xFFA855F7),
     ),
     RankInfo(
       tier: RankTier.maestro1,
       name: 'Maestro I',
-      emoji: '👑',
+      icon: Icons.shield_rounded,
       frameId: 'rank_maestro',
       minTrophies: 3300,
       maxTrophies: 3699,
@@ -131,7 +139,7 @@ class RankInfo {
     RankInfo(
       tier: RankTier.maestro2,
       name: 'Maestro II',
-      emoji: '👑',
+      icon: Icons.star_rounded,
       frameId: 'rank_gran_maestro',
       minTrophies: 3700,
       maxTrophies: 4099,
@@ -142,7 +150,7 @@ class RankInfo {
     RankInfo(
       tier: RankTier.maestro3,
       name: 'Maestro III',
-      emoji: '🛡️',
+      icon: Icons.military_tech_rounded,
       frameId: 'rank_heroico',
       minTrophies: 4100,
       maxTrophies: 4499,
@@ -153,7 +161,7 @@ class RankInfo {
     RankInfo(
       tier: RankTier.leyenda,
       name: 'Leyenda',
-      emoji: '🌟',
+      icon: Icons.stars_rounded,
       frameId: 'rank_leyenda',
       minTrophies: 4500,
       maxTrophies: -1,

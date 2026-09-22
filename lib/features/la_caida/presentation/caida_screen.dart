@@ -13,6 +13,7 @@ import '../../../core/presentation/widgets/app_3d_button.dart';
 import '../../../core/services/audio_service.dart';
 import '../../../core/services/debug_logger.dart';
 import '../../../core/services/feedback_service.dart';
+import '../../../core/services/haptic_service.dart';
 import '../../../core/services/user_profile_service.dart';
 import '../domain/caida_models.dart';
 import '../domain/caida_rules_engine.dart';
@@ -195,7 +196,13 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
     required AuditEntryType type,
     required String description,
     int points = 0,
+    bool? isUserTeam,
   }) {
+    final effectiveIsUserTeam = isUserTeam ??
+        (_players.isNotEmpty &&
+            (_players[0].name == playerName ||
+                (_isTeams &&
+                    _players.any((p) => p.name == playerName && p.teamId == _players[0].teamId))));
     _matchAuditLogs.add(
       MatchAuditItem(
         round: 'Ronda $_roundNumber',
@@ -204,6 +211,7 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
         description: description,
         points: points,
         timestamp: DateTime.now(),
+        isUserTeam: effectiveIsUserTeam,
       ),
     );
   }
@@ -541,6 +549,7 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
     _players = [];
     final profileService = UserProfileService();
     final session = PlayerSession.shared;
+    _userLevel = session.level;
     final effectiveUserName = (widget.userName != null && widget.userName!.isNotEmpty)
         ? widget.userName!
         : (session.name.trim().isNotEmpty
@@ -570,6 +579,7 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
       Color(0xFF10B981), // Frente / Compañero o Rival 2 (Verde)
       Color(0xFFA855F7), // Derecha / Rival 3 (Morado)
     ];
+    const botFrames = ['rank_novato', 'rank_bronce', 'rank_plata', 'rank_oro'];
 
     final rivalCount = totalPlayers - 1;
 
@@ -585,6 +595,8 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
         color: botColors[(i - 1) % botColors.length],
         teamId: teams ? (i % 2 == 0 ? 1 : 2) : i,
         avatarId: botAvatars[(i - 1) % botAvatars.length],
+        frameId: botFrames[(i - 1) % botFrames.length],
+        level: (session.level - 1 + i).clamp(1, 10),
       ));
     }
   }
@@ -722,6 +734,7 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
         );
 
         AudioService().playCardDeal();
+        HapticService.instance.onCardPlay();
         setState(() {
           _activeTrajectories = [
             CardFlightTrajectory(
@@ -874,6 +887,14 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
         final vol = res.volumeBonusPoints[p.id] ?? 0;
         if (vol > 0) {
           _triggerCallout(p, 'Volumen (+$vol pts)');
+          final isUserTeam = p.id == 'user' || (_isTeams && p.teamId == _players[0].teamId);
+          _addAuditLog(
+            playerName: p.name,
+            type: AuditEntryType.puntos,
+            description: 'Excedente de cartas al contar a 20: ${p.cardsWon} cartas recogidas (+$vol pts)',
+            points: vol,
+            isUserTeam: isUserTeam,
+          );
         }
       }
 
@@ -963,11 +984,13 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
         final cantoName = p.pendingCanto!.name;
         if (delayMs == 0) {
           AudioService().playCanto(cantoName);
+          HapticService.instance.onCanto();
         } else {
           final captureDelay = delayMs;
           final timer = Timer(Duration(milliseconds: captureDelay), () {
             if (mounted) {
               AudioService().playCanto(cantoName);
+              HapticService.instance.onCanto();
             }
           });
           _cantoAudioTimers.add(timer);
@@ -1014,6 +1037,7 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
           points: canto.points,
         );
         AudioService().playCanto(canto.name);
+        HapticService.instance.onCanto();
       } else if (p.pendingCanto != null) {
         final defeated = p.pendingCanto!;
         final detail = defeated is RondaCanto
@@ -1067,9 +1091,11 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
 
     if (_selectedCard == card) {
       // Segundo toque en la misma carta -> Jugar
+      HapticService.instance.onCardPlay();
       _playCard(_players[0], card);
     } else {
       // Primer toque -> Seleccionar únicamente esta carta
+      HapticService.instance.onSelection();
       setState(() {
         _selectedCard = card;
       });
@@ -1173,11 +1199,17 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
           PlayerStatsModel.shared.recordMesaLimpia();
         }
 
-        // Sonidos de Caída / Limpia al impactar
-        if (eval.isCaida) AudioService().playCaida();
+        // Sonidos y hápticos de Caída / Limpia al impactar
+        if (eval.isCaida) {
+          AudioService().playCaida();
+          HapticService.instance.onCaida();
+        }
         if (eval.isLimpia) {
           _safeDelay(const Duration(milliseconds: 400)).then((_) {
-            if (mounted) AudioService().playMesaLimpia();
+            if (mounted) {
+              AudioService().playMesaLimpia();
+              HapticService.instance.onCaida();
+            }
           });
         }
 
@@ -1306,10 +1338,13 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
       if (eval.isCaida && eval.isLimpia) {
         AudioService().playCaida();
         AudioService().playMesaLimpia();
+        HapticService.instance.onCaida();
       } else if (eval.isCaida) {
         AudioService().playCaida();
+        HapticService.instance.onCaida();
       } else if (eval.isLimpia) {
         AudioService().playMesaLimpia();
+        HapticService.instance.onCaida();
       }
     }
 
@@ -1440,10 +1475,6 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
         }
       }
     }
-
-    _userLevel = session.level;
-
-    // Recompensas del sistema de economía de Fase 2 (PlayerSession)
     int vipCoinsWon = 0;
     bool chestAwarded = false;
     int? chestSlotIndex;
@@ -1568,6 +1599,8 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
     }
 
     final finalLevel = session.level;
+    _userLevel = finalLevel;
+    session.save();
     final didLevelUp = finalLevel > initialLevel;
 
     final userTeamPlayers = _isTeams ? _players.where((p) => p.teamId == _players[0].teamId).toList() : [_players[0]];
@@ -2559,7 +2592,7 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
             score: rival.score,
             cardsWon: rival.cardsWon,
             isBot: rival.isBot,
-            playerLevel: rival.isBot ? null : rival.level,
+            playerLevel: rival.level,
             isCurrentTurn: _currentTurnIndex == 1,
             turnProgress: 1.0 - _timerController.value,
             position: PlayerPositionOnTable.top,
@@ -2567,6 +2600,7 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
             cardsInHandCount: rival.hand.length,
             avatarColor: rival.color,
             avatarId: rival.avatarId,
+            frameId: rival.frameId,
             isMano: _manoIndex == 1,
             isCompact: isCompact,
           ),
@@ -2585,7 +2619,7 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
             score: rival1.score,
             cardsWon: rival1.cardsWon,
             isBot: rival1.isBot,
-            playerLevel: rival1.isBot ? null : rival1.level,
+            playerLevel: rival1.level,
             isCurrentTurn: _currentTurnIndex == 1,
             turnProgress: 1.0 - _timerController.value,
             position: PlayerPositionOnTable.left,
@@ -2593,6 +2627,7 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
             cardsInHandCount: rival1.hand.length,
             avatarColor: rival1.color,
             avatarId: rival1.avatarId,
+            frameId: rival1.frameId,
             isMano: _manoIndex == 1,
             isCompact: isCompact,
           ),
@@ -2608,7 +2643,7 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
             score: rival2.score,
             cardsWon: rival2.cardsWon,
             isBot: rival2.isBot,
-            playerLevel: rival2.isBot ? null : rival2.level,
+            playerLevel: rival2.level,
             isCurrentTurn: _currentTurnIndex == 2,
             turnProgress: 1.0 - _timerController.value,
             position: PlayerPositionOnTable.right,
@@ -2616,6 +2651,7 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
             cardsInHandCount: rival2.hand.length,
             avatarColor: rival2.color,
             avatarId: rival2.avatarId,
+            frameId: rival2.frameId,
             isMano: _manoIndex == 2,
             isCompact: isCompact,
           ),
@@ -2636,7 +2672,7 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
             score: rival1.score,
             cardsWon: rival1.cardsWon,
             isBot: rival1.isBot,
-            playerLevel: rival1.isBot ? null : rival1.level,
+            playerLevel: rival1.level,
             isCurrentTurn: _currentTurnIndex == 1,
             turnProgress: 1.0 - _timerController.value,
             position: PlayerPositionOnTable.left,
@@ -2644,6 +2680,7 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
             cardsInHandCount: rival1.hand.length,
             avatarColor: rival1.color,
             avatarId: rival1.avatarId,
+            frameId: rival1.frameId,
             isMano: _manoIndex == 1,
             isCompact: isCompact,
           ),
@@ -2659,7 +2696,7 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
             score: rival2.score,
             cardsWon: rival2.cardsWon,
             isBot: rival2.isBot,
-            playerLevel: rival2.isBot ? null : rival2.level,
+            playerLevel: rival2.level,
             isCurrentTurn: _currentTurnIndex == 2,
             turnProgress: 1.0 - _timerController.value,
             position: PlayerPositionOnTable.top,
@@ -2667,6 +2704,7 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
             cardsInHandCount: rival2.hand.length,
             avatarColor: rival2.color,
             avatarId: rival2.avatarId,
+            frameId: rival2.frameId,
             isMano: _manoIndex == 2,
             isCompact: isCompact,
           ),
@@ -2683,7 +2721,7 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
             score: rival3.score,
             cardsWon: rival3.cardsWon,
             isBot: rival3.isBot,
-            playerLevel: rival3.isBot ? null : rival3.level,
+            playerLevel: rival3.level,
             isCurrentTurn: _currentTurnIndex == 3,
             turnProgress: 1.0 - _timerController.value,
             position: PlayerPositionOnTable.right,
@@ -2691,6 +2729,7 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
             cardsInHandCount: rival3.hand.length,
             avatarColor: rival3.color,
             avatarId: rival3.avatarId,
+            frameId: rival3.frameId,
             isMano: _manoIndex == 3,
             isCompact: isCompact,
           ),
