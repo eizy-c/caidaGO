@@ -267,25 +267,33 @@ class _ProfileOptionsDialogState extends State<ProfileOptionsDialog> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Row(
-                            children: [
-                              Icon(
-                                Icons.shield_rounded,
-                                size: 15,
-                                color: AppPalette.cyan,
-                              ),
-                              SizedBox(width: 6),
-                              Text(
-                                'SELECCIONA TU HÉROE',
-                                style: TextStyle(
-                                  color: AppPalette.sand,
-                                  fontSize: 11.5,
-                                  fontWeight: FontWeight.bold,
-                                  letterSpacing: 0.6,
+                          const Flexible(
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.shield_rounded,
+                                  size: 15,
+                                  color: AppPalette.cyan,
                                 ),
-                              ),
-                            ],
+                                SizedBox(width: 6),
+                                Flexible(
+                                  child: Text(
+                                    'SELECCIONA TU HÉROE',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      color: AppPalette.sand,
+                                      fontSize: 11.5,
+                                      fontWeight: FontWeight.bold,
+                                      letterSpacing: 0.6,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
+                          const SizedBox(width: 8),
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2.5),
                             decoration: BoxDecoration(

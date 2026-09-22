@@ -25,7 +25,7 @@ void main() {
   });
 
   group('Buzón de Sugerencias - Integración en Lobby UI', () {
-    testWidgets('Renderiza el botón de Sugerencias en la barra superior del Lobby', (tester) async {
+    testWidgets('El botón de Sugerencias se retiró de la barra superior para optimizar espacio', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: CaidaLobbyScreen(),
@@ -33,10 +33,9 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Botón visible en barra superior
-      final suggestionsBtn = find.text('Sugerencias');
-      expect(suggestionsBtn, findsOneWidget);
-      expect(find.byIcon(Icons.lightbulb_rounded), findsOneWidget);
+      // En la barra superior ya no debe estar saturando el espacio de monedas/tickets/chapas
+      expect(find.text('Sugerencias'), findsNothing);
+      expect(find.byIcon(Icons.lightbulb_rounded), findsNothing);
     });
 
     testWidgets('Muestra la opción de Buzón de Sugerencias dentro del diálogo de Ajustes', (tester) async {

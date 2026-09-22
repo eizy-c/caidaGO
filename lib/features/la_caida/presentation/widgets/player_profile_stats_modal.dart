@@ -430,23 +430,28 @@ class _PlayerProfileStatsModalState extends State<PlayerProfileStatsModal> {
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(8),
                           child: Stack(
-                            alignment: Alignment.center,
+                            alignment: Alignment.centerLeft,
                             children: [
-                              FractionallySizedBox(
-                                alignment: Alignment.centerLeft,
-                                widthFactor: progressRatio.clamp(0.0, 1.0),
-                                child: Container(
-                                  decoration: const BoxDecoration(
-                                    color: Color(0xFF22C55E),
+                              Positioned.fill(
+                                child: Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: FractionallySizedBox(
+                                    alignment: Alignment.centerLeft,
+                                    widthFactor: progressRatio.clamp(0.0, 1.0),
+                                    child: Container(
+                                      color: const Color(0xFF22C55E),
+                                    ),
                                   ),
                                 ),
                               ),
-                              Text(
-                                '$currentTierXp de $neededTierXp XP',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 8.5,
-                                  fontWeight: FontWeight.bold,
+                              Center(
+                                child: Text(
+                                  '$currentTierXp de $neededTierXp XP',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 8.5,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ),
                             ],

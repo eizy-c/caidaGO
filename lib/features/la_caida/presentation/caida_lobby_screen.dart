@@ -998,42 +998,6 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
             tooltip: 'Ajustes',
             onPressed: _openSettingsDialog,
           ),
-          const SizedBox(width: 4),
-
-          // Botón de Sugerencias (Google Forms)
-          InkWell(
-            onTap: () => FeedbackService.openFeedbackForm(context: context),
-            borderRadius: BorderRadius.circular(14),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF4F46E5), Color(0xFF4338CA)],
-                ),
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: const Color(0xFF2E2E2E), width: 1.2),
-                boxShadow: const [
-                  BoxShadow(color: Colors.black38, blurRadius: 4, offset: Offset(0, 2)),
-                ],
-              ),
-              child: const Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.lightbulb_rounded, color: Color(0xFFFDE047), size: 15),
-                  SizedBox(width: 5),
-                  Text(
-                    'Sugerencias',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w900,
-                      fontSize: 12,
-                      letterSpacing: 0.3,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
           const Spacer(),
 
           // Contador de Tickets: "10 +"
