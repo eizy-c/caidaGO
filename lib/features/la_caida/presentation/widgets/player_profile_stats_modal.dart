@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../economy/player_session.dart';
 import '../../economy/player_stats_model.dart';
 import '../../economy/user_progress.dart';
+import '../../economy/rank_system.dart';
 import '../../economy/achievement_catalog.dart';
 import 'profile_and_level_modal.dart';
 import 'user_frame_view.dart';
@@ -552,19 +553,78 @@ class _PlayerProfileStatsModalState extends State<PlayerProfileStatsModal> {
 
               const SizedBox(height: 6),
 
-              // Fila 3: Píldora de Título de Rango
+              // Fila 3: Rango competitivo en la cabecera (Trofeos + barra de rango)
+              Builder(
+                builder: (context) {
+                  final rankProg = RankProgress(trophies: _stats.trophies);
+                  final rank = rankProg.currentRank;
+                  final fullName = rank.fullNameFor(_stats.trophies);
+                  return Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: rank.primaryColor.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: rank.primaryColor.withValues(alpha: 0.6), width: 1),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(rank.icon, size: 12, color: rank.secondaryColor),
+                            const SizedBox(width: 4),
+                            Text(
+                              fullName,
+                              style: TextStyle(
+                                color: rank.secondaryColor,
+                                fontSize: 10,
+                                fontWeight: FontWeight.w900,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(6),
+                          child: LinearProgressIndicator(
+                            value: rankProg.progressInTier,
+                            minHeight: 8,
+                            backgroundColor: const Color(0xFFE2D8C9),
+                            valueColor: AlwaysStoppedAnimation<Color>(rank.primaryColor),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        '${_stats.trophies} 🏆',
+                        style: TextStyle(
+                          color: rank.secondaryColor,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              ),
+
+              const SizedBox(height: 5),
+
+              // Fila 4: Píldora de Título de Nivel
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2.5),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
                 decoration: BoxDecoration(
                   color: const Color(0xFFEBDDCB),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(10),
                   border: Border.all(color: const Color(0xFFD7CCC8), width: 1),
                 ),
                 child: Text(
                   'Título: "${progress.rankTitle}"',
                   style: const TextStyle(
                     color: Color(0xFF5D3A1A),
-                    fontSize: 11,
+                    fontSize: 10.5,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -688,7 +748,7 @@ class _PlayerProfileStatsModalState extends State<PlayerProfileStatsModal> {
     );
   }
 
-  /// Pestaña 2: Logros y Misiones de La Caída (25 logros en 3 categorías)
+  /// Pestaña 2: Logros y Misiones de La Caída (Categorías y niveles progresivos)
   Widget _buildAchievementsTab() {
     final achievements = AchievementCatalog.allAchievements;
 
@@ -701,30 +761,65 @@ class _PlayerProfileStatsModalState extends State<PlayerProfileStatsModal> {
         final ach = achievements[index];
         final currentProgress = ach.getProgress(_stats);
         final isClaimed = _stats.claimedAchievementIds.contains(ach.id);
-        final isCompleted = currentProgress >= ach.targetProgress;
-        final progressRatio = (currentProgress / ach.targetProgress).clamp(0.0, 1.0);
+        final isUnlocked = AchievementCatalog.isUnlocked(ach, _stats);
+        final reqItem = AchievementCatalog.getRequirement(ach);
+        final isCompleted = isUnlocked && currentProgress >= ach.targetProgress;
+        final progressRatio = isUnlocked
+            ? (currentProgress / ach.targetProgress).clamp(0.0, 1.0)
+            : 0.0;
 
         return Container(
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: isClaimed ? const Color(0xFFF1F5F9) : Colors.white,
+            color: isClaimed
+                ? const Color(0xFFF1F5F9)
+                : (!isUnlocked ? const Color(0xFFFAFAFA) : Colors.white),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: isClaimed ? const Color(0xFFCBD5E1) : const Color(0xFFE2E8F0),
+              color: isClaimed
+                  ? const Color(0xFFCBD5E1)
+                  : (!isUnlocked ? const Color(0xFFE2E8F0) : const Color(0xFFE2E8F0)),
               width: 1.2,
             ),
           ),
           child: Row(
             children: [
-              // Icono
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: ach.iconColor.withValues(alpha: 0.12),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(ach.icon, color: ach.iconColor, size: 22),
+              // Icono con indicador de candado si está bloqueado por nivel
+              Stack(
+                children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: isUnlocked
+                          ? ach.iconColor.withValues(alpha: 0.12)
+                          : const Color(0xFFE2E8F0),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      ach.icon,
+                      color: isUnlocked ? ach.iconColor : const Color(0xFF94A3B8),
+                      size: 22,
+                    ),
+                  ),
+                  if (!isUnlocked)
+                    Positioned(
+                      bottom: 0,
+                      right: 0,
+                      child: Container(
+                        padding: const EdgeInsets.all(2),
+                        decoration: const BoxDecoration(
+                          color: Color(0xFF64748B),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.lock_rounded,
+                          color: Colors.white,
+                          size: 10,
+                        ),
+                      ),
+                    ),
+                ],
               ),
 
               const SizedBox(width: 10),
@@ -742,7 +837,9 @@ class _PlayerProfileStatsModalState extends State<PlayerProfileStatsModal> {
                             Text(
                               ach.title,
                               style: TextStyle(
-                                color: isClaimed ? const Color(0xFF64748B) : const Color(0xFF0F172A),
+                                color: isClaimed || !isUnlocked
+                                    ? const Color(0xFF64748B)
+                                    : const Color(0xFF0F172A),
                                 fontSize: 12.5,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -751,14 +848,21 @@ class _PlayerProfileStatsModalState extends State<PlayerProfileStatsModal> {
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
                               decoration: BoxDecoration(
-                                color: ach.levelColor.withValues(alpha: 0.14),
+                                color: isUnlocked
+                                    ? ach.levelColor.withValues(alpha: 0.14)
+                                    : const Color(0xFFE2E8F0),
                                 borderRadius: BorderRadius.circular(5),
-                                border: Border.all(color: ach.levelColor.withValues(alpha: 0.4), width: 0.8),
+                                border: Border.all(
+                                  color: isUnlocked
+                                      ? ach.levelColor.withValues(alpha: 0.4)
+                                      : const Color(0xFFCBD5E1),
+                                  width: 0.8,
+                                ),
                               ),
                               child: Text(
                                 ach.levelBadge,
                                 style: TextStyle(
-                                  color: ach.levelColor,
+                                  color: isUnlocked ? ach.levelColor : const Color(0xFF64748B),
                                   fontSize: 9,
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -791,6 +895,27 @@ class _PlayerProfileStatsModalState extends State<PlayerProfileStatsModal> {
                         fontSize: 10.5,
                       ),
                     ),
+                    if (!isUnlocked && reqItem != null) ...[
+                      const SizedBox(height: 3),
+                      Row(
+                        children: [
+                          const Icon(Icons.lock_outline_rounded, size: 11, color: Color(0xFFD97706)),
+                          const SizedBox(width: 3),
+                          Expanded(
+                            child: Text(
+                              'Requiere completar nivel ${reqItem.levelBadge}',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: Color(0xFFD97706),
+                                fontSize: 9.5,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                     const SizedBox(height: 4),
                     // Barra de progreso
                     Row(
@@ -802,7 +927,11 @@ class _PlayerProfileStatsModalState extends State<PlayerProfileStatsModal> {
                               value: progressRatio,
                               backgroundColor: const Color(0xFFE2E8F0),
                               valueColor: AlwaysStoppedAnimation(
-                                isCompleted ? const Color(0xFF10B981) : const Color(0xFF0284C7),
+                                !isUnlocked
+                                    ? const Color(0xFFCBD5E1)
+                                    : (isCompleted
+                                        ? const Color(0xFF10B981)
+                                        : const Color(0xFF0284C7)),
                               ),
                               minHeight: 6,
                             ),
@@ -810,9 +939,11 @@ class _PlayerProfileStatsModalState extends State<PlayerProfileStatsModal> {
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          '${currentProgress.clamp(0, ach.targetProgress)} / ${ach.targetProgress}',
-                          style: const TextStyle(
-                            color: Color(0xFF64748B),
+                          isUnlocked
+                              ? '${currentProgress.clamp(0, ach.targetProgress)} / ${ach.targetProgress}'
+                              : '0 / ${ach.targetProgress}',
+                          style: TextStyle(
+                            color: isUnlocked ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
                           ),
@@ -842,6 +973,29 @@ class _PlayerProfileStatsModalState extends State<PlayerProfileStatsModal> {
                         'Reclamado',
                         style: TextStyle(
                           color: Color(0xFF64748B),
+                          fontSize: 9.5,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              else if (!isUnlocked)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF1F5F9),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.lock_rounded, size: 11, color: Color(0xFF94A3B8)),
+                      SizedBox(width: 3),
+                      Text(
+                        'Bloqueado',
+                        style: TextStyle(
+                          color: Color(0xFF94A3B8),
                           fontSize: 9.5,
                           fontWeight: FontWeight.bold,
                         ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/presentation/widgets/app_3d_button.dart';
 import '../../economy/player_session.dart';
+import '../../economy/player_stats_model.dart';
 import '../../economy/user_progress.dart';
 import 'avatar_view.dart';
 import 'user_frame_view.dart';
@@ -453,12 +454,14 @@ class _ProfileAndLevelModalState extends State<ProfileAndLevelModal> with Single
 
   // --- PESTAÑA 2: MARCOS DE USUARIO ---
   Widget _buildFramesTab(UserProgress progress) {
+    final playerTrophies = PlayerStatsModel.shared.trophies;
+
     return ListView.builder(
       padding: const EdgeInsets.all(14),
       itemCount: UserFrameItem.allFrames.length,
       itemBuilder: (context, i) {
         final frame = UserFrameItem.allFrames[i];
-        final isUnlocked = frame.isUnlockedByTrophies(progress.totalXp);
+        final isUnlocked = frame.isUnlockedByTrophies(playerTrophies);
         final isSelected = _tempFrameId == frame.id;
 
         return Container(
@@ -476,21 +479,48 @@ class _ProfileAndLevelModalState extends State<ProfileAndLevelModal> with Single
           ),
           child: Row(
             children: [
-              UserFrameView(
-                avatarIndex: _tempAvatarIndex,
-                frameId: frame.id,
-                level: progress.currentLevel,
-                size: 46,
-                showLevelBadge: false,
+              Stack(
+                alignment: Alignment.center,
+                children: [
+                  UserFrameView(
+                    avatarIndex: _tempAvatarIndex,
+                    frameId: frame.id,
+                    level: progress.currentLevel,
+                    size: 46,
+                    showLevelBadge: false,
+                  ),
+                  if (!isUnlocked)
+                    Container(
+                      width: 46,
+                      height: 46,
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.55),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.lock_rounded,
+                        color: Color(0xFFFCA5A5),
+                        size: 20,
+                      ),
+                    ),
+                ],
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      frame.name,
-                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                    Row(
+                      children: [
+                        Text(
+                          frame.name,
+                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                        ),
+                        if (!isUnlocked) ...[
+                          const SizedBox(width: 5),
+                          const Icon(Icons.lock_rounded, size: 12, color: Color(0xFFF87171)),
+                        ],
+                      ],
                     ),
                     const SizedBox(height: 2),
                     Text(
@@ -499,7 +529,7 @@ class _ProfileAndLevelModalState extends State<ProfileAndLevelModal> with Single
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      isUnlocked ? 'Desbloqueado' : 'Requiere ${frame.minTrophies} Trofeos',
+                      isUnlocked ? 'Desbloqueado' : 'Requiere ${frame.minTrophies} Trofeos en Rango',
                       style: TextStyle(
                         color: isUnlocked ? const Color(0xFF4ADE80) : const Color(0xFFF87171),
                         fontSize: 10,
@@ -509,7 +539,7 @@ class _ProfileAndLevelModalState extends State<ProfileAndLevelModal> with Single
                   ],
                 ),
               ),
-              ElevatedButton(
+              ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: isSelected
                       ? const Color(0xFF22C55E)
@@ -518,6 +548,9 @@ class _ProfileAndLevelModalState extends State<ProfileAndLevelModal> with Single
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                 ),
+                icon: isUnlocked
+                    ? (isSelected ? const Icon(Icons.check, size: 13) : const SizedBox.shrink())
+                    : const Icon(Icons.lock_rounded, size: 13),
                 onPressed: isUnlocked
                     ? () {
                         setState(() {
@@ -525,7 +558,7 @@ class _ProfileAndLevelModalState extends State<ProfileAndLevelModal> with Single
                         });
                       }
                     : null,
-                child: Text(
+                label: Text(
                   isSelected ? 'ACTIVO' : (isUnlocked ? 'EQUIPAR' : 'BLOQUEADO'),
                   style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
                 ),

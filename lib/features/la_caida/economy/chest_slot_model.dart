@@ -91,16 +91,38 @@ class ChestSlotModel {
     return '$minutes:$seconds';
   }
 
-  /// Genera una cantidad de monedas al azar entre 50 y 2500
+  /// Genera una cantidad de monedas moderada y regulada según la rareza del cofre
   int generateRewardCoins({math.Random? random}) {
     final rng = random ?? math.Random();
-    return minRewardCoins + rng.nextInt(maxRewardCoins - minRewardCoins + 1);
+    switch (rarity) {
+      case ChestRarity.madera:
+        // 25 - 120 monedas
+        return 25 + rng.nextInt(96);
+      case ChestRarity.bronce:
+        // 75 - 250 monedas
+        return 75 + rng.nextInt(176);
+      case ChestRarity.plata:
+        // 150 - 450 monedas
+        return 150 + rng.nextInt(301);
+      case ChestRarity.oro:
+        // 300 - 800 monedas
+        return 300 + rng.nextInt(501);
+    }
   }
 
-  /// Genera XP de recompensa al azar entre 30 y 150
+  /// Genera XP de recompensa moderada según la rareza
   int generateRewardXp({math.Random? random}) {
     final rng = random ?? math.Random();
-    return 30 + rng.nextInt(121);
+    switch (rarity) {
+      case ChestRarity.madera:
+        return 15 + rng.nextInt(26); // 15 - 40
+      case ChestRarity.bronce:
+        return 30 + rng.nextInt(31); // 30 - 60
+      case ChestRarity.plata:
+        return 50 + rng.nextInt(41); // 50 - 90
+      case ChestRarity.oro:
+        return 80 + rng.nextInt(61); // 80 - 140
+    }
   }
 
   /// Genera un potenciador aleatorio con 60% de probabilidad

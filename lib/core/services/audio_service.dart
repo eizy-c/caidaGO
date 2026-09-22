@@ -44,6 +44,9 @@ class AudioService {
       'assets/sfx/cantos/sfx_registro.mp3',
       'assets/sfx/cantos/sfx_ronda.mp3',
       'assets/sfx/cantos/sfx_vigia.mp3',
+      'assets/sfx/cantos/sfx_uno.mp3',
+      'assets/sfx/cantos/sfx_cuatro.mp3',
+      'assets/sfx/cantos/Ultimas.mp3',
       cardDealPath,
       cardFlipPath,
     ];
@@ -106,6 +109,12 @@ class AudioService {
       assetPath = 'assets/sfx/cantos/sfx_mesa-limpia.mp3';
     } else if (lower.contains('caida') || lower.contains('caída')) {
       assetPath = 'assets/sfx/cantos/sfx_caida.mp3';
+    } else if (lower.contains('ultimas') || lower.contains('últimas')) {
+      assetPath = 'assets/sfx/cantos/Ultimas.mp3';
+    } else if (lower == 'cuatro') {
+      assetPath = 'assets/sfx/cantos/sfx_cuatro.mp3';
+    } else if (lower == 'uno') {
+      assetPath = 'assets/sfx/cantos/sfx_uno.mp3';
     }
 
     if (assetPath != null) {
@@ -139,6 +148,9 @@ class AudioService {
   Future<void> playPatrulla() => playCanto('patrulla');
   Future<void> playVigia() => playCanto('vigia');
   Future<void> playRegistro() => playCanto('registro');
+  Future<void> playUno() => playCanto('uno');
+  Future<void> playCuatro() => playCanto('cuatro');
+  Future<void> playUltimas() => playCanto('ultimas');
 
   /// Reproduce el efecto de sonido al repartir o colocar/jugar una carta en la mesa.
   Future<void> playCardDeal() async {

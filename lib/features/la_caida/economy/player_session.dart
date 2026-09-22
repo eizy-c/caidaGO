@@ -34,6 +34,7 @@ class PlayerSession extends ChangeNotifier {
   List<String> _botNames;
   Map<BoosterType, int> _boosterInventory;
   List<BoosterType> _activeBoosters;
+  int _chapas;
 
   PlayerSession({
     required this._id,
@@ -46,6 +47,7 @@ class PlayerSession extends ChangeNotifier {
     this._maxTickets = defaultMaxTickets,
     this._xp = 0,
     this._level = 0,
+    this._chapas = 0,
     DateTime? lastTicketRegen,
     this._hasCompletedTutorial = false,
     this._isFirstTime = true,
@@ -112,6 +114,7 @@ class PlayerSession extends ChangeNotifier {
   String get selectedFrameId => _selectedFrameId;
   String get selectedThemeId => _selectedThemeId;
   int get coins => _coins;
+  int get chapas => _chapas;
   int get tickets => _tickets;
   int get maxTickets => _maxTickets;
   int get xp => _xp;
@@ -124,6 +127,31 @@ class PlayerSession extends ChangeNotifier {
   Map<BoosterType, int> get boosterInventory => Map.unmodifiable(_boosterInventory);
   List<BoosterType> get activeBoosters => List.unmodifiable(_activeBoosters);
   int getBoosterCount(BoosterType type) => _boosterInventory[type] ?? 0;
+
+  /// Añade Chapas al inventario del usuario (moneda escasa)
+  void addChapas(int amount) {
+    if (amount <= 0) return;
+    _chapas += amount;
+    DebugLogger.instance.log(
+      'Chapas agregadas: +$amount. Balance actual: $_chapas',
+      category: 'Economía',
+    );
+    notifyListeners();
+    save();
+  }
+
+  /// Gasta Chapas para compras premium o personalizaciones
+  bool spendChapas(int cost) {
+    if (cost <= 0 || _chapas < cost) return false;
+    _chapas -= cost;
+    DebugLogger.instance.log(
+      'Chapas gastadas: -$cost. Balance restante: $_chapas',
+      category: 'Economía',
+    );
+    notifyListeners();
+    save();
+    return true;
+  }
 
   // Setters de personalización
   void updateCustomization({
@@ -383,9 +411,30 @@ class PlayerSession extends ChangeNotifier {
   }
 
   void _addXpInternal(int amount) {
+    final oldLevel = _level;
     _xp += amount;
     final progress = UserProgress(totalXp: _xp);
     _level = progress.currentLevel;
+
+    // Si el jugador sube de nivel, premiarlo con Chapas (moneda escasa)
+    if (_level > oldLevel) {
+      // 1 chapa por nivel normal, 2 si nivel >= 10, 3 si nivel >= 20
+      int chapasToAward = 0;
+      for (int lvl = oldLevel + 1; lvl <= _level; lvl++) {
+        if (lvl >= 20) {
+          chapasToAward += 3;
+        } else if (lvl >= 10) {
+          chapasToAward += 2;
+        } else {
+          chapasToAward += 1;
+        }
+      }
+      _chapas += chapasToAward;
+      DebugLogger.instance.log(
+        '¡SUBIDA DE NIVEL! ($oldLevel -> $_level). Se otorgaron +$chapasToAward Chapas.',
+        category: 'Economía',
+      );
+    }
   }
 
   // --- GESTIÓN DE POTENCIADORES ---
@@ -530,6 +579,7 @@ class PlayerSession extends ChangeNotifier {
       'selectedFrameId': _selectedFrameId,
       'selectedThemeId': _selectedThemeId,
       'coins': _coins,
+      'chapas': _chapas,
       'tickets': _tickets,
       'maxTickets': _maxTickets,
       'xp': _xp,
@@ -598,6 +648,7 @@ class PlayerSession extends ChangeNotifier {
       selectedFrameId: json['selectedFrameId'] as String? ?? 'rank_novato',
       selectedThemeId: json['selectedThemeId'] as String? ?? 'royal_blue',
       coins: json['coins'] as int? ?? 0,
+      chapas: json['chapas'] as int? ?? 0,
       tickets: parsedTickets,
       maxTickets: parsedMaxTickets,
       xp: json['xp'] as int? ?? 0,

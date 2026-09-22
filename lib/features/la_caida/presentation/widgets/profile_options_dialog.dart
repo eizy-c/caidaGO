@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/services/user_profile_service.dart';
 import '../../economy/player_session.dart';
 import 'avatar_view.dart';
+import 'user_frame_view.dart';
 
 /// Modal para editar el perfil del jugador y seleccionar entre 20 avatares
 /// en pestañas "Estilo A" y "Estilo B", inspirado en la captura de referencia.
@@ -128,15 +129,16 @@ class _ProfileOptionsDialogState extends State<ProfileOptionsDialog> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Previsualización del Avatar Seleccionado con Lápiz
+                  // Previsualización del Avatar Seleccionado con su Marco actual y Lápiz
                   Stack(
                     alignment: Alignment.bottomRight,
                     children: [
-                      AvatarView(
-                        avatarId: _selectedAvatarId,
+                      UserFrameView(
+                        avatarIndex: _selectedAvatarId,
+                        frameId: PlayerSession.shared.selectedFrameId,
+                        level: PlayerSession.shared.level,
                         size: 88,
-                        showBorder: true,
-                        isSelected: true,
+                        showLevelBadge: false,
                       ),
                       Container(
                         padding: const EdgeInsets.all(4),

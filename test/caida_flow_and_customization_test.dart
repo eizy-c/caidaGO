@@ -87,6 +87,7 @@ void main() {
       expect(find.text('Desafíos'), findsOneWidget);
       expect(find.text('JUGAR'), findsOneWidget);
       expect(find.text('TUTORIAL'), findsOneWidget);
+      expect(find.text('MULTIJUGADOR'), findsOneWidget);
     });
 
     testWidgets('Tocar JUGAR abre seleccion de modos (Vs Bot, 2 vs 2 y Mesas VIP)', (tester) async {

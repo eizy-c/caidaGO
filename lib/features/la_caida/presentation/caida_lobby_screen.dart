@@ -507,6 +507,184 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
     );
   }
 
+  void _openChapasInfoDialog() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF0F172A),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(22),
+          side: const BorderSide(color: Color(0xFF38BDF8), width: 1.5),
+        ),
+        title: const Row(
+          children: [
+            Icon(Icons.stars_rounded, color: Color(0xFF38BDF8), size: 26),
+            SizedBox(width: 8),
+            Text(
+              'Chapas Virtuales',
+              style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 17),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFF1E293B),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: const Color(0xFF38BDF8).withValues(alpha: 0.3)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.stars_rounded, color: Color(0xFF38BDF8), size: 32),
+                  const SizedBox(width: 12),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Balance Actual',
+                        style: TextStyle(color: Colors.white60, fontSize: 11),
+                      ),
+                      Text(
+                        '${_session.chapas} Chapas',
+                        style: const TextStyle(
+                          color: Color(0xFF38BDF8),
+                          fontSize: 18,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              '¿Qué son las Chapas?',
+              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+            ),
+            const SizedBox(height: 4),
+            const Text(
+              'Es la moneda premium del juego. Muy escasa y exclusiva. Se adquiere en la Tienda o subiendo de nivel.',
+              style: TextStyle(color: Colors.white70, fontSize: 11.5, height: 1.3),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              '• Servirá para comprar marcos míticos, tapetes y personalizaciones exclusivas.\n• Tienda de Chapas disponible próximamente.',
+              style: TextStyle(color: Color(0xFF94A3B8), fontSize: 11, height: 1.3),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Entendido', style: TextStyle(color: Color(0xFF38BDF8), fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _openMultiplayerComingSoonDialog() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF0F172A),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(22),
+          side: const BorderSide(color: Color(0xFF6366F1), width: 1.5),
+        ),
+        title: const Row(
+          children: [
+            Icon(Icons.wifi_rounded, color: Color(0xFF818CF8), size: 26),
+            SizedBox(width: 8),
+            Text(
+              'Modo Multijugador',
+              style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 17),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF312E81), Color(0xFF1E1B4B)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: const Color(0xFF818CF8).withValues(alpha: 0.5)),
+              ),
+              child: const Row(
+                children: [
+                  Icon(Icons.hub_rounded, color: Color(0xFFA5B4FC), size: 30),
+                  SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '¡Muy pronto!',
+                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 14),
+                        ),
+                        Text(
+                          'Estamos desarrollando la arena multijugador.',
+                          style: TextStyle(color: Colors.white70, fontSize: 11),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 14),
+            _buildMultiplayerFeatureRow(Icons.wifi_tethering_rounded, 'Multiplayer Local (P2P / Wi-Fi)', 'Juega con amigos en la misma red o dispositivo.'),
+            const SizedBox(height: 10),
+            _buildMultiplayerFeatureRow(Icons.public_rounded, 'Multiplayer Online', 'Compite con jugadores de todo el mundo y sube en el ranking global.'),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('¡Genial!', style: TextStyle(color: Color(0xFF818CF8), fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMultiplayerFeatureRow(IconData icon, String title, String subtitle) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, size: 18, color: const Color(0xFF38BDF8)),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
+              ),
+              Text(
+                subtitle,
+                style: const TextStyle(color: Colors.white60, fontSize: 10.5),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
   void _showGamePreferencesDialog({
     required int players,
     required bool teams,
@@ -926,6 +1104,38 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
               ),
             ),
           ),
+          const SizedBox(width: 8),
+
+          // Contador de Chapas (Moneda Escasa Premium)
+          GestureDetector(
+            onTap: _openChapasInfoDialog,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              decoration: BoxDecoration(
+                color: const Color(0xFF1E293B),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: const Color(0xFF38BDF8), width: 1.2),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF0284C7).withValues(alpha: 0.25),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.stars_rounded, color: Color(0xFF38BDF8), size: 18),
+                  const SizedBox(width: 5),
+                  Text(
+                    '${_session.chapas}',
+                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 14),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -1178,18 +1388,38 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
               App3dButton.icon(
                 onPressed: _openTutorial,
                 expand: true,
-                height: 50,
-                depth: 5,
-                borderRadius: 18,
+                height: 46,
+                depth: 4.5,
+                borderRadius: 16,
                 variant: App3dButtonVariant.olive,
                 icon: Icons.school_rounded,
-                iconSize: 20,
+                iconSize: 18,
                 label: 'TUTORIAL',
                 textStyle: const TextStyle(
                   color: Colors.white,
-                  fontSize: 16.5,
+                  fontSize: 15,
                   fontWeight: FontWeight.w900,
-                  letterSpacing: 1.2,
+                  letterSpacing: 1.1,
+                ),
+              ),
+              const SizedBox(height: 10),
+
+              // Botón MULTIJUGADOR (Online / Local)
+              App3dButton.icon(
+                onPressed: _openMultiplayerComingSoonDialog,
+                expand: true,
+                height: 46,
+                depth: 4.5,
+                borderRadius: 16,
+                variant: App3dButtonVariant.crimson,
+                icon: Icons.wifi_rounded,
+                iconSize: 18,
+                label: 'MULTIJUGADOR',
+                textStyle: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 14.5,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 1.1,
                 ),
               ),
             ],

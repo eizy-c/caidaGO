@@ -19,6 +19,8 @@ class AchievementItem {
   final int xpReward;
   final int Function(PlayerStatsModel stats) getProgress;
   final int level;
+  final String? familyId;
+  final String? requiredAchievementId;
 
   const AchievementItem({
     required this.id,
@@ -32,6 +34,8 @@ class AchievementItem {
     required this.xpReward,
     required this.getProgress,
     this.level = 1,
+    this.familyId,
+    this.requiredAchievementId,
   });
 
   String get levelBadge {
@@ -66,47 +70,71 @@ class AchievementItem {
 }
 
 class AchievementCatalog {
+  /// Verifica si un logro está desbloqueado para progresar o reclamar.
+  /// Si depende de un logro previo, este debe haber sido reclamado.
+  static bool isUnlocked(AchievementItem item, PlayerStatsModel stats) {
+    if (item.requiredAchievementId == null) return true;
+    return stats.claimedAchievementIds.contains(item.requiredAchievementId);
+  }
+
+  /// Retorna el logro requisito previo si existe.
+  static AchievementItem? getRequirement(AchievementItem item) {
+    if (item.requiredAchievementId == null) return null;
+    try {
+      return allAchievements.firstWhere((a) => a.id == item.requiredAchievementId);
+    } catch (_) {
+      return null;
+    }
+  }
+
   static final List<AchievementItem> allAchievements = [
-    // --- LOGROS DESTACADOS INICIALES ---
+    // --- SERIE: MAESTRO DEL TRIVILÍN (BRONCE -> PLATA -> ORO) ---
     AchievementItem(
       id: 'ach_trivilin_1',
       title: 'Maestro del Trivilín',
-      description: 'Cantar 1 Trivilín en partida oficial.',
+      description: 'Cantar 3 Trivilines en partida oficial.',
+      icon: Icons.auto_awesome_rounded,
+      iconColor: const Color(0xFF9333EA),
+      category: AchievementCategory.jugadas,
+      level: 1,
+      targetProgress: 3,
+      coinReward: 350,
+      xpReward: 70,
+      getProgress: (s) => s.trivilines,
+      familyId: 'trivilin',
+    ),
+    AchievementItem(
+      id: 'ach_trivilin_2',
+      title: 'Maestro del Trivilín',
+      description: 'Cantar 6 Trivilines en partida oficial.',
+      icon: Icons.auto_awesome_rounded,
+      iconColor: const Color(0xFF9333EA),
+      category: AchievementCategory.jugadas,
+      level: 2,
+      targetProgress: 6,
+      coinReward: 700,
+      xpReward: 140,
+      getProgress: (s) => s.trivilines,
+      familyId: 'trivilin',
+      requiredAchievementId: 'ach_trivilin_1',
+    ),
+    AchievementItem(
+      id: 'ach_trivilin_3',
+      title: 'Maestro del Trivilín',
+      description: 'Cantar 10 Trivilines en partida oficial.',
       icon: Icons.auto_awesome_rounded,
       iconColor: const Color(0xFF9333EA),
       category: AchievementCategory.jugadas,
       level: 3,
-      targetProgress: 1,
-      coinReward: 500,
-      xpReward: 100,
-      getProgress: (s) => s.trivilines,
-    ),
-    AchievementItem(
-      id: 'ach_limpia_10',
-      title: 'Rey de la Mesa Limpia',
-      description: 'Realizar 10 Mesas Limpias en partidas.',
-      icon: Icons.waves_rounded,
-      iconColor: const Color(0xFF059669),
-      category: AchievementCategory.jugadas,
-      level: 2,
       targetProgress: 10,
-      coinReward: 700,
-      xpReward: 140,
-      getProgress: (s) => s.mesasLimpias,
+      coinReward: 1500,
+      xpReward: 300,
+      getProgress: (s) => s.trivilines,
+      familyId: 'trivilin',
+      requiredAchievementId: 'ach_trivilin_2',
     ),
-    AchievementItem(
-      id: 'ach_caidas_25',
-      title: 'Cazador de Caídas',
-      description: 'Cantar 25 Caídas a tus rivales.',
-      icon: Icons.bolt_rounded,
-      iconColor: const Color(0xFFBE123C),
-      category: AchievementCategory.jugadas,
-      level: 2,
-      targetProgress: 25,
-      coinReward: 600,
-      xpReward: 120,
-      getProgress: (s) => s.caidasMade,
-    ),
+
+    // --- LOGROS DESTACADOS INICIALES ---
     AchievementItem(
       id: 'ach_vip_5',
       title: 'Gallo de Oro',
@@ -145,9 +173,54 @@ class AchievementCatalog {
       coinReward: 300,
       xpReward: 60,
       getProgress: (s) => s.totalCardsWon,
+      familyId: 'cards',
+    ),
+    AchievementItem(
+      id: 'ach_cards_200',
+      title: 'Archivista',
+      description: 'Acumular 200 cartas ganadas en mesa.',
+      icon: Icons.inventory_2_rounded,
+      iconColor: const Color(0xFF047857),
+      category: AchievementCategory.economia,
+      level: 2,
+      targetProgress: 200,
+      coinReward: 800,
+      xpReward: 150,
+      getProgress: (s) => s.totalCardsWon,
+      familyId: 'cards',
+      requiredAchievementId: 'ach_cards_50',
+    ),
+    AchievementItem(
+      id: 'ach_rank_bronce',
+      title: 'Ascenso a Bronce',
+      description: 'Alcanzar el rango Bronce (150+ trofeos).',
+      icon: Icons.emoji_events_rounded,
+      iconColor: const Color(0xFFD97706),
+      category: AchievementCategory.economia,
+      level: 1,
+      targetProgress: 150,
+      coinReward: 300,
+      xpReward: 60,
+      getProgress: (s) => s.trophies,
+      familyId: 'rank',
+    ),
+    AchievementItem(
+      id: 'ach_rank_oro',
+      title: 'El Dorado',
+      description: 'Alcanzar el rango Oro (900+ trofeos).',
+      icon: Icons.star_rounded,
+      iconColor: const Color(0xFFFDE047),
+      category: AchievementCategory.economia,
+      level: 3,
+      targetProgress: 900,
+      coinReward: 1000,
+      xpReward: 200,
+      getProgress: (s) => s.trophies,
+      familyId: 'rank',
+      requiredAchievementId: 'ach_rank_bronce',
     ),
 
-    // --- CATEGORÍA 1: PARTIDAS Y VICTORIAS (9) ---
+    // --- CATEGORÍA 1: PARTIDAS Y VICTORIAS (PROGRESIVAS) ---
     AchievementItem(
       id: 'ach_games_1',
       title: 'Primer Paso',
@@ -160,6 +233,7 @@ class AchievementCatalog {
       coinReward: 100,
       xpReward: 20,
       getProgress: (s) => s.gamesPlayed,
+      familyId: 'games',
     ),
     AchievementItem(
       id: 'ach_games_10',
@@ -173,6 +247,8 @@ class AchievementCatalog {
       coinReward: 300,
       xpReward: 60,
       getProgress: (s) => s.gamesPlayed,
+      familyId: 'games',
+      requiredAchievementId: 'ach_games_1',
     ),
     AchievementItem(
       id: 'ach_games_50',
@@ -186,6 +262,8 @@ class AchievementCatalog {
       coinReward: 800,
       xpReward: 150,
       getProgress: (s) => s.gamesPlayed,
+      familyId: 'games',
+      requiredAchievementId: 'ach_games_10',
     ),
     AchievementItem(
       id: 'ach_games_100',
@@ -199,6 +277,8 @@ class AchievementCatalog {
       coinReward: 2000,
       xpReward: 400,
       getProgress: (s) => s.gamesPlayed,
+      familyId: 'games',
+      requiredAchievementId: 'ach_games_50',
     ),
     AchievementItem(
       id: 'ach_wins_1',
@@ -212,6 +292,7 @@ class AchievementCatalog {
       coinReward: 150,
       xpReward: 30,
       getProgress: (s) => s.gamesWon,
+      familyId: 'wins',
     ),
     AchievementItem(
       id: 'ach_wins_10',
@@ -225,6 +306,8 @@ class AchievementCatalog {
       coinReward: 500,
       xpReward: 100,
       getProgress: (s) => s.gamesWon,
+      familyId: 'wins',
+      requiredAchievementId: 'ach_wins_1',
     ),
     AchievementItem(
       id: 'ach_wins_50',
@@ -238,6 +321,8 @@ class AchievementCatalog {
       coinReward: 1500,
       xpReward: 300,
       getProgress: (s) => s.gamesWon,
+      familyId: 'wins',
+      requiredAchievementId: 'ach_wins_10',
     ),
     AchievementItem(
       id: 'ach_streak_3',
@@ -251,6 +336,7 @@ class AchievementCatalog {
       coinReward: 400,
       xpReward: 80,
       getProgress: (s) => s.winStreak,
+      familyId: 'streak',
     ),
     AchievementItem(
       id: 'ach_streak_5',
@@ -264,9 +350,11 @@ class AchievementCatalog {
       coinReward: 1000,
       xpReward: 200,
       getProgress: (s) => s.winStreak,
+      familyId: 'streak',
+      requiredAchievementId: 'ach_streak_3',
     ),
 
-    // --- CATEGORÍA 2: JUGADAS Y CANTOS (RESTANTES) ---
+    // --- CATEGORÍA 2: JUGADAS Y CANTOS (PROGRESIVAS) ---
     AchievementItem(
       id: 'ach_caida_1',
       title: 'Primer Golpe',
@@ -279,6 +367,22 @@ class AchievementCatalog {
       coinReward: 100,
       xpReward: 20,
       getProgress: (s) => s.caidasMade,
+      familyId: 'caidas',
+    ),
+    AchievementItem(
+      id: 'ach_caidas_25',
+      title: 'Cazador de Caídas',
+      description: 'Cantar 25 Caídas a tus rivales.',
+      icon: Icons.bolt_rounded,
+      iconColor: const Color(0xFFBE123C),
+      category: AchievementCategory.jugadas,
+      level: 2,
+      targetProgress: 25,
+      coinReward: 600,
+      xpReward: 120,
+      getProgress: (s) => s.caidasMade,
+      familyId: 'caidas',
+      requiredAchievementId: 'ach_caida_1',
     ),
     AchievementItem(
       id: 'ach_caidas_100',
@@ -292,6 +396,8 @@ class AchievementCatalog {
       coinReward: 2000,
       xpReward: 400,
       getProgress: (s) => s.caidasMade,
+      familyId: 'caidas',
+      requiredAchievementId: 'ach_caidas_25',
     ),
     AchievementItem(
       id: 'ach_limpia_1',
@@ -305,6 +411,22 @@ class AchievementCatalog {
       coinReward: 150,
       xpReward: 30,
       getProgress: (s) => s.mesasLimpias,
+      familyId: 'limpias',
+    ),
+    AchievementItem(
+      id: 'ach_limpia_10',
+      title: 'Rey de la Mesa Limpia',
+      description: 'Realizar 10 Mesas Limpias en partidas.',
+      icon: Icons.waves_rounded,
+      iconColor: const Color(0xFF059669),
+      category: AchievementCategory.jugadas,
+      level: 2,
+      targetProgress: 10,
+      coinReward: 700,
+      xpReward: 140,
+      getProgress: (s) => s.mesasLimpias,
+      familyId: 'limpias',
+      requiredAchievementId: 'ach_limpia_1',
     ),
     AchievementItem(
       id: 'ach_rondas_5',
@@ -357,47 +479,6 @@ class AchievementCatalog {
       coinReward: 200,
       xpReward: 40,
       getProgress: (s) => s.registros,
-    ),
-
-    // --- CATEGORÍA 3: ECONOMÍA Y RANGO (RESTANTES) ---
-    AchievementItem(
-      id: 'ach_cards_200',
-      title: 'Archivista',
-      description: 'Acumular 200 cartas ganadas en mesa.',
-      icon: Icons.inventory_2_rounded,
-      iconColor: const Color(0xFF047857),
-      category: AchievementCategory.economia,
-      level: 2,
-      targetProgress: 200,
-      coinReward: 800,
-      xpReward: 150,
-      getProgress: (s) => s.totalCardsWon,
-    ),
-    AchievementItem(
-      id: 'ach_rank_bronce',
-      title: 'Ascenso a Bronce',
-      description: 'Alcanzar el rango Bronce (150+ trofeos).',
-      icon: Icons.emoji_events_rounded,
-      iconColor: const Color(0xFFD97706),
-      category: AchievementCategory.economia,
-      level: 1,
-      targetProgress: 150,
-      coinReward: 300,
-      xpReward: 60,
-      getProgress: (s) => s.trophies,
-    ),
-    AchievementItem(
-      id: 'ach_rank_oro',
-      title: 'El Dorado',
-      description: 'Alcanzar el rango Oro (900+ trofeos).',
-      icon: Icons.star_rounded,
-      iconColor: const Color(0xFFFDE047),
-      category: AchievementCategory.economia,
-      level: 3,
-      targetProgress: 900,
-      coinReward: 1000,
-      xpReward: 200,
-      getProgress: (s) => s.trophies,
     ),
   ];
 }

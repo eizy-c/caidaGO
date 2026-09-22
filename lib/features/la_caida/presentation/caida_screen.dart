@@ -657,6 +657,13 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
         final dealer = _players[_manoIndex];
         final opponent = _players[(_manoIndex + 1) % _players.length];
 
+        // Anunciar el primer número del canto de mesa según la dirección elegida
+        if (_cantoDirection == DealDirection.ascending) {
+          AudioService().playUno();
+        } else {
+          AudioService().playCuatro();
+        }
+
         final dealResult = CaidaRulesEngine.dealInitialTable(
           direction: _cantoDirection,
           deck: _deck,
@@ -720,6 +727,12 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
       if (!mounted) return;
     }
 
+    // Si esta es la última mano del mazo (después de repartir estas 3 a cada uno el mazo queda vacío)
+    final bool isLastHandOfDeck = _deck.remainingCount == _players.length * 3;
+    if (isLastHandOfDeck) {
+      AudioService().playUltimas();
+    }
+
     // 1. Repartir 1 carta a la vez en sentido horario comenzando desde el jugador que es Mano (3 vueltas)
     for (int round = 0; round < 3; round++) {
       for (int step = 0; step < _players.length; step++) {
@@ -766,6 +779,13 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
     if (isFirstRound) {
       final dealer = _players[_manoIndex];
       final opponent = _players[(_manoIndex + 1) % _players.length];
+
+      // Anunciar el primer número del canto de mesa según la dirección elegida
+      if (_cantoDirection == DealDirection.ascending) {
+        AudioService().playUno();
+      } else {
+        AudioService().playCuatro();
+      }
 
       final dealResult = CaidaRulesEngine.dealInitialTable(
         direction: _cantoDirection,

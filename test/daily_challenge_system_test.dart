@@ -39,14 +39,14 @@ void main() {
   });
 
   group('AchievementCatalog tests', () {
-    test('catalog contains 25 achievements across 3 categories', () {
-      expect(AchievementCatalog.allAchievements.length, 25);
+    test('catalog contains 27 achievements across 3 categories with tier progression', () {
+      expect(AchievementCatalog.allAchievements.length, 27);
       final partidas = AchievementCatalog.allAchievements.where((a) => a.category == AchievementCategory.partidas);
       final jugadas = AchievementCatalog.allAchievements.where((a) => a.category == AchievementCategory.jugadas);
       final economia = AchievementCatalog.allAchievements.where((a) => a.category == AchievementCategory.economia);
 
       expect(partidas.length, 9);
-      expect(jugadas.length, 10);
+      expect(jugadas.length, 12);
       expect(economia.length, 6);
     });
 
@@ -56,7 +56,7 @@ void main() {
         gamesWon: 12,
         caidasMade: 30,
         mesasLimpias: 5,
-        trivilines: 1,
+        trivilines: 3,
         trophies: 500,
       );
 
@@ -65,12 +65,34 @@ void main() {
       expect(achWins10.getProgress(stats) >= achWins10.targetProgress, isTrue);
 
       final achTrivilin = AchievementCatalog.allAchievements.firstWhere((a) => a.id == 'ach_trivilin_1');
-      expect(achTrivilin.getProgress(stats), 1);
+      expect(achTrivilin.getProgress(stats), 3);
       expect(achTrivilin.getProgress(stats) >= achTrivilin.targetProgress, isTrue);
 
       final achRankBronce = AchievementCatalog.allAchievements.firstWhere((a) => a.id == 'ach_rank_bronce');
       expect(achRankBronce.getProgress(stats), 500);
       expect(achRankBronce.getProgress(stats) >= achRankBronce.targetProgress, isTrue);
+    });
+
+    test('sequential unlock progression for Trivilín (Bronce -> Plata -> Oro)', () {
+      final stats = PlayerStatsModel(trivilines: 10);
+      final tBronce = AchievementCatalog.allAchievements.firstWhere((a) => a.id == 'ach_trivilin_1');
+      final tPlata = AchievementCatalog.allAchievements.firstWhere((a) => a.id == 'ach_trivilin_2');
+      final tOro = AchievementCatalog.allAchievements.firstWhere((a) => a.id == 'ach_trivilin_3');
+
+      // Al inicio, solo Bronce está desbloqueado
+      expect(AchievementCatalog.isUnlocked(tBronce, stats), isTrue);
+      expect(AchievementCatalog.isUnlocked(tPlata, stats), isFalse);
+      expect(AchievementCatalog.isUnlocked(tOro, stats), isFalse);
+
+      // Tras reclamar Bronce, se desbloquea Plata
+      stats.claimAchievement('ach_trivilin_1');
+      expect(AchievementCatalog.isUnlocked(tBronce, stats), isTrue);
+      expect(AchievementCatalog.isUnlocked(tPlata, stats), isTrue);
+      expect(AchievementCatalog.isUnlocked(tOro, stats), isFalse);
+
+      // Tras reclamar Plata, se desbloquea Oro
+      stats.claimAchievement('ach_trivilin_2');
+      expect(AchievementCatalog.isUnlocked(tOro, stats), isTrue);
     });
   });
 }

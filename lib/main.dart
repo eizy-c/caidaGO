@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import 'core/presentation/widgets/debug_inspector_overlay.dart';
 import 'core/services/debug_logger.dart';
 import 'core/services/user_profile_service.dart';
 import 'core/stats/stats_repository.dart';
@@ -58,10 +57,7 @@ class CaidaGoApp extends StatelessWidget {
         ),
       ),
       builder: (context, child) {
-        // Envolvemos toda la aplicación en el overlay flotante de diagnóstico y bugs
-        return DebugInspectorOverlay(
-          child: child ?? const SizedBox.shrink(),
-        );
+        return child ?? const SizedBox.shrink();
       },
       home: const CaidaSplashScreen(),
     );
