@@ -97,7 +97,6 @@ class _ProfileAndLevelModalState extends State<ProfileAndLevelModal> with Single
   late int _tempAvatarIndex;
   late String _tempFrameId;
   late String _tempThemeId;
-  int _avatarTab = 0; // 0: Estilo A, 1: Estilo B, 2: Héroes
 
   @override
   void initState() {
@@ -107,13 +106,6 @@ class _ProfileAndLevelModalState extends State<ProfileAndLevelModal> with Single
     _tempAvatarIndex = widget.session.avatarIndex;
     _tempFrameId = widget.session.selectedFrameId;
     _tempThemeId = widget.session.selectedThemeId;
-    if (_tempAvatarIndex >= 20) {
-      _avatarTab = 2;
-    } else if (_tempAvatarIndex >= 10) {
-      _avatarTab = 1;
-    } else {
-      _avatarTab = 0;
-    }
   }
 
   @override
@@ -646,20 +638,9 @@ class _ProfileAndLevelModalState extends State<ProfileAndLevelModal> with Single
     );
   }
 
-  // --- PESTAÑA 4: AVATAR & NOMBRE ---
+  // --- PESTAÑA 4: AVATAR & NOMBRE (EXCLUSIVO HÉROES) ---
   Widget _buildAvatarTab() {
-    final List<AvatarPreset> currentPresets;
-    switch (_avatarTab) {
-      case 1:
-        currentPresets = AvatarPreset.styleBPresets;
-        break;
-      case 2:
-        currentPresets = AvatarPreset.heroesPresets;
-        break;
-      default:
-        currentPresets = AvatarPreset.styleAPresets;
-        break;
-    }
+    final heroes = AvatarPreset.heroesPresets;
 
     return Column(
       children: [
@@ -673,7 +654,7 @@ class _ProfileAndLevelModalState extends State<ProfileAndLevelModal> with Single
             decoration: InputDecoration(
               labelText: 'Nombre de Jugador',
               labelStyle: const TextStyle(color: Color(0xFFFDE047)),
-              prefixIcon: const Icon(Icons.edit, color: Color(0xFFFDE047), size: 18),
+              prefixIcon: const Icon(Icons.badge_rounded, color: Color(0xFFFDE047), size: 18),
               filled: true,
               fillColor: const Color(0xFF1E293B),
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
@@ -687,73 +668,39 @@ class _ProfileAndLevelModalState extends State<ProfileAndLevelModal> with Single
           ),
         ),
 
-        // Selector Estilo A / Estilo B / Héroes
+        // Encabezado de Héroes disponibles
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
           child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Expanded(
-                child: GestureDetector(
-                  onTap: () => setState(() => _avatarTab = 0),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                    decoration: BoxDecoration(
-                      color: _avatarTab == 0 ? const Color(0xFF38BDF8) : const Color(0xFF1E293B),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    alignment: Alignment.center,
-                    child: Text(
-                      'Estilo A',
-                      style: TextStyle(
-                        color: _avatarTab == 0 ? const Color(0xFF0F172A) : Colors.white70,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                      ),
+              const Row(
+                children: [
+                  Icon(Icons.shield_rounded, size: 16, color: Color(0xFF38BDF8)),
+                  SizedBox(width: 6),
+                  Text(
+                    'HÉROES DISPONIBLES',
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                      letterSpacing: 0.5,
                     ),
                   ),
-                ),
+                ],
               ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: GestureDetector(
-                  onTap: () => setState(() => _avatarTab = 1),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                    decoration: BoxDecoration(
-                      color: _avatarTab == 1 ? const Color(0xFF38BDF8) : const Color(0xFF1E293B),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    alignment: Alignment.center,
-                    child: Text(
-                      'Estilo B',
-                      style: TextStyle(
-                        color: _avatarTab == 1 ? const Color(0xFF0F172A) : Colors.white70,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF38BDF8).withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(8),
                 ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: GestureDetector(
-                  onTap: () => setState(() => _avatarTab = 2),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                    decoration: BoxDecoration(
-                      color: _avatarTab == 2 ? const Color(0xFF38BDF8) : const Color(0xFF1E293B),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    alignment: Alignment.center,
-                    child: Text(
-                      'Héroes',
-                      style: TextStyle(
-                        color: _avatarTab == 2 ? const Color(0xFF0F172A) : Colors.white70,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                      ),
-                    ),
+                child: Text(
+                  '${heroes.length} Héroes',
+                  style: const TextStyle(
+                    color: Color(0xFF38BDF8),
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
@@ -761,40 +708,68 @@ class _ProfileAndLevelModalState extends State<ProfileAndLevelModal> with Single
           ),
         ),
 
-        // Grid de Avatares
+        // Grid de Avatares Héroes
         Expanded(
           child: GridView.builder(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 5,
-              mainAxisSpacing: 10,
-              crossAxisSpacing: 10,
+              crossAxisCount: 4,
+              mainAxisSpacing: 12,
+              crossAxisSpacing: 12,
+              childAspectRatio: 0.85,
             ),
-            itemCount: currentPresets.length,
+            itemCount: heroes.length,
             itemBuilder: (context, i) {
-              final preset = currentPresets[i];
-              final isSelected = _tempAvatarIndex == preset.id;
+              final hero = heroes[i];
+              final isSelected = _tempAvatarIndex == hero.id;
 
               return GestureDetector(
                 onTap: () {
                   setState(() {
-                    _tempAvatarIndex = preset.id;
+                    _tempAvatarIndex = hero.id;
                   });
                 },
-                child: Container(
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: isSelected ? const Color(0xFFFDE047) : Colors.transparent,
-                      width: 2.5,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                          color: isSelected ? const Color(0xFFFDE047) : Colors.white24,
+                          width: isSelected ? 2.5 : 1.2,
+                        ),
+                        boxShadow: isSelected
+                            ? [
+                                BoxShadow(
+                                  color: const Color(0xFFFDE047).withValues(alpha: 0.45),
+                                  blurRadius: 8,
+                                  spreadRadius: 1,
+                                ),
+                              ]
+                            : null,
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: AvatarView(
+                          avatarId: hero.id,
+                          size: 52,
+                          showBorder: false,
+                        ),
+                      ),
                     ),
-                  ),
-                  child: ClipOval(
-                    child: AvatarView(
-                      avatarId: preset.id,
-                      size: 46,
+                    const SizedBox(height: 4),
+                    Text(
+                      hero.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: isSelected ? const Color(0xFFFDE047) : Colors.white70,
+                        fontSize: 10.5,
+                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                      ),
                     ),
-                  ),
+                  ],
                 ),
               );
             },

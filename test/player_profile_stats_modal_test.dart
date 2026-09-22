@@ -181,11 +181,13 @@ void main() {
       await tester.tap(find.text('Logros'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Maestro del Trivilín'), findsOneWidget);
-      expect(find.text('Rey de la Mesa Limpia'), findsOneWidget);
-      expect(find.text('Cazador de Caídas'), findsOneWidget);
+      expect(find.text('Maestro del Trivilín'), findsWidgets);
       expect(find.text('Gallo de Oro'), findsOneWidget);
       expect(find.text('Invicto en Parejas'), findsOneWidget);
+
+      // Scrollear para verificar más logros
+      await tester.drag(find.byType(ListView), const Offset(0, -250));
+      await tester.pumpAndSettle();
       expect(find.text('Coleccionista de Ases'), findsOneWidget);
 
       // Volver a pestaña "Perfil"

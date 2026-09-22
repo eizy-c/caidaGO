@@ -32,10 +32,10 @@ void main() {
       await tester.pumpAndSettle();
 
       // Al ser usuario nuevo por defecto, se abre el modal de personalización de perfil
-      expect(find.text('Opciones del perfil'), findsOneWidget);
+      expect(find.text('OPCIONES DEL PERFIL'), findsOneWidget);
     });
 
-    testWidgets('ProfileOptionsDialog permite editar nombre y seleccionar avatar de Estilo A y B', (tester) async {
+    testWidgets('ProfileOptionsDialog permite editar nombre y seleccionar héroe de la galería unificada', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -53,25 +53,22 @@ void main() {
       await tester.tap(find.text('ABRIR PERFIL'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Opciones del perfil'), findsOneWidget);
+      expect(find.text('OPCIONES DEL PERFIL'), findsOneWidget);
       expect(find.text('Jugador'), findsOneWidget);
-      expect(find.text('Estilo A'), findsOneWidget);
-      expect(find.text('Estilo B'), findsOneWidget);
-      expect(find.text('Héroes'), findsOneWidget);
+      expect(find.text('SELECCIONA TU HÉROE'), findsOneWidget);
+      expect(find.text('Caballero'), findsWidgets);
+      expect(find.text('Arquera'), findsWidgets);
+      expect(find.text('Vikingo'), findsWidgets);
 
-      // Cambiar de pestana a Héroes
-      await tester.tap(find.text('Héroes'));
+      // Seleccionar héroe Arquera
+      await tester.tap(find.text('Arquera').last);
       await tester.pumpAndSettle();
 
-      // Cambiar de pestana a Estilo B
-      await tester.tap(find.text('Estilo B'));
+      // Pulsar GUARDAR
+      await tester.tap(find.text('GUARDAR'));
       await tester.pumpAndSettle();
 
-      // Pulsar Ok para guardar
-      await tester.tap(find.text('Ok'));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Opciones del perfil'), findsNothing);
+      expect(find.text('OPCIONES DEL PERFIL'), findsNothing);
     });
 
     testWidgets('CaidaLobbyScreen renderiza barra superior, estadistica, desafios, 4 ases, jugar y tutorial', (tester) async {

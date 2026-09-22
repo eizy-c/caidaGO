@@ -15,7 +15,7 @@ void main() {
     DebugLogger.initialize();
   });
 
-  testWidgets('Carga inicial directa en CaidaSplashScreen y renderizado del botón de bugs', (WidgetTester tester) async {
+  testWidgets('Carga inicial directa en CaidaSplashScreen sin overlay invasivo de bugs', (WidgetTester tester) async {
     final statsRepo = InMemoryStatsRepository();
     await tester.pumpWidget(CaidaGoApp(statsRepository: statsRepo));
     await tester.pump();
@@ -27,21 +27,29 @@ void main() {
     expect(find.textContaining('%'), findsOneWidget);
     expect(find.textContaining('Cargando'), findsOneWidget);
 
-    // Verificar que el overlay de depuración está presente con su icono de bug
-    expect(find.byType(DebugInspectorOverlay), findsOneWidget);
-    expect(find.byIcon(Icons.bug_report_rounded), findsOneWidget);
+    // Verificar que el overlay flotante de depuración ha sido removido de la vista de juego
+    expect(find.byType(DebugInspectorOverlay), findsNothing);
+    expect(find.byIcon(Icons.bug_report_rounded), findsNothing);
   });
 
-  testWidgets('Apertura de la consola de diagnóstico de bugs al tocar el botón flotante', (WidgetTester tester) async {
-    final statsRepo = InMemoryStatsRepository();
-    await tester.pumpWidget(CaidaGoApp(statsRepository: statsRepo));
+  testWidgets('Apertura directa de consola de diagnóstico cuando se invoca modal', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Builder(
+            builder: (context) => ElevatedButton(
+              onPressed: () => DebugConsoleModal.show(context),
+              child: const Text('Abrir Consola'),
+            ),
+          ),
+        ),
+      ),
+    );
     await tester.pump();
-    await tester.pump(const Duration(milliseconds: 200));
 
-    // Tocar el botón flotante de bugs
-    await tester.tap(find.byIcon(Icons.bug_report_rounded).first);
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 300));
+    // Tocar el botón para abrir modal
+    await tester.tap(find.text('Abrir Consola'));
+    await tester.pumpAndSettle();
 
     // Verificar que abre el modal de diagnóstico
     expect(find.byType(DebugConsoleModal), findsOneWidget);

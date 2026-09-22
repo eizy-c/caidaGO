@@ -1,18 +1,20 @@
 import 'package:flutter/material.dart';
+import '../../../../core/presentation/widgets/app_3d_button.dart';
 import '../../../../core/services/user_profile_service.dart';
+import '../../../../core/theme/app_palette.dart';
 import '../../economy/player_session.dart';
 import 'avatar_view.dart';
 import 'user_frame_view.dart';
 
-/// Modal para editar el perfil del jugador y seleccionar entre 20 avatares
-/// en pestañas "Estilo A" y "Estilo B", inspirado en la captura de referencia.
+/// Modal moderno para editar el perfil del jugador y seleccionar entre los avatares
+/// de Héroes disponibles, unificado con la paleta oficial de CaidaGO (AppPalette).
 class ProfileOptionsDialog extends StatefulWidget {
   const ProfileOptionsDialog({super.key});
 
   static Future<void> show(BuildContext context) {
     return showDialog(
       context: context,
-      barrierDismissible: false,
+      barrierDismissible: true,
       builder: (_) => const ProfileOptionsDialog(),
     );
   }
@@ -25,20 +27,12 @@ class _ProfileOptionsDialogState extends State<ProfileOptionsDialog> {
   final _profileService = UserProfileService();
   late TextEditingController _nameController;
   late int _selectedAvatarId;
-  int _selectedTabIndex = 0; // 0: Estilo A, 1: Estilo B, 2: Héroes
 
   @override
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: _profileService.name);
     _selectedAvatarId = _profileService.avatarId;
-    if (_selectedAvatarId >= 20) {
-      _selectedTabIndex = 2;
-    } else if (_selectedAvatarId >= 10) {
-      _selectedTabIndex = 1;
-    } else {
-      _selectedTabIndex = 0;
-    }
   }
 
   @override
@@ -64,279 +58,427 @@ class _ProfileOptionsDialogState extends State<ProfileOptionsDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final List<AvatarPreset> currentPresets;
-    switch (_selectedTabIndex) {
-      case 1:
-        currentPresets = AvatarPreset.styleBPresets;
-        break;
-      case 2:
-        currentPresets = AvatarPreset.heroesPresets;
-        break;
-      default:
-        currentPresets = AvatarPreset.styleAPresets;
-        break;
-    }
+    final heroes = AvatarPreset.heroesPresets;
+    final currentHero = AvatarPreset.getById(_selectedAvatarId);
 
     return Dialog(
       backgroundColor: Colors.transparent,
-      insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 20),
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 380),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Cabecera superior redondeada "Opciones del perfil"
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.35),
-                    blurRadius: 8,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
+        constraints: const BoxConstraints(maxWidth: 390, maxHeight: 580),
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [
+                Color(0xFF262626),
+                AppPalette.darkSlate,
+                Color(0xFF171717),
+              ],
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+            ),
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(
+              color: AppPalette.cyan.withValues(alpha: 0.65),
+              width: 1.8,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.75),
+                blurRadius: 24,
+                offset: const Offset(0, 10),
               ),
-              child: const Text(
-                'Opciones del perfil',
-                style: TextStyle(
-                  color: Color(0xFF1E1B4B),
-                  fontSize: 18,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 0.5,
+              BoxShadow(
+                color: AppPalette.cyan.withValues(alpha: 0.08),
+                blurRadius: 18,
+                spreadRadius: 2,
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // 1. Cabecera Unificada con Icono y Botón Cerrar
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 14, 12, 12),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: AppPalette.cyan.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(
+                                color: AppPalette.cyan.withValues(alpha: 0.4),
+                                width: 1,
+                              ),
+                            ),
+                            child: const Icon(
+                              Icons.manage_accounts_rounded,
+                              color: AppPalette.cyan,
+                              size: 18,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          const Flexible(
+                            child: Text(
+                              'OPCIONES DEL PERFIL',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () => Navigator.of(context).pop(),
+                      child: Container(
+                        padding: const EdgeInsets.all(5),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.08),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.close_rounded,
+                          color: Colors.white70,
+                          size: 18,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ),
-            const SizedBox(height: 12),
 
-            // Contenedor principal con fondo azul celeste pastel
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: const Color(0xFF67A4CA), // Azul cielo suave de la captura
-                borderRadius: BorderRadius.circular(28),
-                border: Border.all(color: const Color(0xFFBAE6FD), width: 2),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.4),
-                    blurRadius: 16,
-                    offset: const Offset(0, 8),
-                  ),
-                ],
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Previsualización del Avatar Seleccionado con su Marco actual y Lápiz
-                  Stack(
-                    alignment: Alignment.bottomRight,
+              const Divider(color: Color(0xFF333333), height: 1, thickness: 1),
+
+              // 2. Contenido Scrolleable (Previsualización, Nombre y Héroes)
+              Flexible(
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
+                  child: Column(
                     children: [
-                      UserFrameView(
-                        avatarIndex: _selectedAvatarId,
-                        frameId: PlayerSession.shared.selectedFrameId,
-                        level: PlayerSession.shared.level,
-                        size: 88,
-                        showLevelBadge: false,
-                      ),
-                      Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFD97706),
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 2),
+                      // Previsualización del Avatar con su Marco Activo
+                      Center(
+                        child: Stack(
+                          alignment: Alignment.bottomRight,
+                          children: [
+                            UserFrameView(
+                              avatarIndex: _selectedAvatarId,
+                              frameId: PlayerSession.shared.selectedFrameId,
+                              level: PlayerSession.shared.level,
+                              size: 86,
+                              showLevelBadge: true,
+                            ),
+                            Container(
+                              padding: const EdgeInsets.all(5),
+                              decoration: BoxDecoration(
+                                color: AppPalette.cyan,
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: AppPalette.darkSlate,
+                                  width: 2,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: AppPalette.cyan.withValues(alpha: 0.4),
+                                    blurRadius: 6,
+                                  ),
+                                ],
+                              ),
+                              child: const Icon(
+                                Icons.edit_rounded,
+                                size: 12,
+                                color: AppPalette.darkSlate,
+                              ),
+                            ),
+                          ],
                         ),
-                        child: const Icon(Icons.edit_rounded, size: 14, color: Colors.white),
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
+                      const SizedBox(height: 6),
 
-                  // Campo de texto editable para el nombre
-                  Container(
-                    width: 220,
-                    height: 38,
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: const Color(0xFF38BDF8), width: 1.5),
-                    ),
-                    child: TextField(
-                      controller: _nameController,
-                      textAlign: TextAlign.center,
-                      maxLength: 14,
-                      style: const TextStyle(
-                        color: Color(0xFF0F172A),
-                        fontWeight: FontWeight.bold,
-                        fontSize: 15,
+                      // Nombre del héroe seleccionado
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: AppPalette.cyan.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                            color: AppPalette.cyan.withValues(alpha: 0.3),
+                            width: 0.8,
+                          ),
+                        ),
+                        child: Text(
+                          currentHero.name,
+                          style: const TextStyle(
+                            color: AppPalette.cyan,
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
                       ),
-                      decoration: const InputDecoration(
-                        hintText: 'Tu nombre',
-                        border: InputBorder.none,
-                        counterText: '',
-                        isDense: true,
-                        contentPadding: EdgeInsets.symmetric(vertical: 8),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
 
-                  // Sub-contenedor con la cuadrícula de avatares
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF93C5FD), // Azul más claro para la bandeja
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: Colors.white70, width: 2),
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        // Píldora "Seleccionar"
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-                          decoration: BoxDecoration(
+                      const SizedBox(height: 12),
+
+                      // Campo de texto para el Nombre del Jugador
+                      Container(
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF141414),
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(
+                            color: AppPalette.sand.withValues(alpha: 0.35),
+                            width: 1.2,
+                          ),
+                        ),
+                        child: TextField(
+                          controller: _nameController,
+                          textAlign: TextAlign.center,
+                          maxLength: 14,
+                          style: const TextStyle(
                             color: Colors.white,
-                            borderRadius: BorderRadius.circular(14),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.15),
-                                blurRadius: 4,
-                                offset: const Offset(0, 2),
+                            fontWeight: FontWeight.bold,
+                            fontSize: 15,
+                          ),
+                          decoration: InputDecoration(
+                            hintText: 'Tu nombre',
+                            hintStyle: TextStyle(
+                              color: AppPalette.sand.withValues(alpha: 0.4),
+                              fontSize: 14,
+                            ),
+                            prefixIcon: const Icon(
+                              Icons.badge_rounded,
+                              size: 18,
+                              color: AppPalette.cyan,
+                            ),
+                            border: InputBorder.none,
+                            counterText: '',
+                            isDense: true,
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 11,
+                            ),
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      // Encabezado de la Galería de Héroes
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Row(
+                            children: [
+                              Icon(
+                                Icons.shield_rounded,
+                                size: 15,
+                                color: AppPalette.cyan,
+                              ),
+                              SizedBox(width: 6),
+                              Text(
+                                'SELECCIONA TU HÉROE',
+                                style: TextStyle(
+                                  color: AppPalette.sand,
+                                  fontSize: 11.5,
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 0.6,
+                                ),
                               ),
                             ],
                           ),
-                          child: const Text(
-                            'Seleccionar',
-                            style: TextStyle(
-                              color: Color(0xFF1E3A8A),
-                              fontWeight: FontWeight.w900,
-                              fontSize: 14,
-                              fontStyle: FontStyle.italic,
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2.5),
+                            decoration: BoxDecoration(
+                              color: AppPalette.olive.withValues(alpha: 0.2),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: AppPalette.olive.withValues(alpha: 0.4),
+                                width: 0.8,
+                              ),
+                            ),
+                            child: Text(
+                              '${heroes.length} Héroes',
+                              style: const TextStyle(
+                                color: AppPalette.sand,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
-                        ),
-                        const SizedBox(height: 10),
+                        ],
+                      ),
 
-                        // Cuadrícula de 10 avatares (5 columnas x 2 filas por estilo)
-                        Wrap(
-                          spacing: 10,
-                          runSpacing: 10,
+                      const SizedBox(height: 10),
+
+                      // Galería de Héroes (Solo avatares de imagen)
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF1A1A1A),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: const Color(0xFF2E2E2E),
+                            width: 1,
+                          ),
+                        ),
+                        child: Wrap(
+                          spacing: 12,
+                          runSpacing: 12,
                           alignment: WrapAlignment.center,
-                          children: currentPresets.map((preset) {
-                            final isSel = preset.id == _selectedAvatarId;
-                            return AvatarView(
-                              avatarId: preset.id,
-                              size: 48,
-                              isSelected: isSel,
+                          children: heroes.map((hero) {
+                            final isSel = hero.id == _selectedAvatarId;
+                            return GestureDetector(
                               onTap: () {
                                 setState(() {
-                                  _selectedAvatarId = preset.id;
+                                  _selectedAvatarId = hero.id;
                                 });
                               },
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Stack(
+                                    clipBehavior: Clip.none,
+                                    children: [
+                                      Container(
+                                        width: 54,
+                                        height: 54,
+                                        decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.circular(14),
+                                          border: Border.all(
+                                            color: isSel
+                                                ? AppPalette.cyan
+                                                : Colors.white.withValues(alpha: 0.2),
+                                            width: isSel ? 2.5 : 1.2,
+                                          ),
+                                          boxShadow: isSel
+                                              ? [
+                                                  BoxShadow(
+                                                    color: AppPalette.cyan.withValues(alpha: 0.45),
+                                                    blurRadius: 10,
+                                                    spreadRadius: 1,
+                                                  ),
+                                                ]
+                                              : null,
+                                        ),
+                                        child: ClipRRect(
+                                          borderRadius: BorderRadius.circular(12),
+                                          child: Image.asset(
+                                            hero.imagePath,
+                                            width: 54,
+                                            height: 54,
+                                            fit: BoxFit.cover,
+                                            errorBuilder: (context, error, stackTrace) => Container(
+                                              color: hero.bgColor,
+                                              child: const Icon(
+                                                Icons.person_rounded,
+                                                color: Colors.white70,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      if (isSel)
+                                        Positioned(
+                                          top: -4,
+                                          right: -4,
+                                          child: Container(
+                                            padding: const EdgeInsets.all(2),
+                                            decoration: const BoxDecoration(
+                                              color: AppPalette.cyan,
+                                              shape: BoxShape.circle,
+                                            ),
+                                            child: const Icon(
+                                              Icons.check_rounded,
+                                              size: 11,
+                                              color: AppPalette.darkSlate,
+                                            ),
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 4),
+                                  SizedBox(
+                                    width: 56,
+                                    child: Text(
+                                      hero.name,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        color: isSel ? AppPalette.cyan : Colors.white60,
+                                        fontSize: 10,
+                                        fontWeight: isSel ? FontWeight.bold : FontWeight.w500,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
                             );
                           }).toList(),
                         ),
-                        const SizedBox(height: 14),
-
-                        // Botones de acción: Estilo A | Estilo B | Héroes | Ok
-                        Wrap(
-                          alignment: WrapAlignment.center,
-                          crossAxisAlignment: WrapCrossAlignment.center,
-                          spacing: 8,
-                          runSpacing: 6,
-                          children: [
-                            _buildTabButton(
-                              label: 'Estilo A',
-                              isActive: _selectedTabIndex == 0,
-                              onTap: () => setState(() => _selectedTabIndex = 0),
-                            ),
-                            _buildTabButton(
-                              label: 'Estilo B',
-                              isActive: _selectedTabIndex == 1,
-                              onTap: () => setState(() => _selectedTabIndex = 1),
-                            ),
-                            _buildTabButton(
-                              label: 'Héroes',
-                              isActive: _selectedTabIndex == 2,
-                              onTap: () => setState(() => _selectedTabIndex = 2),
-                            ),
-                            _buildOkButton(),
-                          ],
-                        ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
-  Widget _buildTabButton({
-    required String label,
-    required bool isActive,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-        decoration: BoxDecoration(
-          color: isActive ? Colors.white : const Color(0xFF60A5FA),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: isActive ? const Color(0xFF2563EB) : Colors.white60,
-            width: 1.5,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.15),
-              blurRadius: 3,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            color: isActive ? const Color(0xFF1E3A8A) : Colors.white,
-            fontWeight: FontWeight.w900,
-            fontSize: 12,
-          ),
-        ),
-      ),
-    );
-  }
+              const Divider(color: Color(0xFF333333), height: 1, thickness: 1),
 
-  Widget _buildOkButton() {
-    return GestureDetector(
-      onTap: _saveAndClose,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 8),
-        decoration: BoxDecoration(
-          color: const Color(0xFF22C55E), // Verde vibrante
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: const Color(0xFF86EFAC), width: 1.5),
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xFF15803D).withValues(alpha: 0.5),
-              blurRadius: 6,
-              offset: const Offset(0, 3),
-            ),
-          ],
-        ),
-        child: const Text(
-          'Ok',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w900,
-            fontSize: 14,
+              // 3. Botones Inferiores de Acción (Cancelar / Guardar 3D)
+              Padding(
+                padding: const EdgeInsets.all(12),
+                child: Row(
+                  children: [
+                    Expanded(
+                      flex: 4,
+                      child: App3dButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        variant: App3dButtonVariant.dark,
+                        height: 42,
+                        depth: 4,
+                        borderRadius: 12,
+                        label: 'CANCELAR',
+                        textStyle: const TextStyle(
+                          color: AppPalette.sand,
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      flex: 6,
+                      child: App3dButton(
+                        onPressed: _saveAndClose,
+                        variant: App3dButtonVariant.cyan,
+                        height: 42,
+                        depth: 4,
+                        borderRadius: 12,
+                        label: 'GUARDAR',
+                        icon: Icons.check_circle_rounded,
+                        textStyle: const TextStyle(
+                          color: AppPalette.darkSlate,
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 0.6,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
       ),

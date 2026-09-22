@@ -1,336 +1,90 @@
 import 'package:flutter/material.dart';
 
-/// Definición de estilo y accesorios para cada uno de los avatares disponibles.
+/// Definición y configuración de los avatares disponibles (Héroes).
 class AvatarPreset {
   final int id;
   final String name;
-  final String? imagePath;
+  final String imagePath;
   final Color bgColor;
   final Color skinColor;
   final Color hairColor;
   final Color shirtColor;
-  final String hairType; // 'curly', 'short', 'medium', 'long', 'spiky', 'cowboy', 'bald'
+  final String hairType;
   final bool hasGlasses;
   final bool hasMustache;
   final bool hasBeard;
   final bool hasBowtie;
   final bool isStyleB;
-  final String category; // 'styleA', 'styleB', 'heroes'
+  final String category;
 
   const AvatarPreset({
     required this.id,
-    this.name = '',
-    this.imagePath,
-    required this.bgColor,
-    required this.skinColor,
-    required this.hairColor,
-    required this.shirtColor,
-    required this.hairType,
+    required this.name,
+    required this.imagePath,
+    this.bgColor = const Color(0xFF1E293B),
+    this.skinColor = const Color(0xFFFFDBAC),
+    this.hairColor = const Color(0xFF1E293B),
+    this.shirtColor = const Color(0xFF3B82F6),
+    this.hairType = 'short',
     this.hasGlasses = false,
     this.hasMustache = false,
     this.hasBeard = false,
     this.hasBowtie = false,
-    required this.isStyleB,
-    this.category = 'styleA',
+    this.isStyleB = false,
+    this.category = 'heroes',
   });
 
+  /// Lista oficial y unificada de avatares héroes (imágenes de assets/player/avatar/)
   static const List<AvatarPreset> allPresets = [
-    // --- ESTILO A (0 a 9) ---
     AvatarPreset(
       id: 0,
-      bgColor: Color(0xFF7C3AED), // Púrpura
-      skinColor: Color(0xFFFFDBAC),
-      hairColor: Color(0xFF1E293B),
-      shirtColor: Color(0xFF93C5FD),
-      hairType: 'short',
-      isStyleB: false,
-      category: 'styleA',
-    ),
-    AvatarPreset(
-      id: 1,
-      bgColor: Color(0xFFEA580C), // Naranja
-      skinColor: Color(0xFFFFE0BD),
-      hairColor: Color(0xFF292524),
-      shirtColor: Color(0xFF15803D),
-      hairType: 'medium',
-      hasMustache: true,
-      hasBowtie: true,
-      isStyleB: false,
-      category: 'styleA',
-    ),
-    AvatarPreset(
-      id: 2, // Avatar principal "Eizy"
-      bgColor: Color(0xFF0D9488), // Turquesa
-      skinColor: Color(0xFF8D5524), // Moreno
-      hairColor: Color(0xFF0F172A),
-      shirtColor: Colors.white,
-      hairType: 'curly',
-      hasGlasses: true,
-      isStyleB: false,
-      category: 'styleA',
-    ),
-    AvatarPreset(
-      id: 3,
-      bgColor: Color(0xFF16A34A), // Verde
-      skinColor: Color(0xFFFFDBAC),
-      hairColor: Color(0xFF78350F),
-      shirtColor: Color(0xFF475569),
-      hairType: 'short',
-      hasBeard: true,
-      isStyleB: false,
-      category: 'styleA',
-    ),
-    AvatarPreset(
-      id: 4,
-      bgColor: Color(0xFF475569), // Gris
-      skinColor: Color(0xFF5A3825), // Afro
-      hairColor: Color(0xFF18181B),
-      shirtColor: Color(0xFF0F172A),
-      hairType: 'short',
-      hasBeard: true,
-      isStyleB: false,
-      category: 'styleA',
-    ),
-    AvatarPreset(
-      id: 5,
-      bgColor: Color(0xFF3B82F6), // Azul
-      skinColor: Color(0xFF8D5524),
-      hairColor: Color(0xFF18181B),
-      shirtColor: Color(0xFFCBD5E1),
-      hairType: 'curly',
-      hasGlasses: true,
-      isStyleB: false,
-      category: 'styleA',
-    ),
-    AvatarPreset(
-      id: 6,
-      bgColor: Color(0xFF0284C7), // Cian
-      skinColor: Color(0xFFFFDBAC),
-      hairColor: Color(0xFF451A03),
-      shirtColor: Color(0xFF334155),
-      hairType: 'short',
-      hasGlasses: true,
-      hasBeard: true,
-      isStyleB: false,
-      category: 'styleA',
-    ),
-    AvatarPreset(
-      id: 7,
-      bgColor: Color(0xFF64748B), // Pizarra
-      skinColor: Color(0xFFFFDBAC),
-      hairColor: Color(0xFF92400E),
-      shirtColor: Color(0xFF475569),
-      hairType: 'spiky',
-      isStyleB: false,
-      category: 'styleA',
-    ),
-    AvatarPreset(
-      id: 8,
-      bgColor: Color(0xFF047857), // Esmeralda
-      skinColor: Color(0xFFFFE0BD),
-      hairColor: Color(0xFF292524),
-      shirtColor: Color(0xFF334155),
-      hairType: 'medium',
-      hasGlasses: true,
-      hasBeard: true,
-      isStyleB: false,
-      category: 'styleA',
-    ),
-    AvatarPreset(
-      id: 9,
-      bgColor: Color(0xFF4338CA), // Índigo
-      skinColor: Color(0xFF704214),
-      hairColor: Color(0xFF18181B),
-      shirtColor: Color(0xFF1E293B),
-      hairType: 'curly',
-      isStyleB: false,
-      category: 'styleA',
-    ),
-
-    // --- ESTILO B (10 a 19) ---
-    AvatarPreset(
-      id: 10,
-      bgColor: Color(0xFF0284C7), // Sombrero vaquero
-      skinColor: Color(0xFFC68642),
-      hairColor: Color(0xFF1E293B),
-      shirtColor: Colors.white,
-      hairType: 'cowboy',
-      isStyleB: true,
-      category: 'styleB',
-    ),
-    AvatarPreset(
-      id: 11,
-      bgColor: Color(0xFF059669),
-      skinColor: Color(0xFF8D5524),
-      hairColor: Color(0xFF18181B),
-      shirtColor: Color(0xFF334155),
-      hairType: 'short',
-      hasBeard: true,
-      isStyleB: true,
-      category: 'styleB',
-    ),
-    AvatarPreset(
-      id: 12,
-      bgColor: Color(0xFFD97706),
-      skinColor: Color(0xFFFFDBAC),
-      hairColor: Color(0xFF18181B),
-      shirtColor: Color(0xFF94A3B8),
-      hairType: 'curly',
-      hasBeard: true,
-      isStyleB: true,
-      category: 'styleB',
-    ),
-    AvatarPreset(
-      id: 13,
-      bgColor: Color(0xFF0284C7),
-      skinColor: Color(0xFFFFE0BD),
-      hairColor: Color(0xFF451A03),
-      shirtColor: Color(0xFF475569),
-      hairType: 'spiky',
-      hasBeard: true,
-      isStyleB: true,
-      category: 'styleB',
-    ),
-    AvatarPreset(
-      id: 14,
-      bgColor: Color(0xFF4B5563),
-      skinColor: Color(0xFFFFDBAC),
-      hairColor: Color(0xFF1E293B),
-      shirtColor: Color(0xFF94A3B8),
-      hairType: 'long',
-      isStyleB: true,
-      category: 'styleB',
-    ),
-    AvatarPreset(
-      id: 15,
-      bgColor: Color(0xFF78350F),
-      skinColor: Color(0xFFFFE0BD),
-      hairColor: Color(0xFF292524),
-      shirtColor: Color(0xFF334155),
-      hairType: 'short',
-      hasGlasses: true,
-      isStyleB: true,
-      category: 'styleB',
-    ),
-    AvatarPreset(
-      id: 16,
-      bgColor: Color(0xFF0F766E),
-      skinColor: Color(0xFFFFDBAC),
-      hairColor: Color(0xFF18181B),
-      shirtColor: Color(0xFF94A3B8),
-      hairType: 'short',
-      hasBeard: true,
-      isStyleB: true,
-      category: 'styleB',
-    ),
-    AvatarPreset(
-      id: 17,
-      bgColor: Color(0xFF15803D),
-      skinColor: Color(0xFF5A3825),
-      hairColor: Color(0xFF18181B),
-      shirtColor: Color(0xFF1E293B),
-      hairType: 'short',
-      hasBeard: true,
-      isStyleB: true,
-      category: 'styleB',
-    ),
-    AvatarPreset(
-      id: 18,
-      bgColor: Color(0xFF0369A1),
-      skinColor: Color(0xFFFFE0BD),
-      hairColor: Color(0xFF292524),
-      shirtColor: Color(0xFF475569),
-      hairType: 'short',
-      hasBeard: true,
-      isStyleB: true,
-      category: 'styleB',
-    ),
-    AvatarPreset(
-      id: 19,
-      bgColor: Color(0xFFB45309),
-      skinColor: Color(0xFFFFE0BD),
-      hairColor: Color(0xFF18181B),
-      shirtColor: Color(0xFF1E293B),
-      hairType: 'medium',
-      hasMustache: true,
-      isStyleB: true,
-      category: 'styleB',
-    ),
-
-    // --- HÉROES RPG / ILUSTRADOS (20 a 24) ---
-    AvatarPreset(
-      id: 20,
       name: 'Caballero',
       imagePath: 'assets/player/avatar/1-AVATAR.png',
       bgColor: Color(0xFF1E3A8A),
-      skinColor: Color(0xFFFFDBAC),
-      hairColor: Color(0xFF1E293B),
-      shirtColor: Color(0xFF3B82F6),
-      hairType: 'short',
-      isStyleB: false,
-      category: 'heroes',
     ),
     AvatarPreset(
-      id: 21,
+      id: 1,
       name: 'Arquera',
       imagePath: 'assets/player/avatar/2-AVATAR.png',
       bgColor: Color(0xFF14532D),
-      skinColor: Color(0xFFFFE0BD),
-      hairColor: Color(0xFFB45309),
-      shirtColor: Color(0xFF16A34A),
-      hairType: 'long',
-      isStyleB: false,
-      category: 'heroes',
     ),
     AvatarPreset(
-      id: 22,
+      id: 2,
       name: 'Vikingo',
       imagePath: 'assets/player/avatar/3-AVATAR.png',
       bgColor: Color(0xFF9A3412),
-      skinColor: Color(0xFFFFDBAC),
-      hairColor: Color(0xFF78350F),
-      shirtColor: Color(0xFFEA580C),
-      hairType: 'cowboy',
-      hasBeard: true,
-      isStyleB: false,
-      category: 'heroes',
     ),
     AvatarPreset(
-      id: 23,
+      id: 3,
       name: 'Mago',
       imagePath: 'assets/player/avatar/4-AVATAR.png',
       bgColor: Color(0xFF581C87),
-      skinColor: Color(0xFFFFDBAC),
-      hairColor: Color(0xFFE2E8F0),
-      shirtColor: Color(0xFF7C3AED),
-      hairType: 'medium',
-      hasBeard: true,
-      isStyleB: false,
-      category: 'heroes',
     ),
     AvatarPreset(
-      id: 24,
+      id: 4,
       name: 'Pícaro',
       imagePath: 'assets/player/avatar/5-AVATAR.png',
       bgColor: Color(0xFF1F2937),
-      skinColor: Color(0xFFFFDBAC),
-      hairColor: Color(0xFF0F172A),
-      shirtColor: Color(0xFF374151),
-      hairType: 'spiky',
-      hasMustache: true,
-      isStyleB: false,
-      category: 'heroes',
     ),
   ];
 
-  static List<AvatarPreset> get styleAPresets => allPresets.where((p) => p.category == 'styleA').toList();
-  static List<AvatarPreset> get styleBPresets => allPresets.where((p) => p.category == 'styleB').toList();
-  static List<AvatarPreset> get heroesPresets => allPresets.where((p) => p.category == 'heroes').toList();
+  static List<AvatarPreset> get heroesPresets => allPresets;
+  static List<AvatarPreset> get styleAPresets => allPresets;
+  static List<AvatarPreset> get styleBPresets => allPresets;
 
   static AvatarPreset getById(int id) {
+    if (allPresets.isEmpty) {
+      return const AvatarPreset(
+        id: 0,
+        name: 'Héroe',
+        imagePath: 'assets/player/avatar/1-AVATAR.png',
+      );
+    }
+    // Mapeo retrocompatible para IDs antiguos (20 a 24) o cualquier otro número
+    final normalized = (id >= 20 && id < 20 + allPresets.length) ? (id - 20) : id;
     return allPresets.firstWhere(
-      (p) => p.id == id,
-      orElse: () => allPresets[2],
+      (p) => p.id == normalized || p.id == id,
+      orElse: () => allPresets[normalized.abs() % allPresets.length],
     );
   }
 }
@@ -380,9 +134,9 @@ class AvatarView extends StatelessWidget {
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(size * 0.18 - 1),
-        child: preset.imagePath != null
+        child: preset.imagePath.isNotEmpty
             ? Image.asset(
-                preset.imagePath!,
+                preset.imagePath,
                 width: size,
                 height: size,
                 fit: BoxFit.cover,
