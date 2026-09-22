@@ -103,7 +103,7 @@ class _ChestSlotsViewState extends State<ChestSlotsView> {
               end: Alignment.bottomCenter,
             ),
             borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: const Color(0xFFFDE047), width: 2),
+            border: Border.all(color: const Color(0xFF2E2E2E), width: 1.2),
             boxShadow: const [
               BoxShadow(color: Colors.black54, blurRadius: 16, offset: Offset(0, 4)),
             ],
@@ -126,9 +126,9 @@ class _ChestSlotsViewState extends State<ChestSlotsView> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF0F172A),
+                  color: const Color(0xFF181818),
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: const Color(0xFFCA8A04), width: 1.2),
+                  border: Border.all(color: const Color(0xFF2E2E2E), width: 1.2),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -261,7 +261,7 @@ class _ChestSlotsViewState extends State<ChestSlotsView> {
 
     switch (state) {
       case ChestState.empty:
-        borderColor = Colors.white24;
+        borderColor = const Color(0xFF2E2E2E);
         bgColor = const Color(0xFF1E293B).withValues(alpha: 0.5);
         centerContent = const Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -273,7 +273,7 @@ class _ChestSlotsViewState extends State<ChestSlotsView> {
         );
         break;
       case ChestState.unlocking:
-        borderColor = const Color(0xFF38BDF8);
+        borderColor = const Color(0xFF2E2E2E);
         bgColor = const Color(0xFF1E1B4B);
         final rem = chest.getFormattedRemainingTime();
         centerContent = Column(
@@ -293,7 +293,7 @@ class _ChestSlotsViewState extends State<ChestSlotsView> {
         );
         break;
       case ChestState.ready:
-        borderColor = const Color(0xFFFDE047);
+        borderColor = const Color(0xFF2E2E2E);
         bgColor = const Color(0xFF78350F).withValues(alpha: 0.85);
         centerContent = const Column(
           mainAxisAlignment: MainAxisAlignment.center,

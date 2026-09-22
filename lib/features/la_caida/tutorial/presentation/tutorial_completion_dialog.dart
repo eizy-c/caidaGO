@@ -71,17 +71,12 @@ class _TutorialCompletionDialogState extends State<TutorialCompletionDialog>
               end: Alignment.bottomCenter,
             ),
             borderRadius: BorderRadius.circular(28),
-            border: Border.all(color: const Color(0xFFF59E0B), width: 2.2),
-            boxShadow: [
+            border: Border.all(color: const Color(0xFF2E2E2E), width: 1.2),
+            boxShadow: const [
               BoxShadow(
-                color: const Color(0xFFF59E0B).withValues(alpha: 0.4),
-                blurRadius: 24,
-                spreadRadius: 2,
-              ),
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.8),
+                color: Colors.black87,
                 blurRadius: 20,
-                offset: const Offset(0, 8),
+                offset: Offset(0, 8),
               ),
             ],
           ),
@@ -173,10 +168,10 @@ class _TutorialCompletionDialogState extends State<TutorialCompletionDialog>
                           colors: [Color(0xFF065F46), Color(0xFF047857)],
                         ),
                         borderRadius: BorderRadius.circular(18),
-                        border: Border.all(color: const Color(0xFF34D399), width: 1.5),
-                        boxShadow: [
+                        border: Border.all(color: const Color(0xFF2E2E2E), width: 1.2),
+                        boxShadow: const [
                           BoxShadow(
-                            color: const Color(0xFF10B981).withValues(alpha: 0.3),
+                            color: Colors.black45,
                             blurRadius: 10,
                           ),
                         ],

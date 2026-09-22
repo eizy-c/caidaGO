@@ -79,19 +79,14 @@ class _ProfileOptionsDialogState extends State<ProfileOptionsDialog> {
             ),
             borderRadius: BorderRadius.circular(24),
             border: Border.all(
-              color: AppPalette.cyan.withValues(alpha: 0.65),
-              width: 1.8,
+              color: const Color(0xFF2E2E2E),
+              width: 1.2,
             ),
-            boxShadow: [
+            boxShadow: const [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.75),
+                color: Colors.black,
                 blurRadius: 24,
-                offset: const Offset(0, 10),
-              ),
-              BoxShadow(
-                color: AppPalette.cyan.withValues(alpha: 0.08),
-                blurRadius: 18,
-                spreadRadius: 2,
+                offset: Offset(0, 10),
               ),
             ],
           ),
@@ -110,16 +105,16 @@ class _ProfileOptionsDialogState extends State<ProfileOptionsDialog> {
                           Container(
                             padding: const EdgeInsets.all(6),
                             decoration: BoxDecoration(
-                              color: AppPalette.cyan.withValues(alpha: 0.15),
+                              color: const Color(0xFF242424),
                               borderRadius: BorderRadius.circular(10),
                               border: Border.all(
-                                color: AppPalette.cyan.withValues(alpha: 0.4),
+                                color: const Color(0xFF2E2E2E),
                                 width: 1,
                               ),
                             ),
                             child: const Icon(
                               Icons.manage_accounts_rounded,
-                              color: AppPalette.cyan,
+                              color: Colors.white70,
                               size: 18,
                             ),
                           ),
@@ -183,23 +178,17 @@ class _ProfileOptionsDialogState extends State<ProfileOptionsDialog> {
                             Container(
                               padding: const EdgeInsets.all(5),
                               decoration: BoxDecoration(
-                                color: AppPalette.cyan,
+                                color: const Color(0xFF2E2E2E),
                                 shape: BoxShape.circle,
                                 border: Border.all(
-                                  color: AppPalette.darkSlate,
+                                  color: const Color(0xFF181818),
                                   width: 2,
                                 ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: AppPalette.cyan.withValues(alpha: 0.4),
-                                    blurRadius: 6,
-                                  ),
-                                ],
                               ),
                               child: const Icon(
                                 Icons.edit_rounded,
                                 size: 12,
-                                color: AppPalette.darkSlate,
+                                color: Colors.white70,
                               ),
                             ),
                           ],
@@ -211,17 +200,17 @@ class _ProfileOptionsDialogState extends State<ProfileOptionsDialog> {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
                         decoration: BoxDecoration(
-                          color: AppPalette.cyan.withValues(alpha: 0.12),
+                          color: const Color(0xFF242424),
                           borderRadius: BorderRadius.circular(10),
                           border: Border.all(
-                            color: AppPalette.cyan.withValues(alpha: 0.3),
+                            color: const Color(0xFF2E2E2E),
                             width: 0.8,
                           ),
                         ),
                         child: Text(
                           currentHero.name,
                           style: const TextStyle(
-                            color: AppPalette.cyan,
+                            color: Colors.white,
                             fontSize: 11.5,
                             fontWeight: FontWeight.bold,
                             letterSpacing: 0.5,
@@ -237,8 +226,8 @@ class _ProfileOptionsDialogState extends State<ProfileOptionsDialog> {
                           color: const Color(0xFF141414),
                           borderRadius: BorderRadius.circular(14),
                           border: Border.all(
-                            color: AppPalette.sand.withValues(alpha: 0.35),
-                            width: 1.2,
+                            color: const Color(0xFF2E2E2E),
+                            width: 1.0,
                           ),
                         ),
                         child: TextField(
@@ -357,15 +346,15 @@ class _ProfileOptionsDialogState extends State<ProfileOptionsDialog> {
                                           borderRadius: BorderRadius.circular(14),
                                           border: Border.all(
                                             color: isSel
-                                                ? AppPalette.cyan
-                                                : Colors.white.withValues(alpha: 0.2),
-                                            width: isSel ? 2.5 : 1.2,
+                                                ? Colors.white
+                                                : const Color(0xFF2E2E2E),
+                                            width: isSel ? 2.0 : 1.0,
                                           ),
                                           boxShadow: isSel
-                                              ? [
+                                              ? const [
                                                   BoxShadow(
-                                                    color: AppPalette.cyan.withValues(alpha: 0.45),
-                                                    blurRadius: 10,
+                                                    color: Colors.white24,
+                                                    blurRadius: 6,
                                                     spreadRadius: 1,
                                                   ),
                                                 ]
@@ -395,13 +384,13 @@ class _ProfileOptionsDialogState extends State<ProfileOptionsDialog> {
                                           child: Container(
                                             padding: const EdgeInsets.all(2),
                                             decoration: const BoxDecoration(
-                                              color: AppPalette.cyan,
+                                              color: Colors.white,
                                               shape: BoxShape.circle,
                                             ),
                                             child: const Icon(
                                               Icons.check_rounded,
                                               size: 11,
-                                              color: AppPalette.darkSlate,
+                                              color: Color(0xFF181818),
                                             ),
                                           ),
                                         ),
@@ -416,7 +405,7 @@ class _ProfileOptionsDialogState extends State<ProfileOptionsDialog> {
                                       overflow: TextOverflow.ellipsis,
                                       textAlign: TextAlign.center,
                                       style: TextStyle(
-                                        color: isSel ? AppPalette.cyan : Colors.white60,
+                                        color: isSel ? Colors.white : Colors.white60,
                                         fontSize: 10,
                                         fontWeight: isSel ? FontWeight.bold : FontWeight.w500,
                                       ),

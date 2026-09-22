@@ -303,13 +303,13 @@ class UserFrameView extends StatelessWidget {
       width: badgeSize,
       height: badgeSize,
       decoration: BoxDecoration(
-        color: const Color(0xFF0F172A),
+        color: const Color(0xFF1E1E1E),
         borderRadius: BorderRadius.circular(badgeSize * 0.30),
-        border: Border.all(color: badgeColor, width: 1.8),
-        boxShadow: [
+        border: Border.all(color: const Color(0xFF2E2E2E), width: 1.2),
+        boxShadow: const [
           BoxShadow(
-            color: badgeColor.withValues(alpha: 0.5),
-            blurRadius: 6,
+            color: Colors.black45,
+            blurRadius: 4,
             spreadRadius: 1,
           ),
         ],

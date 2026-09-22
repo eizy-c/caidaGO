@@ -51,7 +51,7 @@ class _TableAuditorPanelState extends State<TableAuditorPanel> {
             end: Alignment.bottomCenter,
           ),
           borderRadius: const BorderRadius.vertical(top: Radius.circular(26)),
-          border: Border.all(color: const Color(0xFF9333EA), width: 1.5),
+          border: Border.all(color: const Color(0xFF2E2E2E), width: 1.5),
           boxShadow: const [
             BoxShadow(color: Colors.black87, blurRadius: 20, offset: Offset(0, -4)),
           ],

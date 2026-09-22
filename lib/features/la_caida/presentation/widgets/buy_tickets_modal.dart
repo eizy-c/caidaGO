@@ -153,7 +153,7 @@ class _BuyTicketsModalState extends State<BuyTicketsModal> {
                 end: Alignment.bottomCenter,
               ),
               borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-              border: Border.all(color: const Color(0xFF9333EA), width: 1.5),
+              border: Border.all(color: const Color(0xFF2E2E2E), width: 1.2),
               boxShadow: const [
                 BoxShadow(
                   color: Colors.black87,
@@ -189,13 +189,13 @@ class _BuyTicketsModalState extends State<BuyTicketsModal> {
                           Container(
                             padding: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF9333EA).withValues(alpha: 0.25),
+                              color: const Color(0xFF242424),
                               borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: const Color(0xFFC084FC), width: 1.2),
+                              border: Border.all(color: const Color(0xFF2E2E2E), width: 1.0),
                             ),
                             child: const Icon(
                               Icons.confirmation_num_rounded,
-                              color: Color(0xFFFDE047),
+                              color: Colors.white70,
                               size: 22,
                             ),
                           ),
@@ -207,7 +207,7 @@ class _BuyTicketsModalState extends State<BuyTicketsModal> {
                                 Text(
                                   'TIENDA DE TICKETS',
                                   style: TextStyle(
-                                    color: Color(0xFFFDE047),
+                                    color: Colors.white70,
                                     fontSize: 11,
                                     fontWeight: FontWeight.w900,
                                     letterSpacing: 1.2,
@@ -235,7 +235,7 @@ class _BuyTicketsModalState extends State<BuyTicketsModal> {
                       decoration: BoxDecoration(
                         color: const Color(0xFF1E1B4B),
                         borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: const Color(0xFFF59E0B), width: 1),
+                        border: Border.all(color: const Color(0xFF2E2E2E), width: 1),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
@@ -268,14 +268,12 @@ class _BuyTicketsModalState extends State<BuyTicketsModal> {
                           padding: const EdgeInsets.symmetric(vertical: 8),
                           decoration: BoxDecoration(
                             color: _selectedTab == 0
-                                ? const Color(0xFF38BDF8).withValues(alpha: 0.25)
+                                ? const Color(0xFF2E2E2E)
                                 : Colors.white.withValues(alpha: 0.05),
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
-                              color: _selectedTab == 0
-                                  ? const Color(0xFF38BDF8)
-                                  : Colors.white12,
-                              width: 1.2,
+                              color: const Color(0xFF2E2E2E),
+                              width: 1.0,
                             ),
                           ),
                           child: Row(
@@ -285,7 +283,7 @@ class _BuyTicketsModalState extends State<BuyTicketsModal> {
                                 Icons.confirmation_num_rounded,
                                 size: 16,
                                 color: _selectedTab == 0
-                                    ? const Color(0xFF38BDF8)
+                                    ? Colors.white
                                     : Colors.white54,
                               ),
                               const SizedBox(width: 6),
@@ -312,14 +310,12 @@ class _BuyTicketsModalState extends State<BuyTicketsModal> {
                           padding: const EdgeInsets.symmetric(vertical: 8),
                           decoration: BoxDecoration(
                             color: _selectedTab == 1
-                                ? const Color(0xFFA855F7).withValues(alpha: 0.25)
+                                ? const Color(0xFF2E2E2E)
                                 : Colors.white.withValues(alpha: 0.05),
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
-                              color: _selectedTab == 1
-                                  ? const Color(0xFFA855F7)
-                                  : Colors.white12,
-                              width: 1.2,
+                              color: const Color(0xFF2E2E2E),
+                              width: 1.0,
                             ),
                           ),
                           child: Row(
@@ -578,16 +574,16 @@ class _BuyTicketsModalState extends State<BuyTicketsModal> {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: isHighlighted
-              ? const Color(0xFFC084FC)
-              : Colors.white12,
-          width: isHighlighted ? 1.5 : 1,
+              ? Colors.white70
+              : const Color(0xFF2E2E2E),
+          width: 1.0,
         ),
         boxShadow: isHighlighted
-            ? [
+            ? const [
                 BoxShadow(
-                  color: const Color(0xFF9333EA).withValues(alpha: 0.25),
+                  color: Colors.white10,
                   blurRadius: 10,
-                  offset: const Offset(0, 2),
+                  offset: Offset(0, 2),
                 ),
               ]
             : null,
@@ -598,9 +594,9 @@ class _BuyTicketsModalState extends State<BuyTicketsModal> {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: iconColor.withValues(alpha: 0.15),
+              color: Colors.white.withValues(alpha: 0.05),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: iconColor.withValues(alpha: 0.4), width: 1),
+              border: Border.all(color: const Color(0xFF2E2E2E), width: 1),
             ),
             child: Icon(icon, color: iconColor, size: 24),
           ),

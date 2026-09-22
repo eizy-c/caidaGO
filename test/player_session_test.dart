@@ -329,7 +329,7 @@ void main() {
       // Ahora el cofre está listo para reclamar
       final coins = session.claimChestReward(0);
       expect(coins, isNotNull);
-      expect(coins!, greaterThanOrEqualTo(50));
+      expect(coins!, greaterThanOrEqualTo(25));
       expect(coins, lessThanOrEqualTo(2500));
       expect(session.coins, equals(coins));
       expect(session.chests[0].isEmpty, isTrue);

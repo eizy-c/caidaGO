@@ -311,12 +311,12 @@ class _TutorialScreenState extends State<TutorialScreen> with TickerProviderStat
       decoration: BoxDecoration(
         color: const Color(0xFF0F172A).withValues(alpha: 0.92),
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFF59E0B), width: 1.4),
-        boxShadow: [
+        border: Border.all(color: const Color(0xFF2E2E2E), width: 1.2),
+        boxShadow: const [
           BoxShadow(
-            color: const Color(0xFFF59E0B).withValues(alpha: 0.25),
+            color: Colors.black54,
             blurRadius: 10,
-            offset: const Offset(0, 3),
+            offset: Offset(0, 3),
           ),
         ],
       ),
@@ -436,12 +436,11 @@ class _TutorialScreenState extends State<TutorialScreen> with TickerProviderStat
           colors: [Color(0xFF1E1B4B), Color(0xFF0F172A)],
         ),
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFF59E0B), width: 1.8),
-        boxShadow: [
+        border: Border.all(color: const Color(0xFF2E2E2E), width: 1.2),
+        boxShadow: const [
           BoxShadow(
-            color: const Color(0xFFF59E0B).withValues(alpha: 0.45),
-            blurRadius: 14,
-            spreadRadius: 1,
+            color: Colors.black54,
+            blurRadius: 10,
           ),
         ],
       ),
@@ -603,13 +602,12 @@ class _TutorialScreenState extends State<TutorialScreen> with TickerProviderStat
         color: const Color(0xFF0F172A).withValues(alpha: 0.96),
         borderRadius: BorderRadius.circular(22),
         border: Border.all(
-          color: isLast ? const Color(0xFFF59E0B) : const Color(0xFF10B981),
-          width: 2.0,
+          color: const Color(0xFF2E2E2E),
+          width: 1.2,
         ),
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
-            color: (isLast ? const Color(0xFFF59E0B) : const Color(0xFF10B981))
-                .withValues(alpha: 0.35),
+            color: Colors.black54,
             blurRadius: 16,
             spreadRadius: 2,
           ),

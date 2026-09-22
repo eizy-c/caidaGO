@@ -89,12 +89,12 @@ class _RankUpModalState extends State<RankUpModal>
           child: Container(
             constraints: const BoxConstraints(maxWidth: 340),
             decoration: BoxDecoration(
-              color: const Color(0xFF0F172A),
+              color: const Color(0xFF1E1E1E),
               borderRadius: BorderRadius.circular(24),
-              border: Border.all(color: accentColor, width: 2),
-              boxShadow: [
+              border: Border.all(color: const Color(0xFF2E2E2E), width: 1.2),
+              boxShadow: const [
                 BoxShadow(
-                  color: accentColor.withValues(alpha: 0.35),
+                  color: Colors.black54,
                   blurRadius: 24,
                   spreadRadius: 4,
                 ),

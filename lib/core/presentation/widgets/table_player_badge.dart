@@ -91,38 +91,20 @@ class TablePlayerBadge extends StatelessWidget {
                       width: avatarSize,
                       height: avatarSize,
                       decoration: BoxDecoration(
-                        color: const Color(0xFF1E1B4B),
+                        color: const Color(0xFF181818),
                         borderRadius: BorderRadius.circular(16),
-                        gradient: frame != null
-                            ? LinearGradient(
-                                colors: isCurrentTurn
-                                    ? const [Color(0xFF22C55E), Color(0xFF16A34A)]
-                                    : frame.borderGradient,
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                              )
-                            : null,
-                        border: frame == null
-                            ? Border.all(
-                                color: isCurrentTurn
-                                    ? const Color(0xFF22C55E)
-                                    : const Color(0xFF818CF8).withValues(alpha: 0.5),
-                                width: isCurrentTurn ? 2.5 : 1.5,
-                              )
-                            : null,
+                        border: Border.all(
+                          color: isCurrentTurn
+                              ? Colors.white
+                              : const Color(0xFF2E2E2E),
+                          width: isCurrentTurn ? 2.0 : 1.0,
+                        ),
                         boxShadow: [
                           if (isCurrentTurn)
                             BoxShadow(
-                              color: const Color(0xFF22C55E).withValues(alpha: 0.5),
+                              color: Colors.white.withValues(alpha: 0.35),
                               blurRadius: 10,
                               spreadRadius: 1.5,
-                            )
-                          else if (frame != null)
-                            BoxShadow(
-                              color: frame.shadowColor.withValues(alpha: 0.5),
-                              blurRadius: 8,
-                              spreadRadius: 1,
-                              offset: const Offset(0, 2),
                             )
                           else
                             BoxShadow(
@@ -132,9 +114,9 @@ class TablePlayerBadge extends StatelessWidget {
                             ),
                         ],
                       ),
-                      padding: EdgeInsets.all(frame != null ? 2.5 : 0),
+                      padding: const EdgeInsets.all(2),
                       child: ClipRRect(
-                        borderRadius: BorderRadius.circular(frame != null ? 13.5 : 14),
+                        borderRadius: BorderRadius.circular(14),
                         child: avatarId != null
                             ? AvatarView(
                                 avatarId: avatarId!,
@@ -231,18 +213,18 @@ class TablePlayerBadge extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF0F172A).withValues(alpha: 0.88),
+                  color: const Color(0xFF141414).withValues(alpha: 0.92),
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
                     color: isCurrentTurn
-                        ? const Color(0xFF22C55E).withValues(alpha: 0.8)
-                        : Colors.white24,
-                    width: isCurrentTurn ? 1.2 : 0.8,
+                        ? Colors.white60
+                        : const Color(0xFF2E2E2E),
+                    width: 1.0,
                   ),
                   boxShadow: [
                     if (isCurrentTurn)
                       BoxShadow(
-                        color: const Color(0xFF22C55E).withValues(alpha: 0.35),
+                        color: Colors.white.withValues(alpha: 0.25),
                         blurRadius: 6,
                         spreadRadius: 1,
                       )
@@ -258,17 +240,15 @@ class TablePlayerBadge extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     if (isBot) ...[
-                      const Icon(Icons.smart_toy_rounded, size: 10, color: Color(0xFF2DD4BF)),
+                      const Icon(Icons.smart_toy_rounded, size: 10, color: Colors.white70),
                       const SizedBox(width: 3),
                     ] else if (playerLevel != null) ...[
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0.5),
                         decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: [Color(0xFF0D9488), Color(0xFF0F766E)],
-                          ),
+                          color: const Color(0xFF242424),
                           borderRadius: BorderRadius.circular(4),
-                          border: Border.all(color: const Color(0xFF2DD4BF), width: 0.8),
+                          border: Border.all(color: const Color(0xFF2E2E2E), width: 0.8),
                         ),
                         child: Text(
                           'Nv. $playerLevel',
@@ -286,7 +266,7 @@ class TablePlayerBadge extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        color: isCurrentTurn ? const Color(0xFF86EFAC) : Colors.white,
+                        color: isCurrentTurn ? Colors.white : Colors.white70,
                         fontSize: 10.5,
                         fontWeight: FontWeight.w700,
                         letterSpacing: 0.3,
@@ -365,10 +345,10 @@ class TablePlayerBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
       decoration: BoxDecoration(
-        color: const Color(0xFF0F172A).withValues(alpha: 0.95),
+        color: const Color(0xFF141414).withValues(alpha: 0.95),
         borderRadius: BorderRadius.circular(10),
         border: Border.all(
-          color: const Color(0xFFFBBF24).withValues(alpha: 0.8),
+          color: const Color(0xFF2E2E2E),
           width: 1,
         ),
         boxShadow: const [
@@ -387,7 +367,7 @@ class TablePlayerBadge extends StatelessWidget {
           Text(
             '$displayValue',
             style: const TextStyle(
-              color: Color(0xFFFDE047),
+              color: Colors.white,
               fontSize: 9.5,
               fontWeight: FontWeight.w900,
             ),
@@ -402,10 +382,10 @@ class TablePlayerBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
       decoration: BoxDecoration(
-        color: const Color(0xFF0F172A).withValues(alpha: 0.95),
+        color: const Color(0xFF141414).withValues(alpha: 0.95),
         borderRadius: BorderRadius.circular(10),
         border: Border.all(
-          color: const Color(0xFF38BDF8).withValues(alpha: 0.8),
+          color: const Color(0xFF2E2E2E),
           width: 1,
         ),
         boxShadow: const [
@@ -419,7 +399,7 @@ class TablePlayerBadge extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.style_rounded, size: 9.5, color: Color(0xFF38BDF8)),
+          const Icon(Icons.style_rounded, size: 9.5, color: Colors.white70),
           const SizedBox(width: 2),
           Text(
             '$cardsWon',

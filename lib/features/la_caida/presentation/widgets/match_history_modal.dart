@@ -37,7 +37,7 @@ class MatchHistoryModal extends StatelessWidget {
                 end: Alignment.bottomCenter,
               ),
               borderRadius: const BorderRadius.vertical(top: Radius.circular(26)),
-              border: Border.all(color: const Color(0xFF9333EA), width: 1.5),
+              border: Border.all(color: const Color(0xFF2E2E2E), width: 1.2),
               boxShadow: const [
                 BoxShadow(color: Colors.black87, blurRadius: 20, offset: Offset(0, -4)),
               ],
@@ -111,10 +111,8 @@ class MatchHistoryModal extends StatelessWidget {
                                 color: const Color(0xFF19102E),
                                 borderRadius: BorderRadius.circular(14),
                                 border: Border.all(
-                                  color: isWin
-                                      ? const Color(0xFF22C55E).withValues(alpha: 0.4)
-                                      : const Color(0xFFEF4444).withValues(alpha: 0.4),
-                                  width: 1.2,
+                                  color: const Color(0xFF2E2E2E),
+                                  width: 1.0,
                                 ),
                               ),
                               child: Column(
@@ -216,9 +214,9 @@ class MatchHistoryModal extends StatelessWidget {
                                         child: Container(
                                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                           decoration: BoxDecoration(
-                                            color: const Color(0xFFA855F7).withValues(alpha: 0.2),
+                                            color: const Color(0xFF242424),
                                             borderRadius: BorderRadius.circular(8),
-                                            border: Border.all(color: const Color(0xFFA855F7), width: 1),
+                                            border: Border.all(color: const Color(0xFF2E2E2E), width: 1),
                                           ),
                                           child: const Row(
                                             mainAxisSize: MainAxisSize.min,

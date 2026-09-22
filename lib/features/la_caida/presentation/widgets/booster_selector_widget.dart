@@ -33,18 +33,14 @@ class BoosterSelectorWidget extends StatelessWidget {
               ),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: active.isNotEmpty
-                    ? const Color(0xFFA855F7).withValues(alpha: 0.7)
-                    : Colors.white12,
-                width: 1.2,
+                color: const Color(0xFF2E2E2E),
+                width: 1.0,
               ),
-              boxShadow: [
-                if (active.isNotEmpty)
-                  BoxShadow(
-                    color: const Color(0xFFA855F7).withValues(alpha: 0.2),
-                    blurRadius: 8,
-                    spreadRadius: 1,
-                  ),
+              boxShadow: const [
+                BoxShadow(
+                  color: Colors.black26,
+                  blurRadius: 4,
+                ),
               ],
             ),
             child: Row(
@@ -177,7 +173,7 @@ class _BoosterManagementSheet extends StatelessWidget {
                 end: Alignment.bottomCenter,
               ),
               borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-              border: Border.all(color: const Color(0xFF9333EA), width: 1.5),
+              border: Border.all(color: const Color(0xFF2E2E2E), width: 1.2),
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -238,10 +234,8 @@ class _BoosterManagementSheet extends StatelessWidget {
                       color: const Color(0xFF1E1B4B).withValues(alpha: 0.6),
                       borderRadius: BorderRadius.circular(14),
                       border: Border.all(
-                        color: isActive
-                            ? def.color.withValues(alpha: 0.7)
-                            : Colors.white12,
-                        width: 1.2,
+                        color: const Color(0xFF2E2E2E),
+                        width: 1.0,
                       ),
                     ),
                     child: Row(

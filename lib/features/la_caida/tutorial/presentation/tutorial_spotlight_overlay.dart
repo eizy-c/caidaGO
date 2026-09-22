@@ -100,14 +100,14 @@ class _TutorialSpotlightOverlayState extends State<TutorialSpotlightOverlay>
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                        color: const Color(0xFFFDE047),
-                        width: 2.8,
+                        color: Colors.white70,
+                        width: 2.0,
                       ),
-                      boxShadow: [
+                      boxShadow: const [
                         BoxShadow(
-                          color: const Color(0xFFF59E0B).withValues(alpha: 0.6),
-                          blurRadius: 14,
-                          spreadRadius: 2,
+                          color: Colors.white24,
+                          blurRadius: 10,
+                          spreadRadius: 1,
                         ),
                       ],
                     ),
@@ -117,7 +117,7 @@ class _TutorialSpotlightOverlayState extends State<TutorialSpotlightOverlay>
             },
           ),
 
-        // 3. Tarjeta flotante pedagógica estilo pizarra (#1E293B) con bordes dorados
+        // 3. Tarjeta flotante pedagógica estilo pizarra (#1E293B) con bordes neutros
         Positioned(
           left: 20,
           right: 20,
@@ -129,8 +129,8 @@ class _TutorialSpotlightOverlayState extends State<TutorialSpotlightOverlay>
               color: const Color(0xFF1E293B),
               borderRadius: BorderRadius.circular(22),
               border: Border.all(
-                color: const Color(0xFFF59E0B),
-                width: 2.0,
+                color: const Color(0xFF2E2E2E),
+                width: 1.2,
               ),
               boxShadow: [
                 BoxShadow(

@@ -80,7 +80,7 @@ class _VipTierSelectorModalState extends State<VipTierSelectorModal> {
                 end: Alignment.bottomCenter,
               ),
               borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-              border: Border.all(color: const Color(0xFFEAB308), width: 1.5),
+              border: Border.all(color: const Color(0xFF2E2E2E), width: 1.2),
               boxShadow: const [
                 BoxShadow(
                   color: Colors.black87,
@@ -116,9 +116,9 @@ class _VipTierSelectorModalState extends State<VipTierSelectorModal> {
                           Container(
                             padding: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFEAB308).withValues(alpha: 0.2),
+                              color: Colors.white.withValues(alpha: 0.08),
                               borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: const Color(0xFFFDE047), width: 1.2),
+                              border: Border.all(color: const Color(0xFF2E2E2E), width: 1.2),
                             ),
                             child: const Icon(
                               Icons.stars_rounded,
@@ -162,9 +162,9 @@ class _VipTierSelectorModalState extends State<VipTierSelectorModal> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF3B0764),
+                            color: const Color(0xFF1E1E1E),
                             borderRadius: BorderRadius.circular(14),
-                            border: Border.all(color: const Color(0xFFA855F7), width: 1),
+                            border: Border.all(color: const Color(0xFF2E2E2E), width: 1),
                           ),
                           child: Text(
                             'Nv. ${session.level}',
@@ -179,9 +179,9 @@ class _VipTierSelectorModalState extends State<VipTierSelectorModal> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF1E1B4B),
+                            color: const Color(0xFF1E1E1E),
                             borderRadius: BorderRadius.circular(14),
-                            border: Border.all(color: const Color(0xFFF59E0B), width: 1),
+                            border: Border.all(color: const Color(0xFF2E2E2E), width: 1),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,

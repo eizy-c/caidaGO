@@ -2516,14 +2516,14 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF1E143C).withValues(alpha: 0.9),
+                            color: const Color(0xFF181818).withValues(alpha: 0.9),
                             borderRadius: BorderRadius.circular(10),
-                            border: Border.all(color: const Color(0xFFF59E0B), width: 1.1),
+                            border: Border.all(color: const Color(0xFF2E2E2E), width: 1.0),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Icon(Icons.assignment_rounded, color: Color(0xFFFDE047), size: 13),
+                              const Icon(Icons.assignment_rounded, color: Colors.white70, size: 13),
                               const SizedBox(width: 4),
                               Text(
                                 'Auditor (${_matchAuditLogs.length})',

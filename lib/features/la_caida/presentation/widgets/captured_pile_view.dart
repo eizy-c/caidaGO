@@ -72,7 +72,7 @@ class CapturedPileView extends StatelessWidget {
                       decoration: BoxDecoration(
                         color: const Color(0xFF1E3A8A),
                         borderRadius: BorderRadius.circular(3),
-                        border: Border.all(color: const Color(0xFFFDE047), width: 0.8),
+                        border: Border.all(color: Colors.white38, width: 0.8),
                         boxShadow: [
                           BoxShadow(
                             color: Colors.black.withValues(alpha: 0.5),

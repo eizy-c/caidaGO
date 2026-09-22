@@ -138,12 +138,12 @@ class _ProfileAndLevelModalState extends State<ProfileAndLevelModal> with Single
         child: Container(
           decoration: BoxDecoration(
             gradient: const LinearGradient(
-              colors: [Color(0xFF0F172A), Color(0xFF1E1B4B)],
+              colors: [Color(0xFF1E1E1E), Color(0xFF121212)],
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
             ),
             borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: const Color(0xFFCA8A04), width: 1.5),
+            border: Border.all(color: const Color(0xFF2E2E2E), width: 1.2),
             boxShadow: const [
               BoxShadow(color: Colors.black87, blurRadius: 20, offset: Offset(0, 8)),
             ],
@@ -155,12 +155,12 @@ class _ProfileAndLevelModalState extends State<ProfileAndLevelModal> with Single
 
               // 2. Barra de Pestañas
               Container(
-                color: const Color(0xFF0F172A).withValues(alpha: 0.8),
+                color: const Color(0xFF181818),
                 child: TabBar(
                   controller: _tabController,
-                  indicatorColor: const Color(0xFFFDE047),
-                  indicatorWeight: 3,
-                  labelColor: const Color(0xFFFDE047),
+                  indicatorColor: Colors.white,
+                  indicatorWeight: 2.5,
+                  labelColor: Colors.white,
                   unselectedLabelColor: Colors.white60,
                   labelStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
                   unselectedLabelStyle: const TextStyle(fontSize: 11),
@@ -275,13 +275,9 @@ class _ProfileAndLevelModalState extends State<ProfileAndLevelModal> with Single
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFF1E1B4B), Color(0xFF312E81)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
+              color: const Color(0xFF181818),
               borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: const Color(0xFF6366F1), width: 1.2),
+              border: Border.all(color: const Color(0xFF2E2E2E), width: 1.0),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -292,7 +288,7 @@ class _ProfileAndLevelModalState extends State<ProfileAndLevelModal> with Single
                     Text(
                       'NIVEL $currentLevel',
                       style: const TextStyle(
-                        color: Color(0xFFFDE047),
+                        color: Colors.white,
                         fontSize: 18,
                         fontWeight: FontWeight.w900,
                       ),
@@ -315,7 +311,7 @@ class _ProfileAndLevelModalState extends State<ProfileAndLevelModal> with Single
                   child: LinearProgressIndicator(
                     value: progress.levelProgressPercentage,
                     minHeight: 14,
-                    backgroundColor: const Color(0xFF0F172A),
+                    backgroundColor: const Color(0xFF101010),
                     valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF22C55E)),
                   ),
                 ),
@@ -330,7 +326,7 @@ class _ProfileAndLevelModalState extends State<ProfileAndLevelModal> with Single
                     ),
                     Text(
                       'Total: ${widget.session.xp} XP',
-                      style: const TextStyle(color: Color(0xFF93C5FD), fontSize: 11),
+                      style: const TextStyle(color: Colors.white54, fontSize: 11),
                     ),
                   ],
                 ),
@@ -343,13 +339,13 @@ class _ProfileAndLevelModalState extends State<ProfileAndLevelModal> with Single
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             decoration: BoxDecoration(
-              color: const Color(0xFF0F172A),
+              color: const Color(0xFF181818),
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: const Color(0xFFEAB308), width: 1.2),
+              border: Border.all(color: const Color(0xFF2E2E2E), width: 1.0),
             ),
             child: Row(
               children: [
-                const Icon(Icons.bolt_rounded, color: Color(0xFFFDE047), size: 24),
+                const Icon(Icons.bolt_rounded, color: Colors.white70, size: 24),
                 const SizedBox(width: 8),
                 Expanded(
                   child: RichText(
@@ -359,10 +355,14 @@ class _ProfileAndLevelModalState extends State<ProfileAndLevelModal> with Single
                       children: [
                         TextSpan(
                           text: '$remaining XP',
-                          style: const TextStyle(color: Color(0xFFFDE047), fontWeight: FontWeight.bold),
+                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                        ),
+                        const TextSpan(
+                          text: ' para alcanzar el Nivel ',
                         ),
                         TextSpan(
-                          text: ' para alcanzar el Nivel $nextLevel.',
+                          text: '$nextLevel.',
+                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                         ),
                       ],
                     ),
@@ -402,10 +402,10 @@ class _ProfileAndLevelModalState extends State<ProfileAndLevelModal> with Single
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: isUnlocked ? const Color(0xFF1E293B) : const Color(0xFF0F172A).withValues(alpha: 0.6),
+        color: const Color(0xFF181818),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isUnlocked ? const Color(0xFF22C55E) : Colors.white12,
+          color: const Color(0xFF2E2E2E),
           width: 1,
         ),
       ),
@@ -432,7 +432,7 @@ class _ProfileAndLevelModalState extends State<ProfileAndLevelModal> with Single
                 Text(
                   reward,
                   style: TextStyle(
-                    color: isUnlocked ? const Color(0xFF93C5FD) : Colors.white30,
+                    color: isUnlocked ? Colors.white70 : Colors.white30,
                     fontSize: 10,
                   ),
                 ),
@@ -460,13 +460,11 @@ class _ProfileAndLevelModalState extends State<ProfileAndLevelModal> with Single
           margin: const EdgeInsets.only(bottom: 10),
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: isSelected
-                ? const Color(0xFF1E1B4B)
-                : const Color(0xFF1E293B).withValues(alpha: 0.6),
+            color: const Color(0xFF181818),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: isSelected ? const Color(0xFFFDE047) : Colors.white12,
-              width: isSelected ? 2 : 1,
+              color: isSelected ? Colors.white70 : const Color(0xFF2E2E2E),
+              width: 1,
             ),
           ),
           child: Row(
@@ -575,11 +573,11 @@ class _ProfileAndLevelModalState extends State<ProfileAndLevelModal> with Single
           margin: const EdgeInsets.only(bottom: 10),
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: const Color(0xFF1E293B).withValues(alpha: 0.6),
+            color: const Color(0xFF181818),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: isSelected ? const Color(0xFFFDE047) : Colors.white12,
-              width: isSelected ? 2 : 1,
+              color: isSelected ? Colors.white70 : const Color(0xFF2E2E2E),
+              width: 1,
             ),
           ),
           child: Row(
@@ -591,7 +589,7 @@ class _ProfileAndLevelModalState extends State<ProfileAndLevelModal> with Single
                 decoration: BoxDecoration(
                   gradient: LinearGradient(colors: theme.backgroundGradient),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.white30, width: 1),
+                  border: Border.all(color: const Color(0xFF2E2E2E), width: 1),
                 ),
                 child: Center(
                   child: Icon(theme.icon, color: theme.accentColor, size: 22),
@@ -616,8 +614,8 @@ class _ProfileAndLevelModalState extends State<ProfileAndLevelModal> with Single
               ),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: isSelected ? const Color(0xFF22C55E) : const Color(0xFF38BDF8),
-                  foregroundColor: isSelected ? Colors.white : const Color(0xFF0F172A),
+                  backgroundColor: isSelected ? const Color(0xFF22C55E) : const Color(0xFF2E2E2E),
+                  foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                 ),
@@ -653,14 +651,21 @@ class _ProfileAndLevelModalState extends State<ProfileAndLevelModal> with Single
             style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
             decoration: InputDecoration(
               labelText: 'Nombre de Jugador',
-              labelStyle: const TextStyle(color: Color(0xFFFDE047)),
-              prefixIcon: const Icon(Icons.badge_rounded, color: Color(0xFFFDE047), size: 18),
+              labelStyle: const TextStyle(color: Colors.white70),
+              prefixIcon: const Icon(Icons.badge_rounded, color: Colors.white70, size: 18),
               filled: true,
-              fillColor: const Color(0xFF1E293B),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+              fillColor: const Color(0xFF181818),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide: const BorderSide(color: Color(0xFF2E2E2E)),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide: const BorderSide(color: Color(0xFF2E2E2E)),
+              ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(14),
-                borderSide: const BorderSide(color: Color(0xFFFDE047), width: 1.5),
+                borderSide: const BorderSide(color: Colors.white70, width: 1.2),
               ),
               counterStyle: const TextStyle(color: Colors.white54, fontSize: 10),
             ),
@@ -676,7 +681,7 @@ class _ProfileAndLevelModalState extends State<ProfileAndLevelModal> with Single
             children: [
               const Row(
                 children: [
-                  Icon(Icons.shield_rounded, size: 16, color: Color(0xFF38BDF8)),
+                  Icon(Icons.shield_rounded, size: 16, color: Colors.white70),
                   SizedBox(width: 6),
                   Text(
                     'HÉROES DISPONIBLES',
@@ -692,13 +697,13 @@ class _ProfileAndLevelModalState extends State<ProfileAndLevelModal> with Single
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF38BDF8).withValues(alpha: 0.15),
+                  color: Colors.white10,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
                   '${heroes.length} Héroes',
                   style: const TextStyle(
-                    color: Color(0xFF38BDF8),
+                    color: Colors.white70,
                     fontSize: 10.5,
                     fontWeight: FontWeight.bold,
                   ),
@@ -736,14 +741,14 @@ class _ProfileAndLevelModalState extends State<ProfileAndLevelModal> with Single
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(14),
                         border: Border.all(
-                          color: isSelected ? const Color(0xFFFDE047) : Colors.white24,
-                          width: isSelected ? 2.5 : 1.2,
+                          color: isSelected ? Colors.white70 : const Color(0xFF2E2E2E),
+                          width: isSelected ? 2.0 : 1.0,
                         ),
                         boxShadow: isSelected
                             ? [
-                                BoxShadow(
-                                  color: const Color(0xFFFDE047).withValues(alpha: 0.45),
-                                  blurRadius: 8,
+                                const BoxShadow(
+                                  color: Colors.white24,
+                                  blurRadius: 6,
                                   spreadRadius: 1,
                                 ),
                               ]
@@ -764,7 +769,7 @@ class _ProfileAndLevelModalState extends State<ProfileAndLevelModal> with Single
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        color: isSelected ? const Color(0xFFFDE047) : Colors.white70,
+                        color: isSelected ? Colors.white : Colors.white60,
                         fontSize: 10.5,
                         fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                       ),

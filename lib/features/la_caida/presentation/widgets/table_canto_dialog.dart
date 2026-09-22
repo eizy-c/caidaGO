@@ -24,12 +24,12 @@ class TableCantoDialog extends StatelessWidget {
         constraints: const BoxConstraints(maxWidth: 380),
         padding: const EdgeInsets.all(22),
         decoration: BoxDecoration(
-          color: const Color(0xFF0F172A),
+          color: const Color(0xFF1E1E1E),
           borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: const Color(0xFF38BDF8), width: 2),
+          border: Border.all(color: const Color(0xFF2E2E2E), width: 1.2),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF0284C7).withValues(alpha: 0.5),
+              color: Colors.black.withValues(alpha: 0.5),
               blurRadius: 28,
               spreadRadius: 4,
             ),
@@ -41,9 +41,9 @@ class TableCantoDialog extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: const Color(0xFF0284C7).withValues(alpha: 0.25),
+                color: Colors.white.withValues(alpha: 0.05),
                 shape: BoxShape.circle,
-                border: Border.all(color: const Color(0xFF38BDF8), width: 1.5),
+                border: Border.all(color: const Color(0xFF2E2E2E), width: 1.2),
               ),
               child: const Icon(Icons.record_voice_over_rounded, color: Color(0xFF38BDF8), size: 32),
             ),
@@ -119,7 +119,7 @@ class TableCantoDialog extends StatelessWidget {
         decoration: BoxDecoration(
           color: color.withValues(alpha: 0.15),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: color, width: 1.8),
+          border: Border.all(color: const Color(0xFF2E2E2E), width: 1.2),
         ),
         child: Row(
           children: [
@@ -129,7 +129,7 @@ class TableCantoDialog extends StatelessWidget {
               decoration: BoxDecoration(
                 color: color.withValues(alpha: 0.25),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: color, width: 1.2),
+                border: Border.all(color: const Color(0xFF2E2E2E), width: 1),
               ),
               child: Center(
                 child: Text(

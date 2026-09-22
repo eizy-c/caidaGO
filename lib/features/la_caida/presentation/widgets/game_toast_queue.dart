@@ -199,12 +199,12 @@ class _ToastBannerWidgetState extends State<_ToastBannerWidget>
                 constraints: const BoxConstraints(maxWidth: 420),
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF0F172A).withValues(alpha: 0.96),
+                  color: const Color(0xFF1E1E1E).withValues(alpha: 0.96),
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: borderColor, width: 1.8),
-                  boxShadow: [
+                  border: Border.all(color: const Color(0xFF2E2E2E), width: 1.2),
+                  boxShadow: const [
                     BoxShadow(
-                      color: borderColor.withValues(alpha: 0.35),
+                      color: Colors.black45,
                       blurRadius: 14,
                       spreadRadius: 2,
                     ),
@@ -216,9 +216,9 @@ class _ToastBannerWidgetState extends State<_ToastBannerWidget>
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: borderColor.withValues(alpha: 0.18),
+                        color: Colors.white.withValues(alpha: 0.08),
                         shape: BoxShape.circle,
-                        border: Border.all(color: borderColor.withValues(alpha: 0.6)),
+                        border: Border.all(color: const Color(0xFF2E2E2E)),
                       ),
                       child: Icon(req.icon, color: borderColor, size: 22),
                     ),

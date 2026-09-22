@@ -245,7 +245,7 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
                       color: const Color(0xFF1E293B),
                       borderRadius: BorderRadius.circular(14),
                       border: Border.all(
-                        color: c.isCompleted ? const Color(0xFF22C55E).withValues(alpha: 0.5) : Colors.white12,
+                        color: const Color(0xFF2E2E2E),
                         width: 1,
                       ),
                     ),
@@ -535,11 +535,11 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
               decoration: BoxDecoration(
                 color: const Color(0xFF1E293B),
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: const Color(0xFF38BDF8).withValues(alpha: 0.3)),
+                border: Border.all(color: const Color(0xFF2E2E2E)),
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.stars_rounded, color: Color(0xFF38BDF8), size: 32),
+                  const Icon(Icons.stars_rounded, color: Colors.white70, size: 32),
                   const SizedBox(width: 12),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -551,7 +551,7 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
                       Text(
                         '${_session.chapas} Chapas',
                         style: const TextStyle(
-                          color: Color(0xFF38BDF8),
+                          color: Colors.white,
                           fontSize: 18,
                           fontWeight: FontWeight.w900,
                         ),
@@ -581,7 +581,7 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Entendido', style: TextStyle(color: Color(0xFF38BDF8), fontWeight: FontWeight.bold)),
+            child: const Text('Entendido', style: TextStyle(color: Colors.white70, fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -595,11 +595,11 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
         backgroundColor: const Color(0xFF0F172A),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(22),
-          side: const BorderSide(color: Color(0xFF6366F1), width: 1.5),
+          side: const BorderSide(color: Color(0xFF2E2E2E), width: 1.2),
         ),
         title: const Row(
           children: [
-            Icon(Icons.wifi_rounded, color: Color(0xFF818CF8), size: 26),
+            Icon(Icons.wifi_rounded, color: Colors.white70, size: 26),
             SizedBox(width: 8),
             Text(
               'Modo Multijugador',
@@ -614,13 +614,9 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF312E81), Color(0xFF1E1B4B)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
+                color: const Color(0xFF1E293B),
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: const Color(0xFF818CF8).withValues(alpha: 0.5)),
+                border: Border.all(color: const Color(0xFF2E2E2E)),
               ),
               child: const Row(
                 children: [
@@ -705,9 +701,9 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
             child: Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: const Color(0xFF0F172A),
+                color: const Color(0xFF1E1E1E),
                 borderRadius: BorderRadius.circular(24),
-                border: Border.all(color: const Color(0xFFF59E0B), width: 1.5),
+                border: Border.all(color: const Color(0xFF2E2E2E), width: 1.2),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withValues(alpha: 0.6),
@@ -722,11 +718,9 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                     decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFFF59E0B), Color(0xFFD97706)],
-                      ),
+                      color: const Color(0xFF252525),
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: const Color(0xFFFDE68A), width: 1.2),
+                      border: Border.all(color: const Color(0xFF2E2E2E), width: 1.0),
                     ),
                     child: Text(
                       isVsBot
@@ -745,9 +739,9 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF1E293B),
+                      color: const Color(0xFF181818),
                       borderRadius: BorderRadius.circular(18),
-                      border: Border.all(color: const Color(0xFF334155), width: 1),
+                      border: Border.all(color: const Color(0xFF2E2E2E), width: 1),
                     ),
                     child: Column(
                       children: [
@@ -767,11 +761,11 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
                                 Container(
                                   padding: const EdgeInsets.all(4),
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFFFDE68A),
+                                    color: Colors.white10,
                                     borderRadius: BorderRadius.circular(6),
-                                    border: Border.all(color: const Color(0xFFD97706), width: 1),
+                                    border: Border.all(color: const Color(0xFF2E2E2E), width: 1),
                                   ),
-                                  child: const Icon(Icons.confirmation_number_rounded, color: Color(0xFFB45309), size: 18),
+                                  child: const Icon(Icons.confirmation_number_rounded, color: Color(0xFF38BDF8), size: 18),
                                 ),
                                 const SizedBox(width: 8),
                                 Text(
@@ -841,11 +835,9 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                                   decoration: BoxDecoration(
-                                    gradient: const LinearGradient(
-                                      colors: [Color(0xFFF59E0B), Color(0xFFD97706)],
-                                    ),
+                                    color: const Color(0xFF252525),
                                     borderRadius: BorderRadius.circular(10),
-                                    border: Border.all(color: const Color(0xFFFDE68A), width: 1),
+                                    border: Border.all(color: const Color(0xFF2E2E2E), width: 1),
                                   ),
                                   child: Text(
                                     '$_selectedTotalPlayers Jugadores',
@@ -878,9 +870,9 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFF334155),
+                                    color: const Color(0xFF252525),
                                     borderRadius: BorderRadius.circular(10),
-                                    border: Border.all(color: const Color(0xFF60A5FA), width: 1),
+                                    border: Border.all(color: const Color(0xFF2E2E2E), width: 1),
                                   ),
                                   child: Row(
                                     mainAxisSize: MainAxisSize.min,
@@ -1019,7 +1011,7 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
                   colors: [Color(0xFF4F46E5), Color(0xFF4338CA)],
                 ),
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: const Color(0xFF818CF8), width: 1.2),
+                border: Border.all(color: const Color(0xFF2E2E2E), width: 1.2),
                 boxShadow: const [
                   BoxShadow(color: Colors.black38, blurRadius: 4, offset: Offset(0, 2)),
                 ],
@@ -1080,7 +1072,7 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
               decoration: BoxDecoration(
                 color: const Color(0xFF1E293B),
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: const Color(0xFFFDE047), width: 1.2),
+                border: Border.all(color: const Color(0xFF2E2E2E), width: 1.2),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -1114,12 +1106,12 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
               decoration: BoxDecoration(
                 color: const Color(0xFF1E293B),
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: const Color(0xFF38BDF8), width: 1.2),
-                boxShadow: [
+                border: Border.all(color: const Color(0xFF2E2E2E), width: 1.2),
+                boxShadow: const [
                   BoxShadow(
-                    color: const Color(0xFF0284C7).withValues(alpha: 0.25),
+                    color: Colors.black26,
                     blurRadius: 4,
-                    offset: const Offset(0, 2),
+                    offset: Offset(0, 2),
                   ),
                 ],
               ),
@@ -1151,7 +1143,7 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
       decoration: BoxDecoration(
         color: const Color(0xFF0F172A),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: const Color(0xFF38BDF8).withValues(alpha: 0.5), width: 1),
+        border: Border.all(color: const Color(0xFF2E2E2E), width: 1),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -1225,7 +1217,7 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
                 end: Alignment.bottomRight,
               ),
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: const Color(0xFFFDE68A), width: 1.5),
+              border: Border.all(color: const Color(0xFF2E2E2E), width: 1.2),
               boxShadow: const [
                 BoxShadow(color: Colors.black45, blurRadius: 4, offset: Offset(0, 2)),
               ],
@@ -1325,7 +1317,7 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
         decoration: BoxDecoration(
           color: const Color(0xFF1E293B),
           borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: color.withValues(alpha: 0.6), width: 1.2),
+          border: Border.all(color: const Color(0xFF2E2E2E), width: 1.2),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -1434,7 +1426,7 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Row(
             children: [
               GestureDetector(
@@ -1444,7 +1436,7 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
                   decoration: BoxDecoration(
                     color: const Color(0xFF0F172A).withValues(alpha: 0.8),
                     borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: const Color(0xFFF59E0B).withValues(alpha: 0.5), width: 1),
+                    border: Border.all(color: const Color(0xFF2E2E2E), width: 1),
                   ),
                   child: const Row(
                     mainAxisSize: MainAxisSize.min,
@@ -1487,7 +1479,7 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
                     end: Alignment.bottomCenter,
                   ),
                   borderRadius: BorderRadius.circular(24),
-                  border: Border.all(color: const Color(0xFFFDE68A), width: 2),
+                  border: Border.all(color: const Color(0xFF2E2E2E), width: 1.5),
                   boxShadow: [
                     BoxShadow(
                       color: const Color(0xFFD97706).withValues(alpha: 0.4),
@@ -1536,7 +1528,7 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
                     end: Alignment.bottomCenter,
                   ),
                   borderRadius: BorderRadius.circular(24),
-                  border: Border.all(color: const Color(0xFFFDBA74), width: 2),
+                  border: Border.all(color: const Color(0xFF2E2E2E), width: 1.5),
                   boxShadow: [
                     BoxShadow(
                       color: const Color(0xFFC2410C).withValues(alpha: 0.4),
@@ -1583,7 +1575,7 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
                 end: Alignment.bottomRight,
               ),
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: const Color(0xFFFDE68A), width: 1.5),
+              border: Border.all(color: const Color(0xFF2E2E2E), width: 1.2),
               boxShadow: [
                 BoxShadow(
                   color: const Color(0xFF7C3AED).withValues(alpha: 0.45),

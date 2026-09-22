@@ -184,16 +184,15 @@ class _CaidaGameOverModalState extends State<CaidaGameOverModal>
               ),
               borderRadius: BorderRadius.circular(28),
               border: Border.all(
-                color: isWin ? const Color(0xFFF59E0B) : const Color(0xFFEF4444),
-                width: 2.2,
+                color: const Color(0xFF2E2E2E),
+                width: 1.2,
               ),
-              boxShadow: [
+              boxShadow: const [
                 BoxShadow(
-                  color: (isWin ? const Color(0xFFF59E0B) : const Color(0xFFEF4444))
-                      .withValues(alpha: 0.35),
+                  color: Colors.black54,
                   blurRadius: 24,
                   spreadRadius: 2,
-                  offset: const Offset(0, 8),
+                  offset: Offset(0, 8),
                 ),
               ],
             ),
@@ -416,8 +415,8 @@ class _CaidaGameOverModalState extends State<CaidaGameOverModal>
               ),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: const Color(0xFFFDE047).withValues(alpha: 0.7 + (_chestShineAnim.value * 0.3)),
-                width: 1.5,
+                color: const Color(0xFF2E2E2E),
+                width: 1.2,
               ),
               boxShadow: [
                 BoxShadow(
@@ -528,7 +527,7 @@ class _CaidaGameOverModalState extends State<CaidaGameOverModal>
       decoration: BoxDecoration(
         color: const Color(0xFF160E30),
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFF3B2475), width: 1.2),
+        border: Border.all(color: const Color(0xFF2E2E2E), width: 1.2),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -600,9 +599,9 @@ class _CaidaGameOverModalState extends State<CaidaGameOverModal>
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               margin: const EdgeInsets.only(bottom: 12),
               decoration: BoxDecoration(
-                color: const Color(0xFFA855F7).withValues(alpha: 0.15),
+                color: Colors.white.withValues(alpha: 0.05),
                 borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: const Color(0xFFA855F7).withValues(alpha: 0.4)),
+                border: Border.all(color: const Color(0xFF2E2E2E)),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,

@@ -53,21 +53,21 @@ class _InventoryModalState extends State<InventoryModal>
 
         return SafeArea(
           child: Container(
-            constraints: BoxConstraints(
+            height: MediaQuery.of(context).size.height * 0.85,
+            constraints: const BoxConstraints(
               maxWidth: 520,
-              maxHeight: MediaQuery.of(context).size.height * 0.85,
             ),
             decoration: const BoxDecoration(
               gradient: LinearGradient(
-                colors: [Color(0xFF0F172A), Color(0xFF020617)],
+                colors: [Color(0xFF1E1E1E), Color(0xFF121212)],
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
               ),
               borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
               border: Border(
-                top: BorderSide(color: Color(0xFF38BDF8), width: 2),
-                left: BorderSide(color: Color(0xFF1E293B), width: 1),
-                right: BorderSide(color: Color(0xFF1E293B), width: 1),
+                top: BorderSide(color: Color(0xFF2E2E2E), width: 1.2),
+                left: BorderSide(color: Color(0xFF2E2E2E), width: 1),
+                right: BorderSide(color: Color(0xFF2E2E2E), width: 1),
               ),
               boxShadow: [
                 BoxShadow(
@@ -78,7 +78,6 @@ class _InventoryModalState extends State<InventoryModal>
               ],
             ),
             child: Column(
-              mainAxisSize: MainAxisSize.min,
               children: [
                 // Tirador superior
                 Center(
@@ -104,15 +103,15 @@ class _InventoryModalState extends State<InventoryModal>
                           Container(
                             padding: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF1E293B),
+                              color: const Color(0xFF242424),
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(
-                                color: const Color(0xFF38BDF8).withValues(alpha: 0.3),
+                                color: const Color(0xFF2E2E2E),
                               ),
                             ),
                             child: const Icon(
                               Icons.backpack_rounded,
-                              color: Color(0xFF38BDF8),
+                              color: Colors.white70,
                               size: 22,
                             ),
                           ),
@@ -160,16 +159,14 @@ class _InventoryModalState extends State<InventoryModal>
                 Container(
                   margin: const EdgeInsets.symmetric(horizontal: 16),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF1E293B),
+                    color: const Color(0xFF181818),
                     borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: const Color(0xFF334155)),
+                    border: Border.all(color: const Color(0xFF2E2E2E)),
                   ),
                   child: TabBar(
                     controller: _tabController,
                     indicator: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF0284C7), Color(0xFF0369A1)],
-                      ),
+                      color: const Color(0xFF2E2E2E),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     indicatorSize: TabBarIndicatorSize.tab,
@@ -222,9 +219,9 @@ class _InventoryModalState extends State<InventoryModal>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: const Color(0xFF1E293B),
+        color: const Color(0xFF181818),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0xFF334155)),
+        border: Border.all(color: const Color(0xFF2E2E2E)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -257,21 +254,21 @@ class _InventoryModalState extends State<InventoryModal>
             padding: const EdgeInsets.all(12),
             margin: const EdgeInsets.only(bottom: 12),
             decoration: BoxDecoration(
-              color: const Color(0xFF1E293B),
+              color: const Color(0xFF181818),
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: const Color(0xFF10B981).withValues(alpha: 0.5)),
+              border: Border.all(color: const Color(0xFF2E2E2E)),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Row(
                   children: [
-                    Icon(Icons.check_circle_rounded, color: Color(0xFF10B981), size: 16),
+                    Icon(Icons.check_circle_rounded, color: Colors.white70, size: 16),
                     SizedBox(width: 6),
                     Text(
                       'Potenciadores Activos en Partida',
                       style: TextStyle(
-                        color: Color(0xFF10B981),
+                        color: Colors.white,
                         fontWeight: FontWeight.bold,
                         fontSize: 12,
                       ),
@@ -285,8 +282,8 @@ class _InventoryModalState extends State<InventoryModal>
                   children: active.map((type) {
                     final def = BoosterDefinition.getByType(type);
                     return Chip(
-                      backgroundColor: const Color(0xFF0F172A),
-                      side: BorderSide(color: def.color),
+                      backgroundColor: const Color(0xFF141414),
+                      side: const BorderSide(color: Color(0xFF2E2E2E)),
                       avatar: Icon(def.icon, color: def.color, size: 16),
                       label: Text(
                         def.name,
@@ -312,13 +309,11 @@ class _InventoryModalState extends State<InventoryModal>
             margin: const EdgeInsets.only(bottom: 10),
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: const Color(0xFF1E293B),
+              color: const Color(0xFF181818),
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
-                color: isActive
-                    ? def.color
-                    : const Color(0xFF334155),
-                width: isActive ? 1.5 : 1,
+                color: const Color(0xFF2E2E2E),
+                width: 1,
               ),
             ),
             child: Row(
@@ -327,9 +322,9 @@ class _InventoryModalState extends State<InventoryModal>
                   width: 44,
                   height: 44,
                   decoration: BoxDecoration(
-                    color: def.color.withValues(alpha: 0.15),
+                    color: Colors.white.withValues(alpha: 0.05),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: def.color.withValues(alpha: 0.4)),
+                    border: Border.all(color: const Color(0xFF2E2E2E)),
                   ),
                   child: Icon(def.icon, color: def.color, size: 24),
                 ),
@@ -457,13 +452,11 @@ class _InventoryModalState extends State<InventoryModal>
 
         return Container(
           decoration: BoxDecoration(
-            color: const Color(0xFF1E293B),
+            color: const Color(0xFF181818),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: isEquipped
-                  ? const Color(0xFFFDE047)
-                  : (isUnlocked ? const Color(0xFF334155) : Colors.white10),
-              width: isEquipped ? 2 : 1,
+              color: const Color(0xFF2E2E2E),
+              width: 1,
             ),
           ),
           padding: const EdgeInsets.all(10),
@@ -496,7 +489,7 @@ class _InventoryModalState extends State<InventoryModal>
               Text(
                 isUnlocked ? 'Desbloqueado' : '${frame.minTrophies} trofeos',
                 style: TextStyle(
-                  color: isUnlocked ? const Color(0xFF38BDF8) : Colors.white38,
+                  color: isUnlocked ? Colors.white70 : Colors.white38,
                   fontSize: 10,
                   fontWeight: FontWeight.w600,
                 ),
@@ -506,19 +499,19 @@ class _InventoryModalState extends State<InventoryModal>
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF10B981).withValues(alpha: 0.2),
+                    color: Colors.white.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: const Color(0xFF10B981)),
+                    border: Border.all(color: const Color(0xFF2E2E2E)),
                   ),
                   child: const Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.check_rounded, color: Color(0xFF10B981), size: 12),
+                      Icon(Icons.check_rounded, color: Colors.white70, size: 12),
                       SizedBox(width: 4),
                       Text(
                         'Equipado',
                         style: TextStyle(
-                          color: Color(0xFF10B981),
+                          color: Colors.white,
                           fontSize: 10,
                           fontWeight: FontWeight.bold,
                         ),
@@ -529,7 +522,7 @@ class _InventoryModalState extends State<InventoryModal>
               else if (isUnlocked)
                 App3dButton(
                   label: 'Equipar',
-                  backgroundColor: const Color(0xFF0284C7),
+                  backgroundColor: const Color(0xFF2E2E2E),
                   onPressed: () {
                     HapticService.instance.onSelection();
                     session.updateCustomization(frameId: frame.id);
@@ -565,13 +558,13 @@ class _InventoryModalState extends State<InventoryModal>
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: const Color(0xFF1E293B),
+              color: const Color(0xFF181818),
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: const Color(0xFF334155)),
+              border: Border.all(color: const Color(0xFF2E2E2E)),
             ),
             child: const Row(
               children: [
-                Icon(Icons.info_outline_rounded, color: Color(0xFF38BDF8), size: 20),
+                Icon(Icons.info_outline_rounded, color: Colors.white70, size: 20),
                 SizedBox(width: 10),
                 Expanded(
                   child: Text(

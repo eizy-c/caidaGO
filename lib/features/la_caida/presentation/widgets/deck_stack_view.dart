@@ -146,13 +146,13 @@ class DeckStackView extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: const Color(0xFF1E3A8A),
-        border: Border.all(color: const Color(0xFFF59E0B), width: 1.5),
+        border: Border.all(color: const Color(0xFF2E2E2E), width: 1.5),
       ),
       child: Center(
         child: Container(
           margin: const EdgeInsets.all(4),
           decoration: BoxDecoration(
-            border: Border.all(color: const Color(0xFFFDE047), width: 1),
+            border: Border.all(color: Colors.white24, width: 1),
           ),
           child: const Center(
             child: Icon(Icons.style_rounded, size: 18, color: Color(0xFFFDE047)),

@@ -197,19 +197,14 @@ class _BotCustomizationModalState extends State<BotCustomizationModal> {
             ),
             borderRadius: BorderRadius.circular(24),
             border: Border.all(
-              color: const Color(0xFFF59E0B).withValues(alpha: 0.8),
-              width: 1.8,
+              color: const Color(0xFF2E2E2E),
+              width: 1.2,
             ),
-            boxShadow: [
+            boxShadow: const [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.6),
+                color: Colors.black87,
                 blurRadius: 24,
-                offset: const Offset(0, 10),
-              ),
-              BoxShadow(
-                color: const Color(0xFFF59E0B).withValues(alpha: 0.15),
-                blurRadius: 16,
-                spreadRadius: 2,
+                offset: Offset(0, 10),
               ),
             ],
           ),
@@ -356,7 +351,7 @@ class _BotCustomizationModalState extends State<BotCustomizationModal> {
       decoration: BoxDecoration(
         color: const Color(0xFF1E293B).withValues(alpha: 0.7),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: accentColor.withValues(alpha: 0.4), width: 1.2),
+        border: Border.all(color: const Color(0xFF2E2E2E), width: 1.0),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -368,9 +363,9 @@ class _BotCustomizationModalState extends State<BotCustomizationModal> {
                 width: 32,
                 height: 32,
                 decoration: BoxDecoration(
-                  color: accentColor.withValues(alpha: 0.2),
+                  color: Colors.white.withValues(alpha: 0.08),
                   shape: BoxShape.circle,
-                  border: Border.all(color: accentColor, width: 1.5),
+                  border: Border.all(color: const Color(0xFF2E2E2E), width: 1.0),
                 ),
                 child: Center(
                   child: Icon(
