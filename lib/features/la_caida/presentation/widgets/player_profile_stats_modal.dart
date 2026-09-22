@@ -773,22 +773,38 @@ class _PlayerProfileStatsModalState extends State<PlayerProfileStatsModal> {
                             ),
                             const SizedBox(width: 6),
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                              padding: const EdgeInsets.symmetric(horizontal: 6.5, vertical: 2),
                               decoration: BoxDecoration(
-                                color: const Color(0xFF262626),
-                                borderRadius: BorderRadius.circular(5),
+                                color: ach.levelBgColor,
+                                borderRadius: BorderRadius.circular(6),
                                 border: Border.all(
-                                  color: const Color(0xFF333333),
-                                  width: 0.8,
+                                  color: ach.levelColor.withValues(alpha: isUnlocked ? 0.9 : 0.4),
+                                  width: 0.9,
                                 ),
                               ),
-                              child: Text(
-                                ach.levelBadge,
-                                style: const TextStyle(
-                                  color: Colors.white70,
-                                  fontSize: 9,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    ach.level == 3
+                                        ? Icons.workspace_premium_rounded
+                                        : (ach.level == 2
+                                            ? Icons.military_tech_rounded
+                                            : Icons.shield_rounded),
+                                    size: 10,
+                                    color: isUnlocked ? ach.levelTextColor : Colors.white38,
+                                  ),
+                                  const SizedBox(width: 3),
+                                  Text(
+                                    ach.levelBadge,
+                                    style: TextStyle(
+                                      color: isUnlocked ? ach.levelTextColor : Colors.white54,
+                                      fontSize: 9.5,
+                                      fontWeight: FontWeight.bold,
+                                      letterSpacing: 0.2,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ],

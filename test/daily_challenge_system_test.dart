@@ -39,15 +39,25 @@ void main() {
   });
 
   group('AchievementCatalog tests', () {
-    test('catalog contains 27 achievements across 3 categories with tier progression', () {
-      expect(AchievementCatalog.allAchievements.length, 27);
+    test('catalog contains 42 achievements across 3 categories with strict Bronce -> Plata -> Oro progression', () {
+      expect(AchievementCatalog.allAchievements.length, 42);
       final partidas = AchievementCatalog.allAchievements.where((a) => a.category == AchievementCategory.partidas);
       final jugadas = AchievementCatalog.allAchievements.where((a) => a.category == AchievementCategory.jugadas);
       final economia = AchievementCatalog.allAchievements.where((a) => a.category == AchievementCategory.economia);
 
       expect(partidas.length, 9);
-      expect(jugadas.length, 12);
-      expect(economia.length, 6);
+      expect(jugadas.length, 21);
+      expect(economia.length, 12);
+
+      // Cada logro debe ser de nivel 1, 2 o 3
+      for (final ach in AchievementCatalog.allAchievements) {
+        expect(ach.level, isIn([1, 2, 3]));
+        if (ach.level == 1) {
+          expect(ach.requiredAchievementId, isNull);
+        } else {
+          expect(ach.requiredAchievementId, isNotNull);
+        }
+      }
     });
 
     test('achievements getProgress properly evaluates stats', () {
