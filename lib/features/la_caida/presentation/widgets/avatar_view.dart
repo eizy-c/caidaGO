@@ -66,6 +66,54 @@ class AvatarPreset {
       imagePath: 'assets/player/avatar/5-AVATAR.png',
       bgColor: Color(0xFF1F2937),
     ),
+    AvatarPreset(
+      id: 5,
+      name: 'Monje',
+      imagePath: 'assets/player/avatar/6-AVATAR.png',
+      bgColor: Color(0xFF0284C7),
+    ),
+    AvatarPreset(
+      id: 6,
+      name: 'Sacerdotisa',
+      imagePath: 'assets/player/avatar/7-AVATAR.png',
+      bgColor: Color(0xFFB45309),
+    ),
+    AvatarPreset(
+      id: 7,
+      name: 'Druida',
+      imagePath: 'assets/player/avatar/8-AVATAR.png',
+      bgColor: Color(0xFF14532D),
+    ),
+    AvatarPreset(
+      id: 8,
+      name: 'Barda',
+      imagePath: 'assets/player/avatar/9-AVATAR.png',
+      bgColor: Color(0xFF991B1B),
+    ),
+    AvatarPreset(
+      id: 9,
+      name: 'Rey',
+      imagePath: 'assets/player/avatar/10-AVATAR.png',
+      bgColor: Color(0xFF15803D),
+    ),
+    AvatarPreset(
+      id: 10,
+      name: 'Conejita',
+      imagePath: 'assets/player/avatar/11-AVATAR.png',
+      bgColor: Color(0xFFBE185D),
+    ),
+    AvatarPreset(
+      id: 11,
+      name: 'Reina',
+      imagePath: 'assets/player/avatar/13-AVATAR.png',
+      bgColor: Color(0xFFB45309),
+    ),
+    AvatarPreset(
+      id: 12,
+      name: 'Señor Oscuro',
+      imagePath: 'assets/player/avatar/14-AVATAR.png',
+      bgColor: Color(0xFF4C1D95),
+    ),
   ];
 
   static List<AvatarPreset> get heroesPresets => allPresets;

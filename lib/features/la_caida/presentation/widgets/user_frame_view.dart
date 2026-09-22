@@ -175,7 +175,7 @@ class UserFrameView extends StatelessWidget {
         } catch (_) {}
       }
     }
-    for (int i = 1; i <= 5; i++) {
+    for (int i = 1; i <= 14; i++) {
       try {
         // ignore: use_build_context_synchronously
         await precacheImage(AssetImage('assets/player/avatar/$i-AVATAR.png'), context);
