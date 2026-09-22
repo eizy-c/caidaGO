@@ -649,7 +649,7 @@ class _CaidaGameOverModalState extends State<CaidaGameOverModal>
                   const SizedBox(width: 6),
                   Flexible(
                     child: Text(
-                      '¡SUBISTE A NIVEL ${summary.finalLevel}! (${progress.rankTitle})',
+                      '¡SUBISTE A NIVEL ${summary.finalLevel}!',
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 12,
@@ -669,7 +669,7 @@ class _CaidaGameOverModalState extends State<CaidaGameOverModal>
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Nivel ${progress.currentLevel} • ${progress.rankTitle}',
+                'Nivel ${progress.currentLevel}',
                 style: const TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold),
               ),
               Text(

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/presentation/widgets/app_3d_button.dart';
 import '../../economy/player_session.dart';
 import '../../economy/player_stats_model.dart';
+import '../../economy/rank_system.dart';
 import '../../economy/user_progress.dart';
 import 'avatar_view.dart';
 import 'user_frame_view.dart';
@@ -237,13 +238,19 @@ class _ProfileAndLevelModalState extends State<ProfileAndLevelModal> with Single
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
-                Text(
-                  'Nivel ${progress.currentLevel} • ${progress.rankTitle}',
-                  style: const TextStyle(
-                    color: Color(0xFFFDE047),
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                  ),
+                Builder(
+                  builder: (context) {
+                    final trophies = PlayerStatsModel.shared.trophies;
+                    final rank = RankInfo.forTrophies(trophies);
+                    return Text(
+                      'Nivel ${progress.currentLevel} • Rango: ${rank.fullNameFor(trophies)} ($trophies 🏆)',
+                      style: const TextStyle(
+                        color: Color(0xFFF59E0B),
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    );
+                  },
                 ),
               ],
             ),
@@ -371,10 +378,31 @@ class _ProfileAndLevelModalState extends State<ProfileAndLevelModal> with Single
               ],
             ),
           ),
-          const SizedBox(height: 18),
+          // Recordatorio claro de Rangos y Marcos por Trofeos
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: const Color(0xFF181818),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: const Color(0xFF2E2E2E), width: 1),
+            ),
+            child: const Row(
+              children: [
+                Icon(Icons.emoji_events_rounded, color: Color(0xFFF59E0B), size: 18),
+                SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Los Rangos competitivos y Marcos de avatar se desbloquean con Trofeos 🏆 en partidas clasificatorias, no por nivel de XP.',
+                    style: TextStyle(color: Colors.white70, fontSize: 11),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 14),
 
           const Text(
-            'Recompensas y Desbloqueos por Nivel',
+            'Recompensas de Experiencia (XP)',
             style: TextStyle(
               color: Colors.white,
               fontSize: 14,
@@ -519,7 +547,7 @@ class _ProfileAndLevelModalState extends State<ProfileAndLevelModal> with Single
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      isUnlocked ? 'Desbloqueado' : 'Requiere ${frame.minTrophies} Trofeos en Rango',
+                      isUnlocked ? 'Desbloqueado (${frame.minTrophies}+ Trofeos 🏆)' : 'Requiere ${frame.minTrophies} Trofeos 🏆',
                       style: TextStyle(
                         color: isUnlocked ? const Color(0xFF4ADE80) : const Color(0xFFF87171),
                         fontSize: 10,

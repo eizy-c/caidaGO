@@ -124,18 +124,20 @@ class LevelMilestone {
 
   bool isUnlocked(int playerLevel) => playerLevel >= level;
 
-  /// Catálogo oficial de hitos de nivel para La Caída (unificado con nombres de rangos)
+  /// Catálogo oficial de hitos de nivel para La Caída.
+  /// NOTA: Los rangos competitivos y los marcos cosméticos se desbloquean con TROFEOS, NO por nivel.
+  /// Los niveles de XP otorgan recompensas económicas (monedas, tickets y accesos a mesas).
   static const List<LevelMilestone> catalog = [
-    LevelMilestone(level: 0, title: 'Nivel 0: Novato', reward: '10 Tickets de cortesía, Modo Normal, Marco Novato'),
-    LevelMilestone(level: 1, title: 'Nivel 1: Bronce', reward: '+150 Monedas, Escuela de Novatos completada'),
-    LevelMilestone(level: 2, title: 'Nivel 2: Plata', reward: '+200 Monedas, Desbloqueo Mesa VIP Bronce'),
-    LevelMilestone(level: 3, title: 'Nivel 3: Oro', reward: '+300 Monedas, Desbloqueo Mesa VIP Plata'),
-    LevelMilestone(level: 4, title: 'Nivel 4: Esmeralda', reward: '+500 Monedas, Desbloqueo Mesa VIP Oro'),
-    LevelMilestone(level: 5, title: 'Nivel 5: Diamante', reward: '+750 Monedas, Desbloqueo Mesa VIP Diamante'),
-    LevelMilestone(level: 6, title: 'Nivel 6: Maestro I', reward: '+1,000 Monedas de bonificación'),
-    LevelMilestone(level: 7, title: 'Nivel 7: Maestro II', reward: '+1,500 Monedas de bonificación'),
-    LevelMilestone(level: 8, title: 'Nivel 8: Maestro III', reward: '+2,000 Monedas de bonificación'),
-    LevelMilestone(level: 9, title: 'Nivel 9: Leyenda', reward: '+3,000 Monedas, Sala de Campeones'),
-    LevelMilestone(level: 10, title: 'Nivel 10: Leyenda Suprema', reward: '+5,000 Monedas, Estatus de Leyenda Suprema'),
+    LevelMilestone(level: 0, title: 'Nivel 0', reward: '10 Tickets de cortesía, Modo Normal'),
+    LevelMilestone(level: 1, title: 'Nivel 1', reward: '+150 Monedas, Escuela de Novatos completada'),
+    LevelMilestone(level: 2, title: 'Nivel 2', reward: '+200 Monedas, Acceso a Mesa VIP Taberna'),
+    LevelMilestone(level: 3, title: 'Nivel 3', reward: '+300 Monedas, Acceso a Mesa VIP Club Privado'),
+    LevelMilestone(level: 4, title: 'Nivel 4', reward: '+500 Monedas, Acceso a Mesa VIP Gran Casino'),
+    LevelMilestone(level: 5, title: 'Nivel 5', reward: '+750 Monedas, Acceso a Mesa VIP High Roller'),
+    LevelMilestone(level: 6, title: 'Nivel 6', reward: '+1,000 Monedas de bonificación'),
+    LevelMilestone(level: 7, title: 'Nivel 7', reward: '+1,500 Monedas de bonificación'),
+    LevelMilestone(level: 8, title: 'Nivel 8', reward: '+2,000 Monedas de bonificación'),
+    LevelMilestone(level: 9, title: 'Nivel 9', reward: '+3,000 Monedas, Sala de Campeones'),
+    LevelMilestone(level: 10, title: 'Nivel 10', reward: '+5,000 Monedas, Estatus de Gran Maestro'),
   ];
 }
