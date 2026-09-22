@@ -31,17 +31,17 @@ class UserFrameItem {
   static const List<UserFrameItem> allFrames = [
     UserFrameItem(
       id: 'rank_novato',
-      name: 'Madera Clásica',
+      name: 'Novato',
       minTrophies: 0,
       borderGradient: [Color(0xFF854D0E), Color(0xFFD97706), Color(0xFF78350F)],
       shadowColor: Color(0xFF451A03),
       borderWidth: 3.5,
-      description: 'Marco de novato. Todos empiezan aquí.',
+      description: 'Marco de rango Novato. Todos empiezan aquí.',
       imagePath: 'assets/player/marcos/MADERA-MARCOS.png',
     ),
     UserFrameItem(
       id: 'rank_bronce',
-      name: 'Bronce Rústico',
+      name: 'Bronce',
       minTrophies: 150,
       borderGradient: [Color(0xFFD97706), Color(0xFFB45309), Color(0xFF78350F)],
       shadowColor: Color(0xFF78350F),
@@ -51,7 +51,7 @@ class UserFrameItem {
     ),
     UserFrameItem(
       id: 'rank_plata',
-      name: 'Plata Pulida',
+      name: 'Plata',
       minTrophies: 450,
       borderGradient: [Color(0xFFE2E8F0), Color(0xFF94A3B8), Color(0xFFF8FAFC)],
       shadowColor: Color(0xFF64748B),
@@ -61,7 +61,7 @@ class UserFrameItem {
     ),
     UserFrameItem(
       id: 'rank_oro',
-      name: 'Oro Imperial',
+      name: 'Oro',
       minTrophies: 900,
       borderGradient: [Color(0xFFFDE047), Color(0xFFEAB308), Color(0xFFCA8A04)],
       shadowColor: Color(0xFFCA8A04),
@@ -72,7 +72,7 @@ class UserFrameItem {
     ),
     UserFrameItem(
       id: 'rank_esmeralda',
-      name: 'Esmeralda Criolla',
+      name: 'Esmeralda',
       minTrophies: 1500,
       borderGradient: [Color(0xFF10B981), Color(0xFF059669), Color(0xFF047857)],
       shadowColor: Color(0xFF047857),
@@ -83,7 +83,7 @@ class UserFrameItem {
     ),
     UserFrameItem(
       id: 'rank_diamante',
-      name: 'Diamante Mítico',
+      name: 'Diamante',
       minTrophies: 2300,
       borderGradient: [Color(0xFFA855F7), Color(0xFFEC4899), Color(0xFF60A5FA)],
       shadowColor: Color(0xFF9333EA),
@@ -94,7 +94,7 @@ class UserFrameItem {
     ),
     UserFrameItem(
       id: 'rank_maestro',
-      name: 'Maestro de Caída',
+      name: 'Maestro I',
       minTrophies: 3300,
       borderGradient: [Color(0xFFEF4444), Color(0xFFDC2626), Color(0xFF991B1B)],
       shadowColor: Color(0xFF991B1B),
@@ -105,7 +105,7 @@ class UserFrameItem {
     ),
     UserFrameItem(
       id: 'rank_gran_maestro',
-      name: 'Gran Maestro',
+      name: 'Maestro II',
       minTrophies: 3700,
       borderGradient: [Color(0xFFF59E0B), Color(0xFFD97706), Color(0xFFB45309)],
       shadowColor: Color(0xFF78350F),
@@ -116,7 +116,7 @@ class UserFrameItem {
     ),
     UserFrameItem(
       id: 'rank_heroico',
-      name: 'Heroico',
+      name: 'Maestro III',
       minTrophies: 4100,
       borderGradient: [Color(0xFF6366F1), Color(0xFF4F46E5), Color(0xFF4338CA)],
       shadowColor: Color(0xFF312E81),
@@ -127,7 +127,7 @@ class UserFrameItem {
     ),
     UserFrameItem(
       id: 'rank_leyenda',
-      name: 'Leyenda Suprema',
+      name: 'Leyenda',
       minTrophies: 4500,
       borderGradient: [Color(0xFFE11D48), Color(0xFFBE123C), Color(0xFF881337)],
       shadowColor: Color(0xFF4C0519),

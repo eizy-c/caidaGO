@@ -141,9 +141,9 @@ class _PlayerProfileStatsModalState extends State<PlayerProfileStatsModal> {
         children: [
           const Row(
             children: [
-              const Icon(Icons.query_stats_rounded, color: Colors.white70, size: 22),
-              const SizedBox(width: 10),
-              const Text(
+              Icon(Icons.query_stats_rounded, color: Colors.white70, size: 22),
+              SizedBox(width: 10),
+              Text(
                 'Perfil del jugador',
                 style: TextStyle(
                   color: Colors.white,

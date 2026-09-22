@@ -66,43 +66,47 @@ class UserProgress {
     return (currentTierXp / neededInCurrentTier).clamp(0.0, 1.0);
   }
 
-  /// Título criollo según el nivel alcanzado.
+  /// Título de rango competitivo unificado según el nivel alcanzado.
   String get rankTitle {
     switch (currentLevel) {
       case 0:
         return 'Novato';
       case 1:
-        return 'Caimanero';
+        return 'Bronce';
       case 2:
-        return 'El Avillao';
+        return 'Plata';
       case 3:
-        return 'Arrastrador';
+        return 'Oro';
       case 4:
-        return 'Gallo Fino';
+        return 'Esmeralda';
       case 5:
-        return 'El Tigre';
+        return 'Diamante';
       case 6:
-        return 'El Baquiano';
+        return 'Maestro I';
       case 7:
-        return 'Pana Bravo';
+        return 'Maestro II';
       case 8:
-        return 'El Caballo';
+        return 'Maestro III';
       case 9:
-        return 'El Papá de los Helados';
+        return 'Leyenda';
       default:
-        return 'Cacique del Trivilín';
+        return 'Leyenda Suprema';
     }
   }
 
-  /// Color del badge de nivel según el nivel alcanzado.
+  /// Color del badge de nivel según el nivel alcanzado (unificado con colores de rangos).
   static Color levelBadgeColor(int level) {
-    if (level >= 10) return const Color(0xFFEAB308); // Dorado — Cacique
-    if (level >= 9)  return const Color(0xFF9333EA);  // Púrpura — El Papá
-    if (level >= 7)  return const Color(0xFF4F46E5);  // Índigo — Elite
-    if (level >= 5)  return const Color(0xFF0D9488);  // Cyan — Veterano
-    if (level >= 3)  return const Color(0xFF16A34A);  // Verde — En forma
-    if (level >= 1)  return const Color(0xFFEA580C);  // Naranja — Novato ardiente
-    return const Color(0xFF6B7280);                   // Gris — Sin brillo
+    if (level >= 10) return const Color(0xFFBE123C); // Leyenda Suprema
+    if (level >= 9)  return const Color(0xFFBE123C); // Leyenda
+    if (level >= 8)  return const Color(0xFF4338CA); // Maestro III
+    if (level >= 7)  return const Color(0xFFB45309); // Maestro II
+    if (level >= 6)  return const Color(0xFFDC2626); // Maestro I
+    if (level >= 5)  return const Color(0xFF6366F1); // Diamante
+    if (level >= 4)  return const Color(0xFF059669); // Esmeralda
+    if (level >= 3)  return const Color(0xFFEAB308); // Oro
+    if (level >= 2)  return const Color(0xFF94A3B8); // Plata
+    if (level >= 1)  return const Color(0xFFD97706); // Bronce
+    return const Color(0xFF6B7280);                   // Novato
   }
 }
 
@@ -120,18 +124,18 @@ class LevelMilestone {
 
   bool isUnlocked(int playerLevel) => playerLevel >= level;
 
-  /// Catálogo oficial de hitos de nivel para La Caída
+  /// Catálogo oficial de hitos de nivel para La Caída (unificado con nombres de rangos)
   static const List<LevelMilestone> catalog = [
-    LevelMilestone(level: 0, title: 'Nivel 0: Novato', reward: '10 Tickets de cortesía, Modo Normal, Marco Madera Rústica'),
-    LevelMilestone(level: 1, title: 'Nivel 1: Caimanero', reward: '+150 Monedas, Escuela de Novatos completada'),
-    LevelMilestone(level: 2, title: 'Nivel 2: El Avillao', reward: 'Desbloqueo de Marco Plata Pulida'),
-    LevelMilestone(level: 3, title: 'Nivel 3: Arrastrador', reward: '+250 Monedas, Desbloqueo Mesa VIP Bronce'),
-    LevelMilestone(level: 4, title: 'Nivel 4: Gallo Fino', reward: 'Desbloqueo de Marco Oro Imperial'),
-    LevelMilestone(level: 5, title: 'Nivel 5: El Tigre', reward: '+500 Monedas, Desbloqueo Mesa VIP Plata'),
-    LevelMilestone(level: 6, title: 'Nivel 6: El Baquiano', reward: 'Desbloqueo de Marco Neón Cibernético'),
-    LevelMilestone(level: 7, title: 'Nivel 7: Pana Bravo', reward: '+750 Monedas, Desbloqueo Mesa VIP Oro'),
-    LevelMilestone(level: 8, title: 'Nivel 8: El Caballo', reward: 'Desbloqueo de Marco Llama Ardiente'),
-    LevelMilestone(level: 9, title: 'Nivel 9: El Papá de los Helados', reward: '+1,000 Monedas de bonificación'),
-    LevelMilestone(level: 10, title: 'Nivel 10: Cacique del Trivilín', reward: 'Desbloqueo Marco Diamante Real y Mesa Diamante'),
+    LevelMilestone(level: 0, title: 'Nivel 0: Novato', reward: '10 Tickets de cortesía, Modo Normal, Marco Novato'),
+    LevelMilestone(level: 1, title: 'Nivel 1: Bronce', reward: '+150 Monedas, Escuela de Novatos completada'),
+    LevelMilestone(level: 2, title: 'Nivel 2: Plata', reward: '+200 Monedas, Desbloqueo Mesa VIP Bronce'),
+    LevelMilestone(level: 3, title: 'Nivel 3: Oro', reward: '+300 Monedas, Desbloqueo Mesa VIP Plata'),
+    LevelMilestone(level: 4, title: 'Nivel 4: Esmeralda', reward: '+500 Monedas, Desbloqueo Mesa VIP Oro'),
+    LevelMilestone(level: 5, title: 'Nivel 5: Diamante', reward: '+750 Monedas, Desbloqueo Mesa VIP Diamante'),
+    LevelMilestone(level: 6, title: 'Nivel 6: Maestro I', reward: '+1,000 Monedas de bonificación'),
+    LevelMilestone(level: 7, title: 'Nivel 7: Maestro II', reward: '+1,500 Monedas de bonificación'),
+    LevelMilestone(level: 8, title: 'Nivel 8: Maestro III', reward: '+2,000 Monedas de bonificación'),
+    LevelMilestone(level: 9, title: 'Nivel 9: Leyenda', reward: '+3,000 Monedas, Sala de Campeones'),
+    LevelMilestone(level: 10, title: 'Nivel 10: Leyenda Suprema', reward: '+5,000 Monedas, Estatus de Leyenda Suprema'),
   ];
 }

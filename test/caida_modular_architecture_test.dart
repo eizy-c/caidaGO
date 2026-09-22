@@ -114,24 +114,24 @@ void main() {
 
       const prog1 = UserProgress(totalXp: 300);
       expect(prog1.currentLevel, equals(1));
-      expect(prog1.rankTitle, equals('Caimanero'));
+      expect(prog1.rankTitle, equals('Bronce'));
 
       // Nivel 2 requiere 800 XP
       const prog2 = UserProgress(totalXp: 800);
       expect(prog2.currentLevel, equals(2));
-      expect(prog2.rankTitle, equals('El Avillao'));
+      expect(prog2.rankTitle, equals('Plata'));
 
       const prog5 = UserProgress(totalXp: 6000);
       expect(prog5.currentLevel, equals(5));
-      expect(prog5.rankTitle, equals('El Tigre'));
+      expect(prog5.rankTitle, equals('Diamante'));
 
       const prog6 = UserProgress(totalXp: 9500);
       expect(prog6.currentLevel, equals(6));
-      expect(prog6.rankTitle, equals('El Baquiano'));
+      expect(prog6.rankTitle, equals('Maestro I'));
 
       const prog10 = UserProgress(totalXp: 34000);
       expect(prog10.currentLevel, equals(10));
-      expect(prog10.rankTitle, equals('Cacique del Trivilín'));
+      expect(prog10.rankTitle, equals('Leyenda Suprema'));
 
       expect(prog2.levelProgressPercentage, inInclusiveRange(0.0, 1.0));
     });
