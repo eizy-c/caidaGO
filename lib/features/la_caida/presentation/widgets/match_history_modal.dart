@@ -32,12 +32,12 @@ class MatchHistoryModal extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                colors: [Color(0xFF1E1338), Color(0xFF0F071A)],
+                colors: [Color(0xFF1E1E1E), Color(0xFF121212)],
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
               ),
               borderRadius: const BorderRadius.vertical(top: Radius.circular(26)),
-              border: Border.all(color: const Color(0xFF2E2E2E), width: 1.2),
+              border: Border.all(color: const Color(0xFF2E2E2E), width: 1.0),
               boxShadow: const [
                 BoxShadow(color: Colors.black87, blurRadius: 20, offset: Offset(0, -4)),
               ],
@@ -108,7 +108,7 @@ class MatchHistoryModal extends StatelessWidget {
                             return Container(
                               padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
-                                color: const Color(0xFF19102E),
+                                color: const Color(0xFF1E1E1E),
                                 borderRadius: BorderRadius.circular(14),
                                 border: Border.all(
                                   color: const Color(0xFF2E2E2E),

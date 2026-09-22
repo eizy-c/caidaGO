@@ -51,10 +51,10 @@ class _ChestSlotsViewState extends State<ChestSlotsView> {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        backgroundColor: const Color(0xFF1E1B4B),
+        backgroundColor: const Color(0xFF161616),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
-          side: const BorderSide(color: Color(0xFFFDE047), width: 1.5),
+          side: const BorderSide(color: Color(0xFF2E2E2E), width: 1.0),
         ),
         title: const Row(
           children: [
@@ -172,10 +172,10 @@ class _ChestSlotsViewState extends State<ChestSlotsView> {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        backgroundColor: const Color(0xFF1E1B4B),
+        backgroundColor: const Color(0xFF161616),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
-          side: const BorderSide(color: Color(0xFF38BDF8), width: 1.5),
+          side: const BorderSide(color: Color(0xFF2E2E2E), width: 1.0),
         ),
         title: const Row(
           children: [

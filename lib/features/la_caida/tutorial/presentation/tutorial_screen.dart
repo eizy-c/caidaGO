@@ -114,11 +114,11 @@ class _TutorialScreenState extends State<TutorialScreen> with TickerProviderStat
             ],
           ),
           duration: const Duration(seconds: 2),
-          backgroundColor: const Color(0xFF1E1B4B),
+          backgroundColor: const Color(0xFF161616),
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(14),
-            side: const BorderSide(color: Color(0xFFF59E0B), width: 1.2),
+            side: const BorderSide(color: Color(0xFF2E2E2E), width: 1.0),
           ),
         ),
       );

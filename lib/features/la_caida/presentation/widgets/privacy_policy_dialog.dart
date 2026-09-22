@@ -14,10 +14,10 @@ class PrivacyPolicyDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      backgroundColor: const Color(0xFF0F172A),
+      backgroundColor: const Color(0xFF161616),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(24),
-        side: const BorderSide(color: Color(0xFF38BDF8), width: 1.5),
+        side: const BorderSide(color: Color(0xFF2E2E2E), width: 1.0),
       ),
       title: const Row(
         children: [

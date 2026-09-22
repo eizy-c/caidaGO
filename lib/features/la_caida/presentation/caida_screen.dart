@@ -1731,10 +1731,10 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
       barrierDismissible: true,
       barrierColor: Colors.black87,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1E1B4B),
+        backgroundColor: const Color(0xFF161616),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
-          side: const BorderSide(color: Color(0xFFF59E0B), width: 1.5),
+          side: const BorderSide(color: Color(0xFF2E2E2E), width: 1.0),
         ),
         title: const Row(
           children: [

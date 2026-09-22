@@ -16,7 +16,7 @@ class GameResultEntry {
 
 /// Modal emergente de fin de partida (¡HAS GANADO! o ¡HAS PERDIDO!).
 /// Incluye banner estilizado, podio con corona dorada, puntuaciones de cada jugador
-/// y botones de acción: Atrás, Lobby y Revancha.
+/// y botones de acción: Atrás, Lobby y Revancha con paleta unificada.
 class GameResultDialog extends StatelessWidget {
   final bool userWon;
   final String? subtitle;
@@ -63,17 +63,17 @@ class GameResultDialog extends StatelessWidget {
         clipBehavior: Clip.none,
         alignment: Alignment.topCenter,
         children: [
-          // Caja principal azul claro / lavanda con podio de resultados
+          // Caja principal oscura neutra con podio de resultados
           Container(
             margin: const EdgeInsets.only(top: 26),
             padding: const EdgeInsets.fromLTRB(20, 38, 20, 20),
             decoration: BoxDecoration(
-              color: const Color(0xFFC7D7F0), // Azul pastel de la captura
-              borderRadius: BorderRadius.circular(28),
-              border: Border.all(color: Colors.white, width: 3),
+              color: const Color(0xFF161616),
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: const Color(0xFF2E2E2E), width: 1.0),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.5),
+                  color: Colors.black.withValues(alpha: 0.6),
                   blurRadius: 20,
                   offset: const Offset(0, 8),
                 ),
@@ -87,7 +87,7 @@ class GameResultDialog extends StatelessWidget {
                     subtitle!,
                     textAlign: TextAlign.center,
                     style: const TextStyle(
-                      color: Color(0xFF1E293B),
+                      color: Colors.white70,
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
                     ),
@@ -113,14 +113,13 @@ class GameResultDialog extends StatelessWidget {
                           style: TextStyle(fontWeight: FontWeight.w900, fontSize: 14),
                         ),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF475569), // Gris azulado elegante
+                          backgroundColor: const Color(0xFF2E2E2E),
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 12),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                            side: const BorderSide(color: Colors.white, width: 1.5),
+                            borderRadius: BorderRadius.circular(14),
                           ),
-                          elevation: 3,
+                          elevation: 0,
                         ),
                       ),
                     ),
@@ -137,13 +136,12 @@ class GameResultDialog extends StatelessWidget {
                         ),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFFF59E0B), // Naranja dorado vibrante
-                          foregroundColor: Colors.white,
+                          foregroundColor: Colors.black87,
                           padding: const EdgeInsets.symmetric(vertical: 12),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                            side: const BorderSide(color: Colors.white, width: 1.5),
+                            borderRadius: BorderRadius.circular(14),
                           ),
-                          elevation: 4,
+                          elevation: 2,
                         ),
                       ),
                     ),
@@ -153,25 +151,24 @@ class GameResultDialog extends StatelessWidget {
             ),
           ),
 
-          // Banner superior saliente: ¡HAS GANADO! o ¡HAS PERDIDO!
+          // Banner superior con sombra
           Positioned(
             top: 0,
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 9),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: userWon
                       ? const [Color(0xFF10B981), Color(0xFF059669)]
-                      : const [Color(0xFFF97316), Color(0xFFEA580C)],
+                      : const [Color(0xFFEA580C), Color(0xFFC2410C)],
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                 ),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: Colors.white, width: 2.5),
+                borderRadius: BorderRadius.circular(18),
                 boxShadow: [
                   BoxShadow(
-                    color: (userWon ? const Color(0xFF10B981) : const Color(0xFFF97316))
-                        .withValues(alpha: 0.5),
+                    color: (userWon ? const Color(0xFF10B981) : const Color(0xFFEA580C))
+                        .withValues(alpha: 0.4),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -181,7 +178,7 @@ class GameResultDialog extends StatelessWidget {
                 userWon ? '¡HAS GANADO!' : '¡HAS PERDIDO!',
                 style: const TextStyle(
                   color: Colors.white,
-                  fontSize: 18,
+                  fontSize: 17,
                   fontWeight: FontWeight.w900,
                   letterSpacing: 1.0,
                   shadows: [
@@ -202,15 +199,15 @@ class GameResultDialog extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
-        color: const Color(0xFFA5B8E8), // Púrpura azulado de la tarjeta interna
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.8), width: 1.5),
+        color: const Color(0xFF222222),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFF2E2E2E), width: 1.0),
       ),
       child: Row(
         children: [
           // Corona si es ganador
           if (entry.isWinner) ...[
-            const Icon(Icons.workspace_premium_rounded, color: Color(0xFFFBBF24), size: 26),
+            const Icon(Icons.workspace_premium_rounded, color: Color(0xFFFBBF24), size: 24),
             const SizedBox(width: 8),
           ] else ...[
             const SizedBox(width: 6),
@@ -218,12 +215,12 @@ class GameResultDialog extends StatelessWidget {
 
           // Avatar
           CircleAvatar(
-            radius: 18,
-            backgroundColor: entry.isUser ? const Color(0xFF0284C7) : const Color(0xFF475569),
+            radius: 17,
+            backgroundColor: entry.isUser ? const Color(0xFF0284C7) : const Color(0xFF333333),
             child: Icon(
               entry.isUser ? Icons.person_rounded : Icons.smart_toy_rounded,
-              size: 20,
-              color: Colors.white,
+              size: 19,
+              color: Colors.white70,
             ),
           ),
           const SizedBox(width: 12),
@@ -233,8 +230,8 @@ class GameResultDialog extends StatelessWidget {
             child: Text(
               entry.name,
               style: const TextStyle(
-                color: Color(0xFF1E1B4B),
-                fontSize: 15,
+                color: Colors.white,
+                fontSize: 14,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -247,7 +244,7 @@ class GameResultDialog extends StatelessWidget {
               Text(
                 '${isPositive ? '+' : ''}${entry.scoreChange}',
                 style: TextStyle(
-                  color: isPositive ? const Color(0xFF065F46) : const Color(0xFF991B1B),
+                  color: isPositive ? const Color(0xFF22C55E) : const Color(0xFFEF4444),
                   fontSize: 14,
                   fontWeight: FontWeight.w900,
                 ),

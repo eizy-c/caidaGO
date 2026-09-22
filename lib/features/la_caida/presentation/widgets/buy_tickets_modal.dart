@@ -148,12 +148,12 @@ class _BuyTicketsModalState extends State<BuyTicketsModal> {
             padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                colors: [Color(0xFF201335), Color(0xFF0F071A)],
+                colors: [Color(0xFF1E1E1E), Color(0xFF121212)],
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
               ),
               borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-              border: Border.all(color: const Color(0xFF2E2E2E), width: 1.2),
+              border: Border.all(color: const Color(0xFF2E2E2E), width: 1.0),
               boxShadow: const [
                 BoxShadow(
                   color: Colors.black87,
@@ -380,9 +380,9 @@ class _BuyTicketsModalState extends State<BuyTicketsModal> {
                   Container(
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF1A102E),
+                      color: const Color(0xFF222222),
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: Colors.white12, width: 1),
+                      border: Border.all(color: const Color(0xFF2E2E2E), width: 1),
                     ),
                     child: Column(
                       children: [
@@ -569,20 +569,18 @@ class _BuyTicketsModalState extends State<BuyTicketsModal> {
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: isHighlighted
-            ? const Color(0xFF2E1948)
-            : const Color(0xFF19102B),
+            ? const Color(0xFF262626)
+            : const Color(0xFF1E1E1E),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isHighlighted
-              ? Colors.white70
-              : const Color(0xFF2E2E2E),
+          color: const Color(0xFF2E2E2E),
           width: 1.0,
         ),
         boxShadow: isHighlighted
             ? const [
                 BoxShadow(
-                  color: Colors.white10,
-                  blurRadius: 10,
+                  color: Colors.black26,
+                  blurRadius: 8,
                   offset: Offset(0, 2),
                 ),
               ]

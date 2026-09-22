@@ -53,7 +53,7 @@ class GameTableHeader extends StatelessWidget implements PreferredSizeWidget {
           ),
         ],
         border: const Border(
-          bottom: BorderSide(color: Color(0xFF5533A8), width: 1.2),
+          bottom: BorderSide(color: Color(0xFF2E2E2E), width: 1.0),
         ),
       ),
       child: SafeArea(

@@ -329,10 +329,11 @@ class _BoosterManagementSheet extends StatelessWidget {
                             child: const Text('Activar', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12)),
                           )
                         else
-                          OutlinedButton(
-                            style: OutlinedButton.styleFrom(
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF262626),
                               foregroundColor: const Color(0xFFFDE047),
-                              side: const BorderSide(color: Color(0xFFFDE047), width: 1),
+                              elevation: 0,
                               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                             ),

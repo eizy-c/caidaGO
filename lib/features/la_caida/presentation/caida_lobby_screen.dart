@@ -194,10 +194,10 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
           final seconds = (remaining.inSeconds % 60).toString().padLeft(2, '0');
 
           return AlertDialog(
-            backgroundColor: const Color(0xFF0F172A),
+            backgroundColor: const Color(0xFF161616),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(24),
-              side: const BorderSide(color: Color(0xFFF59E0B), width: 1.5),
+              side: const BorderSide(color: Color(0xFF2E2E2E), width: 1.0),
             ),
             title: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -215,9 +215,9 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF1E293B),
+                    color: const Color(0xFF222222),
                     borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: Colors.white24),
+                    border: Border.all(color: const Color(0xFF2E2E2E)),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -242,7 +242,7 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
                     margin: const EdgeInsets.only(bottom: 10),
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF1E293B),
+                      color: const Color(0xFF222222),
                       borderRadius: BorderRadius.circular(14),
                       border: Border.all(
                         color: const Color(0xFF2E2E2E),
@@ -329,10 +329,10 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
       builder: (ctx) => StatefulBuilder(
         builder: (context, setDialogState) {
           return AlertDialog(
-            backgroundColor: const Color(0xFF0F172A),
+            backgroundColor: const Color(0xFF161616),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(24),
-              side: const BorderSide(color: Color(0xFF6366F1), width: 1.5),
+              side: const BorderSide(color: Color(0xFF2E2E2E), width: 1.0),
             ),
             title: const Row(
               children: [
@@ -457,10 +457,10 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF0F172A),
+        backgroundColor: const Color(0xFF161616),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
-          side: const BorderSide(color: Color(0xFFF59E0B), width: 1.5),
+          side: const BorderSide(color: Color(0xFF2E2E2E), width: 1.0),
         ),
         title: Row(
           children: [
@@ -511,10 +511,10 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF0F172A),
+        backgroundColor: const Color(0xFF161616),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(22),
-          side: const BorderSide(color: Color(0xFF38BDF8), width: 1.5),
+          side: const BorderSide(color: Color(0xFF2E2E2E), width: 1.0),
         ),
         title: const Row(
           children: [
@@ -533,7 +533,7 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: const Color(0xFF1E293B),
+                color: const Color(0xFF222222),
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(color: const Color(0xFF2E2E2E)),
               ),
@@ -592,10 +592,10 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF0F172A),
+        backgroundColor: const Color(0xFF161616),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(22),
-          side: const BorderSide(color: Color(0xFF2E2E2E), width: 1.2),
+          side: const BorderSide(color: Color(0xFF2E2E2E), width: 1.0),
         ),
         title: const Row(
           children: [
@@ -614,7 +614,7 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: const Color(0xFF1E293B),
+                color: const Color(0xFF222222),
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(color: const Color(0xFF2E2E2E)),
               ),

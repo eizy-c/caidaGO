@@ -188,9 +188,8 @@ class _BotCustomizationModalState extends State<BotCustomizationModal> {
           decoration: BoxDecoration(
             gradient: const LinearGradient(
               colors: [
-                Color(0xFF1A1528),
-                Color(0xFF0F172A),
-                Color(0xFF0B0F19),
+                Color(0xFF1E1E1E),
+                Color(0xFF121212),
               ],
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
@@ -198,7 +197,7 @@ class _BotCustomizationModalState extends State<BotCustomizationModal> {
             borderRadius: BorderRadius.circular(24),
             border: Border.all(
               color: const Color(0xFF2E2E2E),
-              width: 1.2,
+              width: 1.0,
             ),
             boxShadow: const [
               BoxShadow(
@@ -349,7 +348,7 @@ class _BotCustomizationModalState extends State<BotCustomizationModal> {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: const Color(0xFF1E293B).withValues(alpha: 0.7),
+        color: const Color(0xFF222222),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: const Color(0xFF2E2E2E), width: 1.0),
       ),
@@ -407,9 +406,9 @@ class _BotCustomizationModalState extends State<BotCustomizationModal> {
             height: 42,
             padding: const EdgeInsets.symmetric(horizontal: 12),
             decoration: BoxDecoration(
-              color: const Color(0xFF0F172A),
+              color: const Color(0xFF181818),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.white24, width: 1),
+              border: Border.all(color: const Color(0xFF2E2E2E), width: 1),
             ),
             child: Row(
               children: [

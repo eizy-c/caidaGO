@@ -75,12 +75,12 @@ class _VipTierSelectorModalState extends State<VipTierSelectorModal> {
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                colors: [Color(0xFF1E1130), Color(0xFF0C0614)],
+                colors: [Color(0xFF1E1E1E), Color(0xFF121212)],
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
               ),
               borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-              border: Border.all(color: const Color(0xFF2E2E2E), width: 1.2),
+              border: Border.all(color: const Color(0xFF2E2E2E), width: 1.0),
               boxShadow: const [
                 BoxShadow(
                   color: Colors.black87,
@@ -277,18 +277,11 @@ class _VipTierSelectorModalState extends State<VipTierSelectorModal> {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(vertical: 8),
         decoration: BoxDecoration(
-          gradient: isSelected
-              ? const LinearGradient(
-                  colors: [Color(0xFF8B5CF6), Color(0xFF6D28D9)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                )
-              : null,
-          color: isSelected ? null : Colors.transparent,
+          color: isSelected ? const Color(0xFF2E2E2E) : Colors.transparent,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isSelected ? const Color(0xFFC084FC) : Colors.transparent,
-            width: 1.2,
+            color: isSelected ? const Color(0xFF3E3E3E) : Colors.transparent,
+            width: 1.0,
           ),
         ),
         child: Row(
@@ -350,8 +343,8 @@ class _VipTierSelectorModalState extends State<VipTierSelectorModal> {
         ),
         borderRadius: BorderRadius.circular(22),
         border: Border.all(
-          color: isUnlocked ? tier.primaryColor : Colors.white12,
-          width: isUnlocked ? 2 : 1,
+          color: const Color(0xFF2E2E2E),
+          width: 1.0,
         ),
         boxShadow: [
           BoxShadow(
