@@ -1804,35 +1804,42 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
   void _openMatchSettings() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF1E143C),
+      isScrollControlled: true,
+      backgroundColor: const Color(0xFF161616),
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        side: BorderSide(color: Color(0xFF2E2E2E), width: 1),
       ),
       builder: (ctx) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 40,
-                height: 4,
-                margin: const EdgeInsets.only(bottom: 16),
-                decoration: BoxDecoration(
-                  color: Colors.white24,
-                  borderRadius: BorderRadius.circular(2),
+        child: Container(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(ctx).size.height * 0.85,
+          ),
+          child: SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.white24,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
                 ),
-              ),
-              const Text(
-                'OPCIONES DE PARTIDA',
-                style: TextStyle(
-                  color: Color(0xFFFDE047),
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 1,
+                const Text(
+                  'OPCIONES DE PARTIDA',
+                  style: TextStyle(
+                    color: Color(0xFFF59E0B),
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 16),
+                const SizedBox(height: 16),
               ListTile(
                 leading: Icon(
                   AudioService().isMuted ? Icons.volume_off_rounded : Icons.volume_up_rounded,
@@ -1955,8 +1962,9 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   @override
   Widget build(BuildContext context) {
