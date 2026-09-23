@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../../core/presentation/widgets/app_3d_button.dart';
+import '../../../../core/presentation/widgets/cartoon_widgets.dart';
+import '../../../../core/theme/app_palette.dart';
 import '../../economy/player_session.dart';
 import '../domain/multiplayer_models.dart';
 import '../network/local_game_client.dart';
@@ -9,11 +10,8 @@ import '../network/local_room_beacon_service.dart';
 import 'multiplayer_waiting_room_screen.dart';
 import 'widgets/enter_pin_dialog.dart';
 
-/// Pantalla Principal del Modo Multijugador.
-/// Permite:
-/// - Ver salas locales Wi-Fi en vivo (sin internet).
-/// - Crear sala (2, 3 o 4 jugadores, clave de 4 dígitos opcional, con o sin bots).
-/// - Unirse directamente ingresando el Key único o IP.
+/// Pantalla Principal del Modo Multijugador (SALAS) con paleta Cartoon Azul/Púrpura
+/// y distribución limpia según diseño de referencia.
 class MultiplayerHubScreen extends StatefulWidget {
   const MultiplayerHubScreen({super.key});
 
@@ -21,13 +19,14 @@ class MultiplayerHubScreen extends StatefulWidget {
   State<MultiplayerHubScreen> createState() => _MultiplayerHubScreenState();
 }
 
-class _MultiplayerHubScreenState extends State<MultiplayerHubScreen>
-    with SingleTickerProviderStateMixin {
-  late TabController _tabController;
+class _MultiplayerHubScreenState extends State<MultiplayerHubScreen> {
   final LocalRoomBeaconService _beaconService = LocalRoomBeaconService();
   final PlayerSession _session = PlayerSession.shared;
 
-  // Estado del formulario de creación
+  // Filtro de pestañas: 0 = TODAS, 1 = SIN CONTRASEÑA
+  int _selectedFilterIndex = 0;
+
+  // Estado del formulario de creación de sala
   final TextEditingController _roomNameController =
       TextEditingController(text: 'Mesa Criolla');
   int _targetPlayers = 2; // 2, 3 o 4
@@ -41,7 +40,6 @@ class _MultiplayerHubScreenState extends State<MultiplayerHubScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
     _initNetworkAndScanning();
   }
 
@@ -57,7 +55,6 @@ class _MultiplayerHubScreenState extends State<MultiplayerHubScreen>
 
   @override
   void dispose() {
-    _tabController.dispose();
     _roomNameController.dispose();
     _pinController.dispose();
     _beaconService.dispose();
@@ -138,7 +135,7 @@ class _MultiplayerHubScreenState extends State<MultiplayerHubScreen>
     String? pinToUse;
     if (room.isPrivate) {
       pinToUse = await EnterPinDialog.show(context, roomName: room.roomName);
-      if (pinToUse == null) return; // Cancelado
+      if (pinToUse == null) return; // Cancelado por el usuario
     }
 
     final client = LocalGameClient();
@@ -175,8 +172,8 @@ class _MultiplayerHubScreenState extends State<MultiplayerHubScreen>
     );
   }
 
-  // --- UNIRSE CON KEY O ENTRADA MANUAL ---
-  Future<void> _joinWithManualCodeOrIp() async {
+  // --- UNIRSE CON KEY / PIN O BÚSQUEDA ---
+  Future<void> _showSearchOrJoinPinDialog() async {
     final pinController = TextEditingController();
     final ipController = TextEditingController();
     bool showAdvancedIp = false;
@@ -185,16 +182,22 @@ class _MultiplayerHubScreenState extends State<MultiplayerHubScreen>
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (context, setDlgState) => AlertDialog(
-          backgroundColor: const Color(0xFF1E1E1E),
+          backgroundColor: AppPalette.cartoonBgDark,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
-            side: const BorderSide(color: Color(0xFF2E2E2E), width: 1.2),
+            side: const BorderSide(color: AppPalette.cartoonBorder, width: 2),
           ),
           title: const Row(
             children: [
-              Icon(Icons.vpn_key_rounded, color: Color(0xFFF59E0B), size: 22),
-              SizedBox(width: 10),
-              Text('Unirse con Key', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+              Icon(Icons.search_rounded, color: AppPalette.cartoonYellow, size: 24),
+              SizedBox(width: 8),
+              CartoonStrokeText(
+                'BUSCAR / UNIRSE',
+                fontSize: 17,
+                textColor: AppPalette.cartoonYellow,
+                strokeColor: AppPalette.cartoonCardText,
+                strokeWidth: 2.5,
+              ),
             ],
           ),
           content: Column(
@@ -202,7 +205,7 @@ class _MultiplayerHubScreenState extends State<MultiplayerHubScreen>
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
-                'Ingresa el Key numérico de 4 dígitos de la sala privada para entrar de inmediato:',
+                'Ingresa la clave de 4 números de la sala privada para conectarte:',
                 style: TextStyle(color: Colors.white70, fontSize: 12),
               ),
               const SizedBox(height: 14),
@@ -212,19 +215,25 @@ class _MultiplayerHubScreenState extends State<MultiplayerHubScreen>
                 maxLength: 4,
                 textAlign: TextAlign.center,
                 style: const TextStyle(
-                  color: Color(0xFFF59E0B),
-                  fontSize: 22,
+                  color: AppPalette.cartoonYellow,
+                  fontSize: 24,
                   fontWeight: FontWeight.w900,
                   letterSpacing: 8,
                 ),
                 decoration: InputDecoration(
                   counterText: '',
                   filled: true,
-                  fillColor: const Color(0xFF141414),
+                  fillColor: const Color(0xFF262169),
                   hintText: '••••',
                   hintStyle: const TextStyle(color: Colors.white24, letterSpacing: 8),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: Color(0xFF2E2E2E))),
-                  enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: Color(0xFF2E2E2E))),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: const BorderSide(color: AppPalette.cartoonBorder, width: 1.5),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: const BorderSide(color: AppPalette.cartoonBorder, width: 1.5),
+                  ),
                 ),
               ),
               const SizedBox(height: 12),
@@ -239,7 +248,7 @@ class _MultiplayerHubScreenState extends State<MultiplayerHubScreen>
                     ),
                     const SizedBox(width: 4),
                     const Text(
-                      'Opciones avanzadas (Red especial)',
+                      'Opciones avanzadas (IP directa)',
                       style: TextStyle(color: Colors.white38, fontSize: 11),
                     ),
                   ],
@@ -251,10 +260,10 @@ class _MultiplayerHubScreenState extends State<MultiplayerHubScreen>
                   controller: ipController,
                   style: const TextStyle(color: Colors.white, fontSize: 13),
                   decoration: InputDecoration(
-                    labelText: 'Dirección manual (opcional)',
+                    labelText: 'IP del Host (opcional)',
                     labelStyle: const TextStyle(color: Colors.white54, fontSize: 11),
                     filled: true,
-                    fillColor: const Color(0xFF141414),
+                    fillColor: const Color(0xFF262169),
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                   ),
                 ),
@@ -268,7 +277,7 @@ class _MultiplayerHubScreenState extends State<MultiplayerHubScreen>
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFF59E0B),
+                backgroundColor: AppPalette.cartoonYellow,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
               onPressed: () {
@@ -276,7 +285,6 @@ class _MultiplayerHubScreenState extends State<MultiplayerHubScreen>
                 final customIp = ipController.text.trim();
                 Navigator.of(ctx).pop();
 
-                // 1. Buscar en las salas locales descubiertas si alguna coincide con el PIN
                 final discovered = _beaconService.discoveredRoomsNotifier.value;
                 MultiplayerRoomInfo? matchedRoom;
                 if (discovered.isNotEmpty) {
@@ -300,10 +308,291 @@ class _MultiplayerHubScreenState extends State<MultiplayerHubScreen>
                   pinCode: pin,
                 ));
               },
-              child: const Text('ENTRAR', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+              child: const Text(
+                'ENTRAR',
+                style: TextStyle(color: Color(0xFF1E1B4B), fontWeight: FontWeight.bold),
+              ),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  // --- MODAL DE CONFIGURACIÓN Y CREACIÓN DE SALA ---
+  void _openCreateRoomSheet() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppPalette.cartoonBgDark,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        side: BorderSide(color: AppPalette.cartoonBorder, width: 2),
+      ),
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setSheetState) {
+          return Padding(
+            padding: EdgeInsets.only(
+              left: 20,
+              right: 20,
+              top: 18,
+              bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+            ),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Barra de agarre
+                  Center(
+                    child: Container(
+                      width: 44,
+                      height: 5,
+                      decoration: BoxDecoration(
+                        color: Colors.white24,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+
+                  // Título del modal
+                  const Center(
+                    child: CartoonStrokeText(
+                      'CREAR SALA',
+                      fontSize: 22,
+                      textColor: AppPalette.cartoonYellow,
+                      strokeColor: AppPalette.cartoonCardText,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Nombre de la sala
+                  const Text(
+                    'NOMBRE DE LA SALA',
+                    style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 6),
+                  TextField(
+                    controller: _roomNameController,
+                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                    decoration: InputDecoration(
+                      filled: true,
+                      fillColor: const Color(0xFF262169),
+                      hintText: 'Ej. Mesa Criolla',
+                      hintStyle: const TextStyle(color: Colors.white38),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: const BorderSide(color: AppPalette.cartoonBorder, width: 1.5),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: const BorderSide(color: AppPalette.cartoonBorder, width: 1.5),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // Selector de jugadores: 2, 3 o 4
+                  const Text(
+                    'CANTIDAD DE JUGADORES',
+                    style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [2, 3, 4].map((count) {
+                      final isSel = _targetPlayers == count;
+                      return Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 4),
+                          child: InkWell(
+                            onTap: () {
+                              setSheetState(() {
+                                _targetPlayers = count;
+                                if (count != 4) _isTeams = false;
+                              });
+                              setState(() {
+                                _targetPlayers = count;
+                                if (count != 4) _isTeams = false;
+                              });
+                            },
+                            borderRadius: BorderRadius.circular(14),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 10),
+                              decoration: BoxDecoration(
+                                color: isSel ? AppPalette.cartoonCyan : const Color(0xFF262169),
+                                borderRadius: BorderRadius.circular(14),
+                                border: Border.all(
+                                  color: isSel ? AppPalette.cartoonBorder : AppPalette.cartoonBorder.withValues(alpha: 0.6),
+                                  width: 2,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: const Color(0xFF1B165E),
+                                    offset: Offset(0, isSel ? 2 : 1),
+                                    blurRadius: 0,
+                                  ),
+                                ],
+                              ),
+                              alignment: Alignment.center,
+                              child: Column(
+                                children: [
+                                  Text(
+                                    '$count',
+                                    style: TextStyle(
+                                      color: isSel ? const Color(0xFF1E1B4B) : Colors.white,
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w900,
+                                    ),
+                                  ),
+                                  Text(
+                                    count == 2 ? '1 vs 1' : (count == 3 ? 'Trío' : 'Mesa 4'),
+                                    style: TextStyle(
+                                      color: isSel ? const Color(0xFF1E1B4B).withValues(alpha: 0.8) : Colors.white60,
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+
+                  if (_targetPlayers == 4) ...[
+                    const SizedBox(height: 12),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Jugar en Parejas (2 vs 2)', style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
+                            Text('Compañeros enfrentados', style: TextStyle(color: Colors.white54, fontSize: 11)),
+                          ],
+                        ),
+                        CartoonSwitch(
+                          value: _isTeams,
+                          onChanged: (val) {
+                            setSheetState(() => _isTeams = val);
+                            setState(() => _isTeams = val);
+                          },
+                        ),
+                      ],
+                    ),
+                  ],
+
+                  const Divider(color: Color(0xFF3B3592), height: 24),
+
+                  // Sala Privada con PIN
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Sala Privada con PIN de 4 Números', style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
+                          Text('Requiere clave para ingresar', style: TextStyle(color: Colors.white54, fontSize: 11)),
+                        ],
+                      ),
+                      CartoonSwitch(
+                        value: _isPrivate,
+                        onChanged: (val) {
+                          setSheetState(() => _isPrivate = val);
+                          setState(() => _isPrivate = val);
+                        },
+                      ),
+                    ],
+                  ),
+
+                  if (_isPrivate) ...[
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: _pinController,
+                      keyboardType: TextInputType.number,
+                      maxLength: 4,
+                      style: const TextStyle(
+                        color: AppPalette.cartoonYellow,
+                        fontWeight: FontWeight.w900,
+                        fontSize: 18,
+                        letterSpacing: 6,
+                      ),
+                      decoration: InputDecoration(
+                        labelText: 'PIN de la Sala (4 Números)',
+                        labelStyle: const TextStyle(color: Colors.white70),
+                        filled: true,
+                        fillColor: const Color(0xFF262169),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                      ),
+                    ),
+                  ],
+
+                  const SizedBox(height: 12),
+
+                  // Rellenar con Bots
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Rellenar puestos con Bots (IA)', style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
+                          Text('Completa la mesa automáticamente', style: TextStyle(color: Colors.white54, fontSize: 11)),
+                        ],
+                      ),
+                      CartoonSwitch(
+                        value: _fillWithBots,
+                        onChanged: (val) {
+                          setSheetState(() => _fillWithBots = val);
+                          setState(() => _fillWithBots = val);
+                        },
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // Botón Confirmar Crear Sala
+                  InkWell(
+                    onTap: () {
+                      Navigator.of(ctx).pop();
+                      _createRoom();
+                    },
+                    borderRadius: BorderRadius.circular(16),
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      decoration: BoxDecoration(
+                        color: AppPalette.cartoonYellow,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: AppPalette.cartoonBorder, width: 2.2),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Color(0xFF1B165E),
+                            offset: Offset(0, 3.5),
+                            blurRadius: 0,
+                          ),
+                        ],
+                      ),
+                      alignment: Alignment.center,
+                      child: const CartoonStrokeText(
+                        'ABRIR SALA (SIN INTERNET)',
+                        fontSize: 15,
+                        textColor: Color(0xFF1E1B4B),
+                        strokeColor: Colors.white,
+                        strokeWidth: 2,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
       ),
     );
   }
@@ -311,404 +600,363 @@ class _MultiplayerHubScreenState extends State<MultiplayerHubScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF141414),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF1E1E1E),
-        elevation: 0,
-        centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        title: const Text(
-          'ARENA MULTIJUGADOR',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w900,
-            fontSize: 16,
-            letterSpacing: 1.0,
-          ),
-        ),
-        bottom: TabBar(
-          controller: _tabController,
-          indicatorColor: const Color(0xFF38BDF8),
-          indicatorWeight: 3,
-          labelColor: Colors.white,
-          unselectedLabelColor: Colors.white60,
-          tabs: const [
-            Tab(icon: Icon(Icons.radar_rounded, size: 18), text: 'SALAS EN VIVO'),
-            Tab(icon: Icon(Icons.add_circle_outline_rounded, size: 18), text: 'CREAR SALA'),
+      backgroundColor: AppPalette.cartoonBg,
+      body: SafeArea(
+        child: Column(
+          children: [
+            // Header estilo cartoon: Botón <, Título SALAS, Botón 🔍
+            _buildHeader(context),
+
+            // Pestañas cartoon: "TODAS" y "SIN CONTRASEÑA" con indicador turquesa
+            _buildFilterTabs(),
+
+            const SizedBox(height: 6),
+
+            // Lista de salas en vivo
+            Expanded(
+              child: _buildRoomList(),
+            ),
+
+            // Botón inferior flotante "CREAR SALA"
+            _buildBottomBar(),
           ],
         ),
       ),
-      body: TabBarView(
-        controller: _tabController,
+    );
+  }
+
+  Widget _buildHeader(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: const BoxDecoration(
+        color: AppPalette.cartoonSurface,
+        border: Border(
+          bottom: BorderSide(color: AppPalette.cartoonBorder, width: 2.5),
+        ),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          _buildLiveRoomsTab(),
-          _buildCreateRoomTab(),
+          CartoonRoundButton(
+            onPressed: () => Navigator.of(context).pop(),
+            width: 44,
+            height: 44,
+            child: const Icon(
+              Icons.arrow_back_ios_new_rounded,
+              color: AppPalette.cartoonCardText,
+              size: 20,
+            ),
+          ),
+          const CartoonStrokeText(
+            'SALAS',
+            fontSize: 26,
+            textColor: AppPalette.cartoonYellow,
+            strokeColor: AppPalette.cartoonCardText,
+            strokeWidth: 4,
+          ),
+          CartoonRoundButton(
+            onPressed: _showSearchOrJoinPinDialog,
+            width: 44,
+            height: 44,
+            child: const Icon(
+              Icons.search_rounded,
+              color: AppPalette.cartoonCardText,
+              size: 24,
+            ),
+          ),
         ],
       ),
     );
   }
 
-  // --- PESTAÑA 1: SALAS EN VIVO ---
-  Widget _buildLiveRoomsTab() {
-    return Column(
-      children: [
-        // Barra de estado de escaneo Wi-Fi amigable
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          color: const Color(0xFF181818),
-          child: Row(
+  Widget _buildFilterTabs() {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 12, 16, 6),
+      child: Column(
+        children: [
+          Row(
             children: [
-              const Icon(Icons.wifi_tethering_rounded, color: Color(0xFF22C55E), size: 20),
-              const SizedBox(width: 10),
-              const Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Buscando salas cercanas automáticamente...',
-                      style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+              Expanded(
+                child: GestureDetector(
+                  onTap: () => setState(() => _selectedFilterIndex = 0),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    alignment: Alignment.center,
+                    child: CartoonStrokeText(
+                      'TODAS',
+                      fontSize: 15,
+                      textColor: _selectedFilterIndex == 0
+                          ? AppPalette.cartoonCyan
+                          : const Color(0xFFA5B4FC),
+                      strokeColor: AppPalette.cartoonCardText,
+                      strokeWidth: 2.5,
                     ),
-                    Text(
-                      'No necesitas internet. Conéctense al mismo Wi-Fi o punto de acceso.',
-                      style: TextStyle(color: Colors.white60, fontSize: 10.5),
-                    ),
-                  ],
+                  ),
                 ),
               ),
-              IconButton(
-                icon: const Icon(Icons.refresh_rounded, color: Colors.white70, size: 20),
-                tooltip: 'Buscar de nuevo',
-                onPressed: () => _beaconService.startListening(),
+              Expanded(
+                child: GestureDetector(
+                  onTap: () => setState(() => _selectedFilterIndex = 1),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    alignment: Alignment.center,
+                    child: CartoonStrokeText(
+                      'SIN CONTRASEÑA',
+                      fontSize: 15,
+                      textColor: _selectedFilterIndex == 1
+                          ? AppPalette.cartoonCyan
+                          : const Color(0xFFA5B4FC),
+                      strokeColor: AppPalette.cartoonCardText,
+                      strokeWidth: 2.5,
+                    ),
+                  ),
+                ),
               ),
             ],
           ),
-        ),
-
-        // Botón directo "Unirse con Key Privado"
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-          child: InkWell(
-            onTap: _joinWithManualCodeOrIp,
-            borderRadius: BorderRadius.circular(14),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
-              decoration: BoxDecoration(
-                color: const Color(0xFF1E1E1E),
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: const Color(0xFF2E2E2E), width: 1),
-              ),
-              child: const Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.vpn_key_rounded, color: Color(0xFFF59E0B), size: 18),
-                  SizedBox(width: 8),
-                  Text(
-                    '¿TIENES UN KEY DE 4 DÍGITOS? TOCA AQUÍ',
-                    style: TextStyle(
-                      color: Color(0xFFF59E0B),
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 0.5,
+          // Indicador de barra turquesa
+          Container(
+            height: 6,
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: const Color(0xFF262169),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: AppPalette.cartoonBorder, width: 1.2),
+            ),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final halfWidth = constraints.maxWidth / 2;
+                return Stack(
+                  children: [
+                    AnimatedPositioned(
+                      duration: const Duration(milliseconds: 250),
+                      curve: Curves.easeInOut,
+                      left: _selectedFilterIndex == 0 ? 0 : halfWidth,
+                      width: halfWidth,
+                      top: 0,
+                      bottom: 0,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: AppPalette.cartoonCyan,
+                          borderRadius: BorderRadius.circular(8),
+                          boxShadow: const [
+                            BoxShadow(
+                              color: AppPalette.cartoonCyan,
+                              blurRadius: 4,
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
-                  ),
-                ],
-              ),
+                  ],
+                );
+              },
             ),
           ),
-        ),
+        ],
+      ),
+    );
+  }
 
-        // Lista en tiempo real
-        Expanded(
-          child: ValueListenableBuilder<List<MultiplayerRoomInfo>>(
-            valueListenable: _beaconService.discoveredRoomsNotifier,
-            builder: (context, rooms, _) {
-              if (rooms.isEmpty) {
-                return Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: const BoxDecoration(
-                          color: Color(0xFF1E1E1E),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(Icons.wifi_find_rounded, size: 48, color: Colors.white24),
-                      ),
-                      const SizedBox(height: 14),
-                      const Text(
-                        'Escaneando salas locales...',
-                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
-                      ),
-                      const SizedBox(height: 6),
-                      const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 40),
-                        child: Text(
-                          'Pídele a un amigo que cree una sala desde la pestaña "CREAR SALA" o conéctate compartiendo zona Wi-Fi.',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(color: Colors.white54, fontSize: 12),
-                        ),
-                      ),
-                    ],
+  Widget _buildRoomList() {
+    return ValueListenableBuilder<List<MultiplayerRoomInfo>>(
+      valueListenable: _beaconService.discoveredRoomsNotifier,
+      builder: (context, allRooms, _) {
+        // Filtrar según la pestaña activa
+        final filteredRooms = _selectedFilterIndex == 1
+            ? allRooms.where((r) => !r.isPrivate).toList()
+            : allRooms;
+
+        if (filteredRooms.isEmpty) {
+          return Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(18),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF332D8C),
+                    shape: BoxShape.circle,
+                    border: Border.all(color: AppPalette.cartoonBorder, width: 2),
                   ),
-                );
-              }
+                  child: const Icon(
+                    Icons.wifi_tethering_rounded,
+                    size: 42,
+                    color: AppPalette.cartoonCyan,
+                  ),
+                ),
+                const SizedBox(height: 14),
+                const CartoonStrokeText(
+                  'BUSCANDO SALAS CERCANAS...',
+                  fontSize: 15,
+                  textColor: Colors.white,
+                  strokeColor: AppPalette.cartoonCardText,
+                  strokeWidth: 2.5,
+                ),
+                const SizedBox(height: 6),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 40),
+                  child: Text(
+                    'No necesitas internet. Conéctense al mismo Wi-Fi o punto de acceso y presiona "CREAR SALA".',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.white60, fontSize: 11.5),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextButton.icon(
+                  onPressed: () => _beaconService.startListening(),
+                  icon: const Icon(Icons.refresh_rounded, color: AppPalette.cartoonCyan, size: 18),
+                  label: const Text('Actualizar búsqueda', style: TextStyle(color: AppPalette.cartoonCyan, fontSize: 12)),
+                ),
+              ],
+            ),
+          );
+        }
 
-              return ListView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                itemCount: rooms.length,
-                itemBuilder: (context, index) {
-                  final room = rooms[index];
-                  return _buildRoomCard(room);
-                },
-              );
-            },
-          ),
-        ),
-      ],
+        return ListView.builder(
+          physics: const BouncingScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          itemCount: filteredRooms.length,
+          itemBuilder: (context, index) {
+            final room = filteredRooms[index];
+            return _buildRoomCard(room);
+          },
+        );
+      },
     );
   }
 
   Widget _buildRoomCard(MultiplayerRoomInfo room) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: const Color(0xFF1E1E1E),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFF2E2E2E), width: 1),
-      ),
+    // Formatear código de sala a 5 caracteres
+    final rawCode = room.roomId.replaceAll('RM-', '');
+    final displayCode = rawCode.padLeft(5, '0');
+
+    return CartoonCard(
+      onTap: () => _joinRoom(room),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
       child: Row(
         children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: const Color(0xFF141414),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(
-              room.targetPlayers == 2
-                  ? Icons.people_outline_rounded
-                  : (room.targetPlayers == 3
-                      ? Icons.groups_outlined
-                      : Icons.groups_rounded),
-              color: const Color(0xFF38BDF8),
-              size: 26,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Text(
-                      room.roomName,
-                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
-                    ),
-                    if (room.isPrivate) ...[
-                      const SizedBox(width: 6),
-                      const Icon(Icons.lock_rounded, color: Color(0xFFF59E0B), size: 14),
-                    ],
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Host: ${room.hostName} • ${room.targetPlayers} Jugadores ${room.isTeams ? "(Parejas)" : ""}',
-                  style: const TextStyle(color: Colors.white60, fontSize: 11),
-                ),
-                const SizedBox(height: 2),
-                Row(
-                  children: [
-                    Container(
-                      width: 6,
-                      height: 6,
-                      decoration: const BoxDecoration(
-                        color: Color(0xFF22C55E),
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    const Text(
-                      'Red local protegida',
-                      style: TextStyle(color: Colors.white38, fontSize: 10),
-                    ),
-                  ],
-                ),
-              ],
+          // Código de sala (5 dígitos)
+          Text(
+            displayCode,
+            style: const TextStyle(
+              color: AppPalette.cartoonCardText,
+              fontSize: 18,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 1.0,
             ),
           ),
           const SizedBox(width: 8),
-          App3dButton(
-            onPressed: () => _joinRoom(room),
-            height: 38,
-            depth: 3,
-            borderRadius: 12,
-            variant: App3dButtonVariant.cyan,
-            label: 'UNIRSE',
-            textStyle: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+
+          // Candado si es privada
+          if (room.isPrivate) ...[
+            const Icon(
+              Icons.lock_rounded,
+              color: AppPalette.cartoonCardText,
+              size: 16,
+            ),
+            const SizedBox(width: 8),
+          ],
+
+          const Spacer(),
+
+          // Icono de refresh/estado
+          const Icon(
+            Icons.sync_rounded,
+            color: Color(0xFF4338CA),
+            size: 20,
+          ),
+          const SizedBox(width: 6),
+
+          // Puntos / objetivo
+          const Text(
+            '0/24',
+            style: TextStyle(
+              color: AppPalette.cartoonCardText,
+              fontSize: 15,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+
+          const SizedBox(width: 14),
+
+          // Icono silueta jugador
+          const Icon(
+            Icons.person_rounded,
+            color: Color(0xFF4338CA),
+            size: 20,
+          ),
+          const SizedBox(width: 4),
+
+          // Contador de jugadores
+          Text(
+            '${room.currentPlayers}/${room.targetPlayers}',
+            style: const TextStyle(
+              color: AppPalette.cartoonCardText,
+              fontSize: 15,
+              fontWeight: FontWeight.w900,
+            ),
           ),
         ],
       ),
     );
   }
 
-  // --- PESTAÑA 2: CREAR SALA ---
-  Widget _buildCreateRoomTab() {
-    return SingleChildScrollView(
-      physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Nombre de la sala
-          const Text('NOMBRE DE LA SALA', style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 6),
-          TextField(
-            controller: _roomNameController,
-            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-            decoration: InputDecoration(
-              filled: true,
-              fillColor: const Color(0xFF1E1E1E),
-              hintText: 'Ej. Mesa Criolla',
-              hintStyle: const TextStyle(color: Colors.white38),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: Color(0xFF2E2E2E))),
-              enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: Color(0xFF2E2E2E))),
+  Widget _buildBottomBar() {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(20, 10, 20, 16),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: _openCreateRoomSheet,
+          borderRadius: BorderRadius.circular(18),
+          child: Container(
+            height: 54,
+            decoration: BoxDecoration(
+              color: AppPalette.cartoonYellow,
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: AppPalette.cartoonBorder, width: 2.4),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0xFF1B165E),
+                  offset: Offset(0, 4),
+                  blurRadius: 0,
+                ),
+              ],
             ),
-          ),
-
-          const SizedBox(height: 18),
-
-          // Selector de Jugadores: 2, 3 o 4
-          const Text('CANTIDAD DE JUGADORES', style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 8),
-          Row(
-            children: [2, 3, 4].map((count) {
-              final isSel = _targetPlayers == count;
-              return Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 4),
-                  child: InkWell(
-                    onTap: () {
-                      setState(() {
-                        _targetPlayers = count;
-                        if (count != 4) _isTeams = false;
-                      });
-                    },
-                    borderRadius: BorderRadius.circular(12),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      decoration: BoxDecoration(
-                        color: isSel ? const Color(0xFF38BDF8) : const Color(0xFF1E1E1E),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: const Color(0xFF2E2E2E), width: 1),
-                      ),
-                      alignment: Alignment.center,
-                      child: Column(
-                        children: [
-                          Text(
-                            '$count',
-                            style: TextStyle(
-                              color: isSel ? Colors.black : Colors.white,
-                              fontSize: 18,
-                              fontWeight: FontWeight.w900,
-                            ),
-                          ),
-                          Text(
-                            count == 2 ? '1 vs 1' : (count == 3 ? 'Trío' : 'Mesa 4'),
-                            style: TextStyle(
-                              color: isSel ? Colors.black87 : Colors.white60,
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // Icono redondeado en rojo con tuerca/engranaje
+                Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: AppPalette.cartoonRed,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: AppPalette.cartoonBorder, width: 1.8),
+                  ),
+                  child: const Icon(
+                    Icons.settings_rounded,
+                    color: Colors.white,
+                    size: 20,
                   ),
                 ),
-              );
-            }).toList(),
-          ),
-
-          // Opción Parejas (solo si son 4)
-          if (_targetPlayers == 4) ...[
-            const SizedBox(height: 12),
-            SwitchListTile(
-              contentPadding: EdgeInsets.zero,
-              title: const Text('Jugar en Parejas (2 vs 2)', style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
-              subtitle: const Text('Los puntos se suman entre compañeros enfrentados', style: TextStyle(color: Colors.white54, fontSize: 11)),
-              value: _isTeams,
-              activeThumbColor: const Color(0xFF38BDF8),
-              onChanged: (val) => setState(() => _isTeams = val),
-            ),
-          ],
-
-          const Divider(color: Color(0xFF2E2E2E), height: 28),
-
-          // Switch: Sala Privada con Key de 4 dígitos
-          SwitchListTile(
-            contentPadding: EdgeInsets.zero,
-            title: const Text('Sala Privada con Key de 4 Dígitos', style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
-            subtitle: const Text('Solo podrán unirse quienes tengan el PIN', style: TextStyle(color: Colors.white54, fontSize: 11)),
-            value: _isPrivate,
-            activeThumbColor: const Color(0xFFF59E0B),
-            onChanged: (val) => setState(() => _isPrivate = val),
-          ),
-
-          if (_isPrivate) ...[
-            const SizedBox(height: 6),
-            TextField(
-              controller: _pinController,
-              keyboardType: TextInputType.number,
-              maxLength: 4,
-              style: const TextStyle(color: Color(0xFFF59E0B), fontWeight: FontWeight.bold, fontSize: 16, letterSpacing: 4),
-              decoration: InputDecoration(
-                labelText: 'Key de la Sala (4 Números)',
-                labelStyle: const TextStyle(color: Colors.white70),
-                filled: true,
-                fillColor: const Color(0xFF1E1E1E),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: Color(0xFF2E2E2E))),
-                enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: Color(0xFF2E2E2E))),
-              ),
-            ),
-          ],
-
-          // Switch: Rellenar puestos vacíos con Bots
-          SwitchListTile(
-            contentPadding: EdgeInsets.zero,
-            title: const Text('Rellenar puestos vacíos con Bots (IA)', style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
-            subtitle: const Text('Si no se llenan los puestos, se completan con la máquina', style: TextStyle(color: Colors.white54, fontSize: 11)),
-            value: _fillWithBots,
-            activeThumbColor: const Color(0xFF22C55E),
-            onChanged: (val) => setState(() => _fillWithBots = val),
-          ),
-
-          const SizedBox(height: 24),
-
-          // Botón Crear Sala
-          App3dButton.icon(
-            onPressed: _createRoom,
-            expand: true,
-            height: 50,
-            depth: 4.5,
-            borderRadius: 16,
-            variant: App3dButtonVariant.gold,
-            icon: Icons.meeting_room_rounded,
-            iconSize: 22,
-            label: 'CREAR SALA (SIN INTERNET)',
-            textStyle: const TextStyle(
-              color: Color(0xFF713F12),
-              fontSize: 14.5,
-              fontWeight: FontWeight.w900,
-              letterSpacing: 0.8,
+                const SizedBox(width: 12),
+                // Texto CREAR SALA
+                const Text(
+                  'CREAR SALA',
+                  style: TextStyle(
+                    color: AppPalette.cartoonCardText,
+                    fontSize: 16.5,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 1.0,
+                  ),
+                ),
+              ],
             ),
           ),
-        ],
+        ),
       ),
     );
   }

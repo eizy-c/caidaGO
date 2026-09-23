@@ -54,7 +54,7 @@ class TutorialEngine extends ChangeNotifier {
       TutorialPlayer(
         index: 0,
         name: session.name.isEmpty ? 'Tú' : session.name,
-        color: const Color(0xFF10B981),
+        color: const Color(0xFF38BDF8), // Cyan oficial del jugador local
         avatarId: session.avatarIndex,
         isBot: false,
         score: 0,
@@ -63,8 +63,8 @@ class TutorialEngine extends ChangeNotifier {
       TutorialPlayer(
         index: 1,
         name: 'Carlos',
-        color: const Color(0xFF3B82F6),
-        avatarId: 3,
+        color: const Color(0xFFF43F5E), // Rojo oficial de Rival 1 (Izquierda)
+        avatarId: 20,
         isBot: true,
         score: 0,
         cardsInHandCount: 0,
@@ -72,8 +72,8 @@ class TutorialEngine extends ChangeNotifier {
       TutorialPlayer(
         index: 2,
         name: 'María',
-        color: const Color(0xFF8B5CF6),
-        avatarId: 4,
+        color: const Color(0xFF10B981), // Verde esmeralda oficial de Rival 2 (Frente)
+        avatarId: 21,
         isBot: true,
         score: 0,
         cardsInHandCount: 0,
@@ -81,8 +81,8 @@ class TutorialEngine extends ChangeNotifier {
       TutorialPlayer(
         index: 3,
         name: 'Pedro',
-        color: const Color(0xFFEF4444),
-        avatarId: 1,
+        color: const Color(0xFFA855F7), // Púrpura oficial de Rival 3 (Derecha)
+        avatarId: 22,
         isBot: true,
         score: 0,
         cardsInHandCount: 0,
@@ -327,6 +327,43 @@ class TutorialEngine extends ChangeNotifier {
     _showingFeedbackModal = true;
     notifyListeners();
     return true;
+  }
+
+  // ===========================================================================
+  // INTERACCIÓN CINEMÁTICA SIMPLIFICADA: AVANCE LINEAL CON UN SOLO TOQUE
+  // ===========================================================================
+  void executeCurrentStepAction() {
+    if (_showingFeedbackModal) {
+      advanceToNextStep();
+      return;
+    }
+    final step = currentStep;
+    switch (step.actionType) {
+      case TutorialActionType.chooseManoCard:
+        final unchosen = _manoSession.unchosenCandidates;
+        if (unchosen.isNotEmpty) {
+          pickManoCandidate(unchosen.first);
+        }
+        break;
+      case TutorialActionType.observeStage:
+      case TutorialActionType.observeCantos:
+        triggerObservationCompletion();
+        break;
+      case TutorialActionType.playCard:
+        if (step.targetCard != null) {
+          playUserCard(step.targetCard!);
+        } else {
+          triggerObservationCompletion();
+        }
+        break;
+      case TutorialActionType.callCanto:
+        if (step.targetCantoName != null) {
+          callUserCanto(step.targetCantoName!);
+        } else {
+          triggerObservationCompletion();
+        }
+        break;
+    }
   }
 
   // ===========================================================================

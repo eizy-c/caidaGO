@@ -140,7 +140,7 @@ void main() {
         ),
       );
       await tester.pump();
-      await tester.pump(const Duration(milliseconds: 900));
+      await tester.pump(const Duration(milliseconds: 2000));
 
       expect(find.text('¡ELIGE UNA CARTA!'), findsOneWidget);
 

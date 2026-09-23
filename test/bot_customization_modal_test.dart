@@ -123,9 +123,9 @@ void main() {
       await tester.tap(find.text('🎲 Aleatorio Criollo'), warnIfMissed: false);
       await tester.pumpAndSettle();
 
-      await tester.ensureVisible(find.text('Guardar Cambios'));
       await tester.tap(find.text('Guardar Cambios'), warnIfMissed: false);
       await tester.pumpAndSettle();
+
 
       final names = PlayerSession.shared.botNames;
       expect(names.length, equals(3));

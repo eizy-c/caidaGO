@@ -102,7 +102,11 @@ class LocalGameHost {
 
     socket.listen(
       (data) {
-        final message = NetworkGameMessage.deserialize(data.toString());
+        final message = NetworkGameMessage.deserialize(
+          data.toString(),
+          pinCode: _roomInfo?.pinCode,
+          roomId: _roomInfo?.roomId,
+        );
         if (message == null) return;
 
         if (message.type == 'JOIN_ROOM') {
@@ -142,10 +146,14 @@ class LocalGameHost {
     // 1. Validar PIN si la sala es privada
     if (_roomInfo?.isPrivate == true) {
       if (clientPin == null || clientPin.trim() != _roomInfo?.pinCode?.trim()) {
-        _sendMessageToSocket(socket, const NetworkGameMessage(
-          type: 'JOIN_REJECTED',
-          data: {'reason': 'PIN_INCORRECTO', 'message': 'El PIN de 4 dígitos es incorrecto.'},
-        ));
+        _sendMessageToSocket(
+          socket,
+          const NetworkGameMessage(
+            type: 'JOIN_REJECTED',
+            data: {'reason': 'PIN_INCORRECTO', 'message': 'El PIN de 4 dígitos es incorrecto.'},
+          ),
+          isHandshake: true,
+        );
         socket.close();
         return null;
       }
@@ -154,13 +162,18 @@ class LocalGameHost {
     // 2. Buscar un asiento libre
     final freeSeatIndex = _seats.indexWhere((s) => !s.isOccupied);
     if (freeSeatIndex == -1) {
-      _sendMessageToSocket(socket, const NetworkGameMessage(
-        type: 'JOIN_REJECTED',
-        data: {'reason': 'SALA_LLENA', 'message': 'La sala ya está completa.'},
-      ));
+      _sendMessageToSocket(
+        socket,
+        const NetworkGameMessage(
+          type: 'JOIN_REJECTED',
+          data: {'reason': 'SALA_LLENA', 'message': 'La sala ya está completa.'},
+        ),
+        isHandshake: true,
+      );
       socket.close();
       return null;
     }
+
 
     // 3. Asignar asiento
     _seats[freeSeatIndex] = RoomSeat(
@@ -177,15 +190,20 @@ class LocalGameHost {
     _clientSockets[clientPlayerId] = socket;
 
     // 4. Responder con éxito y enviar estado de sala
-    _sendMessageToSocket(socket, NetworkGameMessage(
-      type: 'JOIN_ACCEPTED',
-      data: {
-        'seatIndex': freeSeatIndex,
-        'playerId': clientPlayerId,
-        'roomInfo': _roomInfo?.toJson(),
-        'seats': _seats.map((s) => s.toJson()).toList(),
-      },
-    ));
+    _sendMessageToSocket(
+      socket,
+      NetworkGameMessage(
+        type: 'JOIN_ACCEPTED',
+        data: {
+          'seatIndex': freeSeatIndex,
+          'playerId': clientPlayerId,
+          'roomInfo': _roomInfo?.toJson(),
+          'seats': _seats.map((s) => s.toJson()).toList(),
+        },
+      ),
+      isHandshake: true,
+    );
+
 
     _updateBroadcastRoomCount();
     _broadcastLobbyUpdate();
@@ -314,7 +332,10 @@ class LocalGameHost {
   }
 
   void broadcastMessage(NetworkGameMessage message) {
-    final raw = message.serialize();
+    final raw = message.serializeSecure(
+      pinCode: _roomInfo?.pinCode,
+      roomId: _roomInfo?.roomId,
+    );
     for (final socket in _clientSockets.values) {
       try {
         socket.add(raw);
@@ -329,11 +350,16 @@ class LocalGameHost {
     }
   }
 
-  void _sendMessageToSocket(WebSocket socket, NetworkGameMessage message) {
+  void _sendMessageToSocket(WebSocket socket, NetworkGameMessage message, {bool isHandshake = false}) {
     try {
-      socket.add(message.serialize());
+      socket.add(message.serializeSecure(
+        pinCode: isHandshake ? null : _roomInfo?.pinCode,
+        roomId: isHandshake ? null : _roomInfo?.roomId,
+      ));
     } catch (_) {}
   }
+
+
 
   void _notifySeats() {
     seatsNotifier.value = List.unmodifiable(_seats);

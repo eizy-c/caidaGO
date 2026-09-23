@@ -133,5 +133,30 @@ void main() {
       expect(session.coins, 1000);
       expect(session.hasCompletedTutorial, true);
     });
+
+    test('Flujo cinemático lineal: executeCurrentStepAction progresa paso a paso', () async {
+      final engine = TutorialEngine();
+      expect(engine.currentStepIndex, 0);
+
+      // Paso 1: Sorteo
+      await engine.pickManoCandidate(engine.manoSession.candidates.first);
+      expect(engine.showingFeedbackModal, true);
+      engine.executeCurrentStepAction(); // Avanza a paso 2
+
+      expect(engine.currentStepIndex, 1);
+      expect(engine.showingFeedbackModal, false);
+
+      // Paso 2 a 10 usando executeCurrentStepAction
+      while (!engine.isCompleted && engine.currentStepIndex < 9) {
+        engine.executeCurrentStepAction(); // Ejecuta acción -> showingFeedbackModal = true
+        expect(engine.showingFeedbackModal, true);
+        engine.executeCurrentStepAction(); // Avanza al siguiente paso
+      }
+
+      // Etapa 10: Trivilín
+      expect(engine.currentStepIndex, 9);
+      engine.executeCurrentStepAction();
+      expect(engine.isCompleted, true);
+    });
   });
 }

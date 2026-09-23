@@ -1,4 +1,5 @@
 import 'dart:convert';
+import '../network/multiplayer_security.dart';
 
 /// Modo de red de la sala
 enum MultiplayerNetworkMode {
@@ -181,9 +182,18 @@ class NetworkGameMessage {
         'data': data,
       });
 
-  static NetworkGameMessage? deserialize(String raw) {
+  /// Serializa el mensaje y le aplica la capa de cifrado para red local
+  String serializeSecure({String? pinCode, String? roomId}) {
+    final plain = serialize();
+    return MultiplayerSecurity.encryptPayload(plain, pinCode: pinCode, roomId: roomId);
+  }
+
+  static NetworkGameMessage? deserialize(String raw, {String? pinCode, String? roomId}) {
     try {
-      final map = jsonDecode(raw) as Map<String, dynamic>;
+      final decrypted = MultiplayerSecurity.decryptPayload(raw, pinCode: pinCode, roomId: roomId);
+      if (decrypted == null) return null;
+
+      final map = jsonDecode(decrypted) as Map<String, dynamic>;
       return NetworkGameMessage(
         type: map['type'] as String? ?? 'UNKNOWN',
         data: (map['data'] as Map<String, dynamic>?) ?? {},
@@ -193,3 +203,4 @@ class NetworkGameMessage {
     }
   }
 }
+

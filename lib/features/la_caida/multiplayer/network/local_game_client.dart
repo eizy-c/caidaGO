@@ -32,6 +32,9 @@ class LocalGameClient {
   void Function()? onMatchStarted;
   void Function()? onDisconnected;
 
+  String? _currentPinCode;
+  String? _currentRoomId;
+
   ClientConnectionStatus get status => _status;
   MultiplayerRoomInfo? get currentRoom => _currentRoom;
   int get mySeatIndex => _mySeatIndex;
@@ -52,6 +55,7 @@ class LocalGameClient {
     _setStatus(ClientConnectionStatus.connecting);
     errorMessageNotifier.value = null;
     _myPlayerId = 'player_${DateTime.now().millisecondsSinceEpoch}';
+    _currentPinCode = pinCode?.trim();
 
     try {
       final wsUrl = 'ws://$hostIp:$port';
@@ -71,17 +75,20 @@ class LocalGameClient {
         },
       );
 
-      // Enviar solicitud de unión inmediata
-      sendMessage(NetworkGameMessage(
-        type: 'JOIN_ROOM',
-        data: {
-          'playerId': _myPlayerId,
-          'name': playerName,
-          'avatarId': avatarId,
-          'frameId': frameId,
-          'pinCode': pinCode?.trim(),
-        },
-      ));
+      // Enviar solicitud de unión inmediata (usando clave de handshake común)
+      sendMessage(
+        NetworkGameMessage(
+          type: 'JOIN_ROOM',
+          data: {
+            'playerId': _myPlayerId,
+            'name': playerName,
+            'avatarId': avatarId,
+            'frameId': frameId,
+            'pinCode': pinCode?.trim(),
+          },
+        ),
+        isHandshake: true,
+      );
 
       return true;
     } catch (e) {
@@ -93,7 +100,11 @@ class LocalGameClient {
   }
 
   void _handleIncomingData(dynamic raw) {
-    final msg = NetworkGameMessage.deserialize(raw.toString());
+    final msg = NetworkGameMessage.deserialize(
+      raw.toString(),
+      pinCode: _currentPinCode,
+      roomId: _currentRoomId,
+    );
     if (msg == null) return;
 
     switch (msg.type) {
@@ -102,6 +113,7 @@ class LocalGameClient {
         _mySeatIndex = msg.data['seatIndex'] as int? ?? -1;
         if (msg.data['roomInfo'] != null) {
           _currentRoom = MultiplayerRoomInfo.fromJson(msg.data['roomInfo']);
+          _currentRoomId = _currentRoom?.roomId;
         }
         if (msg.data['seats'] != null) {
           _updateSeatsFromJson(msg.data['seats'] as List);
@@ -146,13 +158,18 @@ class LocalGameClient {
     ));
   }
 
-  void sendMessage(NetworkGameMessage message) {
+  void sendMessage(NetworkGameMessage message, {bool isHandshake = false}) {
     if (_socket != null && _socket!.readyState == WebSocket.open) {
       try {
-        _socket!.add(message.serialize());
+        _socket!.add(message.serializeSecure(
+          pinCode: isHandshake ? null : _currentPinCode,
+          roomId: isHandshake ? null : _currentRoomId,
+        ));
       } catch (_) {}
     }
   }
+
+
 
   void _handleConnectionClosed() {
     debugPrint('[LocalGameClient] Conexión cerrada por el Host');

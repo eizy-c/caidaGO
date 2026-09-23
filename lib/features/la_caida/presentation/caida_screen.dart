@@ -222,6 +222,7 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
   // Sorteo interactivo de Mano ("¡ELIGE UNA CARTA!") encapsulado en Domain Object
   ManoDrawSession _manoSession = ManoDrawSession();
   bool _isShufflingDeck = false;
+  int _visibleManoCandidateCount = 0;
   bool _hasUserChosenManoCard = false;
   bool _isResolvingMano = false;
   bool get _isChoosingMano => _manoSession.isActive;
@@ -380,6 +381,7 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
   void _startManoSelection({bool animate = true}) async {
     _hasUserChosenManoCard = false;
     _isResolvingMano = false;
+    _visibleManoCandidateCount = 0;
     _manoSession = ManoDrawSession.startNew(
       initialAnnouncement: 'Sorteo de Mano: Toca una carta para ver quién sale',
     );
@@ -389,7 +391,7 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
       // 1. Animación visual y auditiva de barajado antes del sorteo de Mano
       setState(() {
         _isShufflingDeck = true;
-        _manoAnnouncement = 'Barajando mazo...';
+        _manoAnnouncement = 'Barajando cartas...';
       });
       AudioService().playCardSlide();
 
@@ -398,37 +400,50 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
 
       setState(() {
         _isShufflingDeck = false;
-        _manoAnnouncement = '¡ELIGE UNA CARTA!';
+        _manoAnnouncement = 'Colocando cartas sobre la mesa...';
       });
 
-      final spreadFlights = <CardFlightTrajectory>[];
-      for (final cand in _manoCandidates) {
-        spreadFlights.add(CardFlightTrajectory(
-          id: 'mano_spread_${cand.id}_${DateTime.now().millisecondsSinceEpoch}',
-          card: cand.card,
-          startAnchor: SpatialCardAnchor.deckAnchor,
-          targetAnchor: SpatialCardAnchor(
-            offset: Offset(cand.leftOffset, cand.topOffset),
-            rotation: cand.rotation,
-          ),
-          duration: const Duration(milliseconds: 380),
-          curve: Curves.easeOutBack,
-          isFaceUp: false,
-        ));
+      // 2. Colocar las cartas una a una sobre la mesa con cinemática fluida desde el mazo
+      for (int i = 0; i < _manoCandidates.length; i++) {
+        final cand = _manoCandidates[i];
+        AudioService().playCardDeal();
+        HapticService.instance.onCardPlay();
+
+        setState(() {
+          _activeTrajectories = [
+            CardFlightTrajectory(
+              id: 'mano_deal_${cand.id}_${DateTime.now().millisecondsSinceEpoch}',
+              card: cand.card,
+              startAnchor: SpatialCardAnchor.deckAnchor,
+              targetAnchor: SpatialCardAnchor(
+                offset: Offset(cand.leftOffset, cand.topOffset),
+                rotation: cand.rotation,
+              ),
+              duration: const Duration(milliseconds: 170),
+              curve: Curves.easeOutCubic,
+              isFaceUp: false,
+            ),
+          ];
+        });
+
+        await _safeDelay(const Duration(milliseconds: 100));
+        if (!mounted) return;
+
+        setState(() {
+          _visibleManoCandidateCount = i + 1;
+        });
       }
 
-      setState(() {
-        _activeTrajectories = spreadFlights;
-      });
-
-      await _safeDelay(const Duration(milliseconds: 400));
-      if (!mounted) return;
-
-      setState(() {
-        _activeTrajectories.clear();
-      });
+      if (mounted) {
+        setState(() {
+          _activeTrajectories.clear();
+          _manoAnnouncement = '¡ELIGE UNA CARTA!';
+        });
+      }
     } else {
-      setState(() {});
+      setState(() {
+        _visibleManoCandidateCount = _manoCandidates.length;
+      });
     }
   }
 
@@ -2866,6 +2881,11 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
       return a.id.compareTo(b.id);
     });
 
+    // Filtrar para mostrar solo las cartas que ya han aterrizado sobre el tapete
+    final visibleCandidates = sortedCandidates
+        .where((cand) => cand.chosenByPlayerIndex != null || _manoCandidates.indexOf(cand) < _visibleManoCandidateCount)
+        .toList();
+
     return Center(
       child: FittedBox(
         fit: BoxFit.scaleDown,
@@ -2907,7 +2927,7 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
               child: Stack(
                 clipBehavior: Clip.none,
                 alignment: Alignment.center,
-                children: sortedCandidates.map((cand) {
+                children: visibleCandidates.map((cand) {
                   final isChosen = cand.chosenByPlayerIndex != null;
                   final player = isChosen ? _players[cand.chosenByPlayerIndex!] : null;
                   final canTap = !_hasUserChosenManoCard && !_isResolvingMano && !isChosen;

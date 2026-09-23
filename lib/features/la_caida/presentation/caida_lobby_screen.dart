@@ -2,8 +2,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../../core/presentation/widgets/app_3d_button.dart';
 import '../../../core/presentation/widgets/spanish_card_view.dart';
-import '../../../core/rules/game_rules_data.dart';
-import '../../../core/services/feedback_service.dart';
 import '../../../core/services/user_profile_service.dart';
 import '../domain/models/caida_match_config.dart';
 import '../economy/daily_challenge_system.dart';
@@ -22,9 +20,11 @@ import 'widgets/player_profile_stats_modal.dart';
 import 'widgets/profile_and_level_modal.dart';
 import 'widgets/user_frame_view.dart';
 import 'widgets/vip_tier_selector_modal.dart';
-import 'widgets/privacy_policy_dialog.dart';
 import '../multiplayer/presentation/multiplayer_hub_screen.dart';
 import '../tutorial/presentation/tutorial_screen.dart';
+import 'about_settings_screen.dart';
+
+
 
 /// Modo de visualización de navegación del lobby
 enum LobbyViewMode { main, unJugador }
@@ -54,9 +54,6 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
   int _selectedTotalPlayers = 2;
   bool _selectedTeams = false;
 
-  // Configuración de audio y efectos
-  bool _soundEnabled = true;
-  bool _vibrationEnabled = true;
 
   @override
   void initState() {
@@ -324,192 +321,16 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
   }
 
   void _openSettingsDialog() {
-    showDialog(
-      context: context,
-      builder: (ctx) => StatefulBuilder(
-        builder: (context, setDialogState) {
-          return AlertDialog(
-            backgroundColor: const Color(0xFF161616),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(24),
-              side: const BorderSide(color: Color(0xFF2E2E2E), width: 1.0),
-            ),
-            title: const Row(
-              children: [
-                Icon(Icons.settings_rounded, color: Color(0xFF818CF8), size: 26),
-                SizedBox(width: 10),
-                Text(
-                  'Ajustes del Juego',
-                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 18),
-                ),
-              ],
-            ),
-            content: SizedBox(
-              width: 480,
-              child: SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                SwitchListTile(
-                  title: const Text('Efectos de Sonido', style: TextStyle(color: Colors.white, fontSize: 14)),
-                  value: _soundEnabled,
-                  activeThumbColor: const Color(0xFF818CF8),
-                  onChanged: (val) {
-                    setDialogState(() => _soundEnabled = val);
-                    setState(() => _soundEnabled = val);
-                  },
-                ),
-                SwitchListTile(
-                  title: const Text('Vibración Háptica', style: TextStyle(color: Colors.white, fontSize: 14)),
-                  value: _vibrationEnabled,
-                  activeThumbColor: const Color(0xFF818CF8),
-                  onChanged: (val) {
-                    setDialogState(() => _vibrationEnabled = val);
-                    setState(() => _vibrationEnabled = val);
-                  },
-                ),
-                const Divider(color: Colors.white12),
-                ListTile(
-                  leading: const Icon(Icons.smart_toy_rounded, color: Color(0xFF60A5FA)),
-                  title: const Text('Personalizar Bots (IA)', style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
-                  subtitle: Text('Rivales: ${_session.botNames.join(", ")}', style: const TextStyle(color: Colors.white54, fontSize: 11)),
-                  trailing: const Icon(Icons.arrow_forward_ios_rounded, color: Colors.white54, size: 14),
-                  onTap: () {
-                    Navigator.of(ctx).pop();
-                    _openBotCustomization();
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(Icons.feedback_rounded, color: Color(0xFFF59E0B)),
-                  title: const Text('Buzón de Sugerencias', style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
-                  subtitle: const Text('Envíanos tus ideas, mejoras o comentarios', style: TextStyle(color: Colors.white54, fontSize: 11)),
-                  trailing: const Icon(Icons.open_in_new_rounded, color: Color(0xFF818CF8), size: 16),
-                  onTap: () {
-                    Navigator.of(ctx).pop();
-                    FeedbackService.openFeedbackForm(context: context);
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(Icons.menu_book_rounded, color: Color(0xFFFDE047)),
-                  title: const Text('Reglas de CaidaGO', style: TextStyle(color: Colors.white, fontSize: 14)),
-                  trailing: const Icon(Icons.arrow_forward_ios_rounded, color: Colors.white54, size: 14),
-                  onTap: () {
-                    Navigator.of(ctx).pop();
-                    _openLearnRulesDialog();
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(Icons.privacy_tip_rounded, color: Color(0xFF38BDF8)),
-                  title: const Text('Política de Privacidad', style: TextStyle(color: Colors.white, fontSize: 14)),
-                  trailing: const Icon(Icons.arrow_forward_ios_rounded, color: Colors.white54, size: 14),
-                  onTap: () {
-                    Navigator.of(ctx).pop();
-                    PrivacyPolicyDialog.show(context);
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(Icons.verified_user_rounded, color: Color(0xFF34D399)),
-                  title: const Text('Licencias y Software Libre', style: TextStyle(color: Colors.white, fontSize: 14)),
-                  trailing: const Icon(Icons.arrow_forward_ios_rounded, color: Colors.white54, size: 14),
-                  onTap: () {
-                    Navigator.of(ctx).pop();
-                    showLicensePage(
-                      context: context,
-                      applicationName: 'CaidaGO',
-                      applicationVersion: '1.0.0',
-                      applicationLegalese: '© 2026 CaidaGO • Desarrollado por Eizy Systems\nTodos los derechos reservados.',
-                    );
-                  },
-                ),
-                const Divider(color: Colors.white12),
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 6),
-                  child: Text(
-                    'CaidaGO v1.0.0\nDesarrollado por Eizy Systems • 2026\n© 2026 CaidaGO. Todos los derechos reservados.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Colors.white38,
-                      fontSize: 11,
-                      height: 1.35,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-              ],
-                ),
-              ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(ctx).pop(),
-                child: const Text('Listo', style: TextStyle(color: Color(0xFF818CF8), fontWeight: FontWeight.bold)),
-              ),
-            ],
-          );
-        },
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => const AboutSettingsScreen(),
       ),
     );
   }
-
-  void _openLearnRulesDialog() {
-    final rules = GameRulesData.getRules('la_caida');
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF161616),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-          side: const BorderSide(color: Color(0xFF2E2E2E), width: 1.0),
-        ),
-        title: Row(
-          children: [
-            const Icon(Icons.menu_book_rounded, color: Color(0xFFFBBF24)),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                rules.title,
-                style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-            ),
-          ],
-        ),
-        content: SizedBox(
-          width: double.maxFinite,
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(rules.objective, style: const TextStyle(color: Colors.white70, fontSize: 13)),
-                const SizedBox(height: 12),
-                const Text('Dinámica de juego:', style: TextStyle(color: Color(0xFFFDE047), fontWeight: FontWeight.bold)),
-                ...rules.steps.map((s) => Padding(
-                      padding: const EdgeInsets.only(top: 4),
-                      child: Text('• $s', style: const TextStyle(color: Colors.white70, fontSize: 12)),
-                    )),
-                const SizedBox(height: 12),
-                const Text('Cantos y Jugadas Especiales:', style: TextStyle(color: Color(0xFFFDE047), fontWeight: FontWeight.bold)),
-                ...rules.specialRules.map((s) => Padding(
-                      padding: const EdgeInsets.only(top: 4),
-                      child: Text('• $s', style: const TextStyle(color: Colors.white70, fontSize: 12)),
-                    )),
-              ],
-            ),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Entendido', style: TextStyle(color: Color(0xFFFBBF24), fontWeight: FontWeight.bold)),
-          ),
-        ],
-      ),
-    );
-  }
-
 
 
   void _openMultiplayerComingSoonDialog() {
+
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => const MultiplayerHubScreen(),

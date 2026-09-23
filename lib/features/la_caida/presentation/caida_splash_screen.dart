@@ -6,6 +6,7 @@ import '../../../core/services/user_profile_service.dart';
 import '../economy/player_session.dart';
 import 'caida_lobby_screen.dart';
 import 'widgets/profile_options_dialog.dart';
+import 'widgets/four_aces_display_view.dart';
 
 /// Pantalla de bienvenida y portada estilizada para La Caída,
 /// inspirada en la captura con fondo chevron púrpura y tipografía 3D abombada.
@@ -110,113 +111,154 @@ class _CaidaSplashScreenState extends State<CaidaSplashScreen>
             ),
           ),
 
-          // 2. Logotipo Central 3D con Sombras
-          Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Título 3D abombado
-                Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    // Sombra 3D profunda
-                    Transform.translate(
-                      offset: const Offset(4, 8),
-                      child: Text(
-                        'CAIDAGO',
-                        style: TextStyle(
-                          fontSize: 60,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: 2.0,
-                          foreground: Paint()
-                            ..style = PaintingStyle.fill
-                            ..color = const Color(0xFF0369A1).withValues(alpha: 0.8),
-                        ),
-                      ),
-                    ),
-                    // Texto frontal celeste brillante
-                    ShaderMask(
-                      shaderCallback: (bounds) => const LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [Color(0xFF38BDF8), Color(0xFF0284C7), Color(0xFF0369A1)],
-                      ).createShader(bounds),
-                      child: Text(
-                        'CAIDAGO',
-                        style: TextStyle(
-                          fontSize: 60,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: 2.0,
-                          foreground: Paint()
-                            ..style = PaintingStyle.stroke
-                            ..strokeWidth = 6
-                            ..color = const Color(0xFF0284C7),
-                        ),
-                      ),
-                    ),
-                    const Text(
-                      'CAIDAGO',
-                      style: TextStyle(
-                        fontSize: 60,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 2.0,
-                        color: Color(0xFF38BDF8),
-                      ),
-                    ),
-
-                    // Rótulo manuscrito "Criolla / Tradicional"
-                    Positioned(
-                      bottom: -4,
-                      right: 12,
-                      child: Transform.rotate(
-                        angle: -math.pi / 16,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFA855F7),
-                            borderRadius: BorderRadius.circular(10),
-                            boxShadow: [
-                              BoxShadow(
-                                color: const Color(0xFF9333EA).withValues(alpha: 0.6),
-                                blurRadius: 10,
-                                offset: const Offset(0, 3),
-                              ),
-                            ],
-                          ),
-                          child: const Text(
-                            'Tradicional',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              fontStyle: FontStyle.italic,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
+          // 2. Resplandor radial central
+          Positioned.fill(
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: RadialGradient(
+                  center: const Alignment(0, -0.1),
+                  radius: 0.85,
+                  colors: [
+                    const Color(0xFF9333EA).withValues(alpha: 0.28),
+                    const Color(0xFF6B21A8).withValues(alpha: 0.12),
+                    Colors.transparent,
                   ],
                 ),
-                const SizedBox(height: 36),
-
-                // Cartas en abanico decorativas
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    _buildMiniCardDecor(-math.pi / 12, const Color(0xFFFDE047), Icons.workspace_premium_rounded),
-                    _buildMiniCardDecor(0, const Color(0xFF38BDF8), Icons.sports_esports_rounded),
-                    _buildMiniCardDecor(math.pi / 12, const Color(0xFFF43F5E), Icons.emoji_events_rounded),
-                  ],
-                ),
-              ],
+              ),
             ),
           ),
 
-          // 3. Barra de Carga Dinámica Inferior (0% al 100%)
+          // 3. Contenido Central (Abanico de 4 Ases + Logo 3D + 3 Tarjetas Flotantes + Lema)
+          SafeArea(
+            child: Center(
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // A. Abanico de los 4 Ases (Oros, Copas, Espadas, Bastos)
+                      const FourAcesDisplayView(cardWidth: 54),
+                      const SizedBox(height: 6),
+
+                      // B. Logotipo 3D CAIDAGO + Rótulo "Tradicional"
+                      Stack(
+                        clipBehavior: Clip.none,
+                        alignment: Alignment.center,
+                        children: [
+                          // Sombra 3D profunda
+                          Transform.translate(
+                            offset: const Offset(3, 7),
+                            child: Text(
+                              'CAIDAGO',
+                              style: TextStyle(
+                                fontSize: 52,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 2.5,
+                                foreground: Paint()
+                                  ..style = PaintingStyle.fill
+                                  ..color = const Color(0xFF0F172A).withValues(alpha: 0.9),
+                              ),
+                            ),
+                          ),
+                          // Borde exterior 3D
+                          Text(
+                            'CAIDAGO',
+                            style: TextStyle(
+                              fontSize: 52,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 2.5,
+                              foreground: Paint()
+                                ..style = PaintingStyle.stroke
+                                ..strokeWidth = 6.5
+                                ..color = const Color(0xFF0284C7),
+                            ),
+                          ),
+                          // Gradiente interior celeste brillante
+                          ShaderMask(
+                            shaderCallback: (bounds) => const LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [Color(0xFFE0F2FE), Color(0xFF38BDF8), Color(0xFF0284C7)],
+                            ).createShader(bounds),
+                            child: const Text(
+                              'CAIDAGO',
+                              style: TextStyle(
+                                fontSize: 52,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 2.5,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+
+                          // Rótulo "Tradicional"
+                          Positioned(
+                            bottom: -10,
+                            right: -10,
+                            child: Transform.rotate(
+                              angle: -math.pi / 24,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 3),
+                                decoration: BoxDecoration(
+                                  gradient: const LinearGradient(
+                                    colors: [Color(0xFFA855F7), Color(0xFF7C3AED)],
+                                  ),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(color: Colors.white38, width: 1.2),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: const Color(0xFF9333EA).withValues(alpha: 0.6),
+                                      blurRadius: 10,
+                                      offset: const Offset(0, 3),
+                                    ),
+                                  ],
+                                ),
+                                child: const Text(
+                                  'Tradicional',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 14.5,
+                                    fontWeight: FontWeight.w900,
+                                    letterSpacing: 0.4,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 38),
+
+                      // C. 3 Tarjetas Flotantes 3D (Desafíos, JUGAR, Historial) con Chispas
+                      _buildFloatingCardsRow(),
+                      const SizedBox(height: 24),
+
+                      // D. Lema / Tagline
+                      Text(
+                        'ESTRATEGIA  •  CONCENTRACIÓN  •  DIVERSIÓN',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.65),
+                          fontSize: 11,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 2.0,
+                        ),
+                      ),
+                      const SizedBox(height: 48),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+
+          // 4. Barra de Carga Dinámica Inferior (0% al 100%)
           Positioned(
-            bottom: MediaQuery.of(context).padding.bottom + 48,
-            left: 28,
-            right: 28,
+            bottom: MediaQuery.of(context).padding.bottom + 24,
+            left: 24,
+            right: 24,
             child: AnimatedBuilder(
               animation: _loadingAnimation,
               builder: (context, _) {
@@ -225,14 +267,22 @@ class _CaidaSplashScreenState extends State<CaidaSplashScreen>
 
                 return Center(
                   child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 320),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        // Fila de estado y porcentaje
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
-                          child: Row(
+                    constraints: const BoxConstraints(maxWidth: 340),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1E1B4B).withValues(alpha: 0.75),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: Colors.white12, width: 1),
+                        boxShadow: const [
+                          BoxShadow(color: Colors.black45, blurRadius: 10, offset: Offset(0, 3)),
+                        ],
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // Fila de estado y porcentaje
+                          Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Flexible(
@@ -241,9 +291,8 @@ class _CaidaSplashScreenState extends State<CaidaSplashScreen>
                                   overflow: TextOverflow.ellipsis,
                                   style: const TextStyle(
                                     color: Colors.white70,
-                                    fontSize: 12,
+                                    fontSize: 11.5,
                                     fontWeight: FontWeight.w600,
-                                    letterSpacing: 0.4,
                                   ),
                                 ),
                               ),
@@ -251,67 +300,58 @@ class _CaidaSplashScreenState extends State<CaidaSplashScreen>
                               Text(
                                 '$percentInt%',
                                 style: const TextStyle(
-                                  color: Color(0xFF8BDCD7),
-                                  fontSize: 14,
+                                  color: Color(0xFF38BDF8),
+                                  fontSize: 13.5,
                                   fontWeight: FontWeight.w900,
-                                  letterSpacing: 0.8,
                                 ),
                               ),
                             ],
                           ),
-                        ),
+                          const SizedBox(height: 6),
 
-                        // Riel de la barra de progreso
-                        Container(
-                          height: 12,
-                          width: double.infinity,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF1E1B4B).withValues(alpha: 0.85),
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(
-                              color: const Color(0xFF38BDF8).withValues(alpha: 0.5),
-                              width: 1.5,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: const Color(0xFF0284C7).withValues(alpha: 0.35),
-                                blurRadius: 10,
-                                offset: const Offset(0, 2),
+                          // Riel de la barra de progreso
+                          Container(
+                            height: 10,
+                            width: double.infinity,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF0F172A),
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(
+                                color: const Color(0xFF0284C7).withValues(alpha: 0.4),
+                                width: 1.0,
                               ),
-                            ],
-                          ),
-                          child: LayoutBuilder(
-                            builder: (context, constraints) {
-                              final fillWidth = constraints.maxWidth * progress;
-                              return Align(
-                                alignment: Alignment.centerLeft,
-                                child: Container(
-                                  width: fillWidth,
-                                  height: double.infinity,
-                                  decoration: BoxDecoration(
-                                    gradient: const LinearGradient(
-                                      colors: [
-                                        Color(0xFF0284C7),
-                                        Color(0xFF38BDF8),
-                                        Color(0xFF8BDCD7),
-                                      ],
-                                      begin: Alignment.centerLeft,
-                                      end: Alignment.centerRight,
-                                    ),
-                                    borderRadius: BorderRadius.circular(8),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: const Color(0xFF8BDCD7).withValues(alpha: 0.6),
-                                        blurRadius: 6,
+                            ),
+                            child: LayoutBuilder(
+                              builder: (context, constraints) {
+                                final fillWidth = constraints.maxWidth * progress;
+                                return Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: Container(
+                                    width: fillWidth,
+                                    height: double.infinity,
+                                    decoration: BoxDecoration(
+                                      gradient: const LinearGradient(
+                                        colors: [
+                                          Color(0xFF0284C7),
+                                          Color(0xFF38BDF8),
+                                          Color(0xFF67E8F9),
+                                        ],
                                       ),
-                                    ],
+                                      borderRadius: BorderRadius.circular(8),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: const Color(0xFF38BDF8).withValues(alpha: 0.7),
+                                          blurRadius: 8,
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                ),
-                              );
-                            },
+                                );
+                              },
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 );
@@ -323,28 +363,125 @@ class _CaidaSplashScreenState extends State<CaidaSplashScreen>
     );
   }
 
-  Widget _buildMiniCardDecor(double angle, Color borderColor, IconData icon) {
-    return Transform.rotate(
-      angle: angle,
-      child: Container(
-        width: 44,
-        height: 64,
-        margin: const EdgeInsets.symmetric(horizontal: 4),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: borderColor, width: 2),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.4),
-              blurRadius: 6,
-              offset: const Offset(2, 4),
+  /// Fila de las 3 Tarjetas Flotantes 3D en el centro de la pantalla
+  Widget _buildFloatingCardsRow() {
+    return SizedBox(
+      height: 140,
+      child: Stack(
+        alignment: Alignment.center,
+        clipBehavior: Clip.none,
+        children: [
+          // Tarjeta Izquierda (Amarilla - DESAFÍOS)
+          Positioned(
+            left: 10,
+            child: Transform.rotate(
+              angle: -0.12,
+              child: _buildFloatingCard(
+                label: 'DESAFÍOS',
+                icon: Icons.military_tech_rounded,
+                gradientColors: [const Color(0xFFFBBF24), const Color(0xFFD97706)],
+                shadowColor: const Color(0xFFF59E0B),
+                width: 90,
+                height: 115,
+              ),
             ),
-          ],
+          ),
+
+          // Tarjeta Derecha (Roja - HISTORIAL)
+          Positioned(
+            right: 10,
+            child: Transform.rotate(
+              angle: 0.12,
+              child: _buildFloatingCard(
+                label: 'HISTORIAL',
+                icon: Icons.emoji_events_rounded,
+                gradientColors: [const Color(0xFFFB7185), const Color(0xFFE11D48)],
+                shadowColor: const Color(0xFFF43F5E),
+                width: 90,
+                height: 115,
+              ),
+            ),
+          ),
+
+          // Tarjeta Central Elevada (Celeste - JUGAR)
+          Positioned(
+            child: _buildFloatingCard(
+              label: 'JUGAR',
+              icon: Icons.sports_esports_rounded,
+              gradientColors: [const Color(0xFF38BDF8), const Color(0xFF0284C7)],
+              shadowColor: const Color(0xFF38BDF8),
+              width: 102,
+              height: 130,
+              isProminent: true,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFloatingCard({
+    required String label,
+    required IconData icon,
+    required List<Color> gradientColors,
+    required Color shadowColor,
+    required double width,
+    required double height,
+    bool isProminent = false,
+  }) {
+    return Container(
+      width: width,
+      height: height,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: gradientColors,
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
         ),
-        child: Center(
-          child: Icon(icon, color: borderColor, size: 24),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: isProminent ? 0.6 : 0.35),
+          width: isProminent ? 2.2 : 1.5,
         ),
+        boxShadow: [
+          BoxShadow(
+            color: shadowColor.withValues(alpha: isProminent ? 0.6 : 0.4),
+            blurRadius: isProminent ? 20 : 12,
+            spreadRadius: isProminent ? 2 : 0,
+            offset: const Offset(0, 4),
+          ),
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.45),
+            blurRadius: 8,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            icon,
+            color: Colors.white,
+            size: isProminent ? 42 : 34,
+            shadows: const [
+              Shadow(color: Colors.black38, blurRadius: 4, offset: Offset(0, 2)),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            label,
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w900,
+              fontSize: isProminent ? 13 : 11,
+              letterSpacing: 0.8,
+              shadows: const [
+                Shadow(color: Colors.black45, blurRadius: 3, offset: Offset(0, 1)),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

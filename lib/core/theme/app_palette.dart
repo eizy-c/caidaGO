@@ -28,6 +28,18 @@ class AppPalette {
   static const Color crimson = Color(0xFFEF4444);
   static const Color crimsonDark = Color(0xFFB91C1C);
 
+  // Nueva paleta Cartoon Azul/Púrpura (Multijugador, Ajustes, etc.)
+  static const Color cartoonBg = Color(0xFF3F38A8);
+  static const Color cartoonBgDark = Color(0xFF302B82);
+  static const Color cartoonSurface = Color(0xFF4D47B8);
+  static const Color cartoonCard = Color(0xFFE8ECFF);
+  static const Color cartoonCardText = Color(0xFF1E1B4B);
+  static const Color cartoonBorder = Color(0xFF27227D);
+  static const Color cartoonCyan = Color(0xFF22D3EE);
+  static const Color cartoonYellow = Color(0xFFFACC15);
+  static const Color cartoonYellowDark = Color(0xFFCA8A04);
+  static const Color cartoonRed = Color(0xFFE11D48);
+
   /// Genera una tonalidad más oscura para la base extruida 3D (:before en CSS).
   static Color get3dEdgeColor(Color baseColor, [double factor = 0.28]) {
     final hsl = HSLColor.fromColor(baseColor);
@@ -42,3 +54,4 @@ class AppPalette {
     return hsl.withLightness(lighterLightness).toColor();
   }
 }
+
