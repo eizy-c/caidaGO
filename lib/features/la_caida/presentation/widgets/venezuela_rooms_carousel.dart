@@ -449,7 +449,17 @@ class _VenezuelaRoomsCarouselScreenState extends State<VenezuelaRoomsCarouselScr
         child: Stack(
           fit: StackFit.expand,
           children: [
-            // 1. Resplandor escarchado si aplica
+            // 1. Marco oficial regional en el FONDO de la tarjeta
+            Positioned.fill(
+              child: Image.asset(
+                room.frameAsset,
+                fit: BoxFit.fill,
+                errorBuilder: (ctx, err, stack) =>
+                    _buildFallbackFrame(room, isUnlocked),
+              ),
+            ),
+
+            // 2. Resplandor escarchado si aplica
             if (room.isFrozenTheme && isUnlocked)
               Positioned(
                 top: -20,
@@ -464,9 +474,17 @@ class _VenezuelaRoomsCarouselScreenState extends State<VenezuelaRoomsCarouselScr
                 ),
               ),
 
-            // 2. Contenido interno de la tarjeta (con padding superior para no tapar la placa del marco)
+            // 3. Scrim atenuado si la sala está bloqueada (sobre el fondo)
+            if (!isUnlocked)
+              Positioned.fill(
+                child: Container(
+                  color: Colors.black.withValues(alpha: 0.52),
+                ),
+              ),
+
+            // 4. Todo el contenido interno, cajas y botones EN FRENTE
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 52, 16, 14),
+              padding: const EdgeInsets.fromLTRB(20, 52, 20, 14),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -577,14 +595,21 @@ class _VenezuelaRoomsCarouselScreenState extends State<VenezuelaRoomsCarouselScr
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
                     decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.65),
+                      color: AppPalette.cartoonCardDark.withValues(alpha: 0.92),
                       borderRadius: BorderRadius.circular(14),
                       border: Border.all(
                         color: isUnlocked
-                            ? const Color(0xFFF59E0B).withValues(alpha: 0.8)
-                            : Colors.white12,
-                        width: 1.2,
+                            ? const Color(0xFFF59E0B).withValues(alpha: 0.85)
+                            : Colors.white24,
+                        width: 1.5,
                       ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.35),
+                          blurRadius: 6,
+                          offset: const Offset(0, 3),
+                        ),
+                      ],
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -679,22 +704,29 @@ class _VenezuelaRoomsCarouselScreenState extends State<VenezuelaRoomsCarouselScr
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Row(
-                            children: [
-                              const Text('🏆', style: TextStyle(fontSize: 11)),
-                              const SizedBox(width: 4),
-                              Text(
-                                isCompleted ? 'SALA COMPLETADA' : 'TROFEOS DE SALA',
-                                style: TextStyle(
-                                  color: isCompleted
-                                      ? const Color(0xFFFDE047)
-                                      : Colors.white70,
-                                  fontWeight: FontWeight.w900,
-                                  fontSize: 9.5,
+                          Expanded(
+                            child: Row(
+                              children: [
+                                const Text('🏆', style: TextStyle(fontSize: 11)),
+                                const SizedBox(width: 4),
+                                Flexible(
+                                  child: Text(
+                                    isCompleted ? 'SALA COMPLETADA' : 'TROFEOS DE SALA',
+                                    style: TextStyle(
+                                      color: isCompleted
+                                          ? const Color(0xFFFDE047)
+                                          : Colors.white70,
+                                      fontWeight: FontWeight.w900,
+                                      fontSize: 9.5,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
+                          const SizedBox(width: 4),
                           Text(
                             '$trophies / ${room.trophyCap}',
                             style: TextStyle(
@@ -766,33 +798,11 @@ class _VenezuelaRoomsCarouselScreenState extends State<VenezuelaRoomsCarouselScr
 
                   const SizedBox(height: 8),
 
-                  // 5. Botón Inferior de Acción
+                  // 5. Botón Inferior de Acción (completamente al frente)
                   _buildActionButton(room, isUnlocked, canAfford),
                 ],
               ),
             ),
-
-            // 3. MARCO OFICIAL REGIONAL EN EL BORDE DE LA TARJETA
-            Positioned.fill(
-              child: IgnorePointer(
-                child: Image.asset(
-                  room.frameAsset,
-                  fit: BoxFit.fill,
-                  errorBuilder: (ctx, err, stack) =>
-                      _buildFallbackFrame(room, isUnlocked),
-                ),
-              ),
-            ),
-
-            // 4. Scrim atenuado si la sala está bloqueada
-            if (!isUnlocked)
-              Positioned.fill(
-                child: IgnorePointer(
-                  child: Container(
-                    color: Colors.black.withValues(alpha: 0.45),
-                  ),
-                ),
-              ),
           ],
         ),
       ),
@@ -864,21 +874,25 @@ class _VenezuelaRoomsCarouselScreenState extends State<VenezuelaRoomsCarouselScr
       variant: App3dButtonVariant.emerald,
       onPressed: () => _onPlayRoom(room),
       child: Center(
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.play_arrow_rounded, color: Colors.white, size: 20),
-            const SizedBox(width: 4),
-            Text(
-              'JUGAR (🪙 ${room.entryFee})',
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w900,
-                fontSize: 13,
-                letterSpacing: 0.5,
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.play_arrow_rounded, color: Colors.white, size: 20),
+              const SizedBox(width: 4),
+              Text(
+                'JUGAR (🪙 ${room.entryFee})',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w900,
+                  fontSize: 13,
+                  letterSpacing: 0.5,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -888,23 +902,10 @@ class _VenezuelaRoomsCarouselScreenState extends State<VenezuelaRoomsCarouselScr
   Widget _buildFallbackFrame(VenezuelaRoomTier room, bool isUnlocked) {
     return Container(
       decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        gradient: RadialGradient(
-          colors: [
-            room.accentColor.withValues(alpha: 0.5),
-            room.primaryColor,
-          ],
-        ),
+        borderRadius: BorderRadius.circular(22),
         border: Border.all(
-          color: room.accentColor,
+          color: room.accentColor.withValues(alpha: 0.6),
           width: 3,
-        ),
-      ),
-      child: Center(
-        child: Icon(
-          room.isFrozenTheme ? Icons.ac_unit_rounded : Icons.casino_rounded,
-          color: Colors.white,
-          size: 48,
         ),
       ),
     );

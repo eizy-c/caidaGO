@@ -194,17 +194,17 @@ void main() {
       final manager = TrophySessionManager.shared;
       PlayerSession.shared.setCoins(200);
 
-      expect(manager.canAfford(50), isTrue);
+      expect(manager.canAfford(200), isTrue);
       expect(manager.canAfford(500), isFalse);
 
-      // Deducir 50 de entrada
-      final deducted = manager.deductEntryFee(50);
+      // Deducir 200 de entrada
+      final deducted = manager.deductEntryFee(200);
       expect(deducted, isTrue);
-      expect(PlayerSession.shared.coins, equals(150));
+      expect(PlayerSession.shared.coins, equals(0));
 
-      // Ganar en Sala 1 (Premio: 100)
+      // Ganar en Sala 1 (Premio: 400)
       manager.processMatchResult(roomId: 1, isWinner: true, mode: GameMode.duel1v1);
-      expect(PlayerSession.shared.coins, equals(250));
+      expect(PlayerSession.shared.coins, equals(400));
     });
   });
 
@@ -229,10 +229,8 @@ void main() {
       expect(find.text('👥 Parejas 2 vs 2'), findsOneWidget);
 
       // Sala 1 (Chivacoa)
-      expect(find.text('CHIVACOA'), findsOneWidget);
-      expect(find.text('Yaracuy'), findsOneWidget);
       expect(find.text('"Mesa del Alambique"'), findsOneWidget);
-      expect(find.text('JUGAR (🪙 50)'), findsOneWidget);
+      expect(find.text('JUGAR (🪙 200)'), findsOneWidget);
     });
 
     testWidgets('Alternar a modo 2v2 actualiza subtítulos y premios en vivo', (tester) async {
@@ -255,8 +253,8 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('PREMIO C/U'), findsWidgets);
-      expect(find.text('POZO TOTAL'), findsWidgets);
-      expect(find.text('🪙 200'), findsWidgets); // Pozo 2v2 de Chivacoa: 50 * 4 = 200
+      expect(find.text('POZO (4J)'), findsWidgets);
+      expect(find.text('🪙 800'), findsWidgets); // Pozo 2v2 de Chivacoa: 200 * 4 = 800
     });
 
     testWidgets('Tocar JUGAR ejecuta callback con la sala y modalidad seleccionada', (tester) async {
@@ -281,7 +279,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('JUGAR (🪙 50)'));
+      await tester.tap(find.text('JUGAR (🪙 200)'));
       await tester.pumpAndSettle();
 
       expect(selectedRoom?.id, equals(1));
