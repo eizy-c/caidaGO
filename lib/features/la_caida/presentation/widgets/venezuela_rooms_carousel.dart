@@ -424,268 +424,153 @@ class _VenezuelaRoomsCarouselScreenState extends State<VenezuelaRoomsCarouselScr
     final prizePerWinner = room.getPrizePerWinner(_selectedMode);
     final totalPot = room.getTotalPot(_selectedMode);
 
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: isUnlocked
-              ? room.gradientColors
-              : [const Color(0xFF1D1752), const Color(0xFF130E38)],
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-        ),
-        borderRadius: BorderRadius.circular(22),
-        boxShadow: [
-          BoxShadow(
-            color: isUnlocked
-                ? room.primaryColor.withValues(alpha: 0.45)
-                : const Color(0xFF130F3A),
-            blurRadius: 18,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(22),
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            // 1. Marco oficial regional en el FONDO de la tarjeta
-            Positioned.fill(
-              child: Image.asset(
-                room.frameAsset,
-                fit: BoxFit.fill,
-                errorBuilder: (ctx, err, stack) =>
-                    _buildFallbackFrame(room, isUnlocked),
-              ),
-            ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final cardHeight = constraints.maxHeight;
+        final cardWidth = constraints.maxWidth;
+        // La placa superior de madera ocupa ~21% de la altura total
+        final topPadding = cardHeight * 0.215;
+        // La viga inferior con ornamentos ocupa ~5.5% desde el borde inferior
+        final bottomPadding = cardHeight * 0.055;
+        // Los postes laterales y cañas de bambú ocupan ~9.5% a los lados
+        final sidePadding = cardWidth * 0.095;
 
-            // 2. Resplandor escarchado si aplica
-            if (room.isFrozenTheme && isUnlocked)
+        return SizedBox(
+          width: cardWidth,
+          height: cardHeight,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              // 1. LA CARD (Fondo temático con bordes redondeados casi dentro del marco)
               Positioned(
-                top: -20,
-                right: -20,
+                top: cardHeight * 0.025,
+                left: cardWidth * 0.045,
+                right: cardWidth * 0.045,
+                bottom: cardHeight * 0.03,
                 child: Container(
-                  width: 120,
-                  height: 120,
                   decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.cyanAccent.withValues(alpha: 0.15),
-                  ),
-                ),
-              ),
-
-            // 3. Scrim atenuado si la sala está bloqueada (sobre el fondo)
-            if (!isUnlocked)
-              Positioned.fill(
-                child: Container(
-                  color: Colors.black.withValues(alpha: 0.52),
-                ),
-              ),
-
-            // 4. Todo el contenido interno, cajas y botones EN FRENTE
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 52, 20, 14),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // Fila con subtítulo temático e indicador de jugadores en línea
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Flexible(
-                        child: Text(
-                          '"${room.subtitle}"',
-                          style: TextStyle(
-                            color: isUnlocked
-                                ? (room.isFrozenTheme
-                                    ? const Color(0xFFBAE6FD)
-                                    : room.accentColor)
-                                : Colors.white38,
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                            fontStyle: FontStyle.italic,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      // Indicador de jugadores en línea claro y descriptivo
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-                        decoration: BoxDecoration(
-                          color: Colors.black.withValues(alpha: 0.65),
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: Colors.white24, width: 0.8),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Container(
-                              width: 6,
-                              height: 6,
-                              decoration: const BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: Color(0xFF22C55E),
-                              ),
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              '${room.simulatedActivePlayers} en línea',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 9.5,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
+                    gradient: LinearGradient(
+                      colors: isUnlocked
+                          ? room.gradientColors
+                          : [const Color(0xFF1D1752), const Color(0xFF130E38)],
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: isUnlocked
+                            ? room.primaryColor.withValues(alpha: 0.35)
+                            : const Color(0xFF0F0B26),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
                       ),
                     ],
                   ),
+                ),
+              ),
 
-                  // Centro / Espacio ilustrativo temático
-                  Expanded(
-                    child: Center(
-                      child: isUnlocked
-                          ? Container(
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: Colors.black.withValues(alpha: 0.3),
-                                border: Border.all(
-                                  color: room.accentColor.withValues(alpha: 0.4),
-                                  width: 1.5,
-                                ),
-                              ),
-                              child: Icon(
-                                room.isFrozenTheme
-                                    ? Icons.ac_unit_rounded
-                                    : (room.id == 1
-                                        ? Icons.eco_rounded
-                                        : (room.id == 2
-                                            ? Icons.wb_sunny_rounded
-                                            : (room.id == 3
-                                                ? Icons.waves_rounded
-                                                : (room.id == 4
-                                                    ? Icons.bolt_rounded
-                                                    : Icons.workspace_premium_rounded)))),
-                                color: room.accentColor,
-                                size: 36,
-                              ),
-                            )
-                          : Container(
-                              width: 52,
-                              height: 52,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: Colors.black.withValues(alpha: 0.8),
-                                border: Border.all(color: Colors.white24, width: 2),
-                              ),
-                              child: const Icon(
-                                Icons.lock_rounded,
-                                color: Color(0xFFFDE047),
-                                size: 26,
-                              ),
-                            ),
+              // 2. Scrim atenuado si la sala está bloqueada (solo sobre la card interna)
+              if (!isUnlocked)
+                Positioned(
+                  top: cardHeight * 0.025,
+                  left: cardWidth * 0.045,
+                  right: cardWidth * 0.045,
+                  bottom: cardHeight * 0.03,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.52),
+                      borderRadius: BorderRadius.circular(16),
                     ),
                   ),
+                ),
 
-                  // 3. Caja de Entrada, Pozo Total y Premio (100% visible con cuánto se entra)
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+              // 3. Resplandor escarchado si aplica (Mérida)
+              if (room.isFrozenTheme && isUnlocked)
+                Positioned(
+                  top: topPadding,
+                  right: sidePadding,
+                  child: Container(
+                    width: 70,
+                    height: 70,
                     decoration: BoxDecoration(
-                      color: AppPalette.cartoonCardDark.withValues(alpha: 0.92),
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(
-                        color: isUnlocked
-                            ? const Color(0xFFF59E0B).withValues(alpha: 0.85)
-                            : Colors.white24,
-                        width: 1.5,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.35),
-                          blurRadius: 6,
-                          offset: const Offset(0, 3),
-                        ),
-                      ],
+                      shape: BoxShape.circle,
+                      color: Colors.cyanAccent.withValues(alpha: 0.15),
                     ),
-                    child: Row(
+                  ),
+                ),
+
+              // 4. EL MARCO OFICIAL REGIONAL RECUBRIENDO LA CARD
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: Image.asset(
+                    room.frameAsset,
+                    fit: BoxFit.fill,
+                    errorBuilder: (ctx, err, stack) =>
+                        _buildFallbackFrame(room, isUnlocked),
+                  ),
+                ),
+              ),
+
+              // 5. TODO EL CONTENIDO Y BOTONES EN FRENTE (Ajustado al cuadro interior)
+              Padding(
+                padding: EdgeInsets.fromLTRB(
+                  sidePadding + 2,
+                  topPadding,
+                  sidePadding,
+                  bottomPadding,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // Fila con subtítulo temático e indicador de jugadores en línea
+                    Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        // ENTRADA
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                        Flexible(
+                          child: Text(
+                            '"${room.subtitle}"',
+                            style: TextStyle(
+                              color: isUnlocked
+                                  ? (room.isFrozenTheme
+                                      ? const Color(0xFFBAE6FD)
+                                      : room.accentColor)
+                                  : Colors.white38,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              fontStyle: FontStyle.italic,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        // Indicador de jugadores en línea claro y descriptivo
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.65),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: Colors.white24, width: 0.8),
+                          ),
+                          child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Text(
-                                'ENTRADA',
-                                style: TextStyle(
-                                  color: Color(0xFF94A3B8),
-                                  fontSize: 8,
-                                  fontWeight: FontWeight.w900,
+                              Container(
+                                width: 6,
+                                height: 6,
+                                decoration: const BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: Color(0xFF22C55E),
                                 ),
                               ),
+                              const SizedBox(width: 4),
                               Text(
-                                '🪙 ${room.entryFee}',
+                                '${room.simulatedActivePlayers} en línea',
                                 style: const TextStyle(
                                   color: Colors.white,
-                                  fontWeight: FontWeight.w900,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        // POZO TOTAL (4 Jugadores en 2v2, 2 Jugadores en 1v1)
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                _selectedMode == GameMode.teams2v2 ? 'POZO (4J)' : 'POZO (2J)',
-                                style: const TextStyle(
-                                  color: Color(0xFF94A3B8),
-                                  fontSize: 8,
-                                  fontWeight: FontWeight.w900,
-                                ),
-                              ),
-                              Text(
-                                '🪙 $totalPot',
-                                style: const TextStyle(
-                                  color: Color(0xFFFDE047),
-                                  fontWeight: FontWeight.w900,
-                                  fontSize: 12.5,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        // PREMIO
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                _selectedMode == GameMode.teams2v2 ? 'PREMIO C/U' : 'PREMIO GAN.',
-                                style: const TextStyle(
-                                  color: Color(0xFF94A3B8),
-                                  fontSize: 8,
-                                  fontWeight: FontWeight.w900,
-                                ),
-                              ),
-                              Text(
-                                '🪙 $prizePerWinner',
-                                style: const TextStyle(
-                                  color: Color(0xFF34D399),
-                                  fontWeight: FontWeight.w900,
-                                  fontSize: 12,
+                                  fontSize: 9.5,
+                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
                             ],
@@ -693,119 +578,270 @@ class _VenezuelaRoomsCarouselScreenState extends State<VenezuelaRoomsCarouselScr
                         ),
                       ],
                     ),
-                  ),
 
-                  const SizedBox(height: 6),
+                    // Centro / Espacio ilustrativo temático
+                    Expanded(
+                      child: Center(
+                        child: isUnlocked
+                            ? Container(
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: Colors.black.withValues(alpha: 0.3),
+                                  border: Border.all(
+                                    color: room.accentColor.withValues(alpha: 0.4),
+                                    width: 1.5,
+                                  ),
+                                ),
+                                child: Icon(
+                                  room.isFrozenTheme
+                                      ? Icons.ac_unit_rounded
+                                      : (room.id == 1
+                                          ? Icons.eco_rounded
+                                          : (room.id == 2
+                                              ? Icons.wb_sunny_rounded
+                                              : (room.id == 3
+                                                  ? Icons.waves_rounded
+                                                  : (room.id == 4
+                                                      ? Icons.bolt_rounded
+                                                      : Icons.workspace_premium_rounded)))),
+                                  color: room.accentColor,
+                                  size: 30,
+                                ),
+                              )
+                            : Container(
+                                width: 46,
+                                height: 46,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: Colors.black.withValues(alpha: 0.8),
+                                  border: Border.all(color: Colors.white24, width: 2),
+                                ),
+                                child: const Icon(
+                                  Icons.lock_rounded,
+                                  color: Color(0xFFFDE047),
+                                  size: 22,
+                                ),
+                              ),
+                      ),
+                    ),
 
-                  // 4. Barra de Trofeos de la Sala
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
+                    // 3. Caja de Entrada, Pozo Total y Premio (100% visible con cuánto se entra)
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                      decoration: BoxDecoration(
+                        color: AppPalette.cartoonCardDark.withValues(alpha: 0.92),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                          color: isUnlocked
+                              ? const Color(0xFFF59E0B).withValues(alpha: 0.85)
+                              : Colors.white24,
+                          width: 1.5,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.35),
+                            blurRadius: 6,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
+                          // ENTRADA
                           Expanded(
-                            child: Row(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
                               children: [
-                                const Text('🏆', style: TextStyle(fontSize: 11)),
-                                const SizedBox(width: 4),
-                                Flexible(
-                                  child: Text(
-                                    isCompleted ? 'SALA COMPLETADA' : 'TROFEOS DE SALA',
-                                    style: TextStyle(
-                                      color: isCompleted
-                                          ? const Color(0xFFFDE047)
-                                          : Colors.white70,
-                                      fontWeight: FontWeight.w900,
-                                      fontSize: 9.5,
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
+                                const Text(
+                                  'ENTRADA',
+                                  style: TextStyle(
+                                    color: Color(0xFF94A3B8),
+                                    fontSize: 8,
+                                    fontWeight: FontWeight.w900,
+                                  ),
+                                ),
+                                Text(
+                                  '🪙 ${room.entryFee}',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w900,
+                                    fontSize: 12,
                                   ),
                                 ),
                               ],
                             ),
                           ),
-                          const SizedBox(width: 4),
-                          Text(
-                            '$trophies / ${room.trophyCap}',
-                            style: TextStyle(
-                              color: isCompleted
-                                  ? const Color(0xFFFDE047)
-                                  : Colors.white,
-                              fontWeight: FontWeight.w900,
-                              fontSize: 10.5,
+
+                          // POZO TOTAL (4 Jugadores en 2v2, 2 Jugadores en 1v1)
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  _selectedMode == GameMode.teams2v2 ? 'POZO (4J)' : 'POZO (2J)',
+                                  style: const TextStyle(
+                                    color: Color(0xFF94A3B8),
+                                    fontSize: 8,
+                                    fontWeight: FontWeight.w900,
+                                  ),
+                                ),
+                                Text(
+                                  '🪙 $totalPot',
+                                  style: const TextStyle(
+                                    color: Color(0xFFFDE047),
+                                    fontWeight: FontWeight.w900,
+                                    fontSize: 12.5,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          // PREMIO
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  _selectedMode == GameMode.teams2v2 ? 'PREMIO C/U' : 'PREMIO GAN.',
+                                  style: const TextStyle(
+                                    color: Color(0xFF94A3B8),
+                                    fontSize: 8,
+                                    fontWeight: FontWeight.w900,
+                                  ),
+                                ),
+                                Text(
+                                  '🪙 $prizePerWinner',
+                                  style: const TextStyle(
+                                    color: Color(0xFF34D399),
+                                    fontWeight: FontWeight.w900,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 4),
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(6),
-                        child: Container(
-                          height: 7,
-                          color: const Color(0xFF0F172A),
-                          child: FractionallySizedBox(
-                            alignment: Alignment.centerLeft,
-                            widthFactor: trophyProgress,
-                            child: Container(
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  colors: isCompleted
-                                      ? [const Color(0xFFFDE047), const Color(0xFFF59E0B)]
-                                      : [const Color(0xFF38BDF8), const Color(0xFF0284C7)],
+                    ),
+
+                    const SizedBox(height: 6),
+
+                    // 4. Barra de Trofeos de la Sala
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Row(
+                                children: [
+                                  const Text('🏆', style: TextStyle(fontSize: 11)),
+                                  const SizedBox(width: 4),
+                                  Flexible(
+                                    child: Text(
+                                      isCompleted ? 'SALA COMPLETADA' : 'TROFEOS DE SALA',
+                                      style: TextStyle(
+                                        color: isCompleted
+                                            ? const Color(0xFFFDE047)
+                                            : Colors.white70,
+                                        fontWeight: FontWeight.w900,
+                                        fontSize: 9.5,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              '$trophies / ${room.trophyCap}',
+                              style: TextStyle(
+                                color: isCompleted
+                                    ? const Color(0xFFFDE047)
+                                    : Colors.white,
+                                fontWeight: FontWeight.w900,
+                                fontSize: 10.5,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(6),
+                          child: Container(
+                            height: 7,
+                            color: const Color(0xFF0F172A),
+                            child: FractionallySizedBox(
+                              alignment: Alignment.centerLeft,
+                              widthFactor: trophyProgress,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    colors: isCompleted
+                                        ? [const Color(0xFFFDE047), const Color(0xFFF59E0B)]
+                                        : [const Color(0xFF38BDF8), const Color(0xFF0284C7)],
+                                  ),
                                 ),
                               ),
                             ),
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 2),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Flexible(
-                            child: Text(
-                              'Victoria: +${room.winTrophies} 🏆',
-                              style: const TextStyle(
-                                color: Color(0xFF4ADE80),
-                                fontSize: 8.5,
-                                fontWeight: FontWeight.bold,
+                        const SizedBox(height: 2),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Flexible(
+                              child: Text(
+                                'Victoria: +${room.winTrophies} 🏆',
+                                style: const TextStyle(
+                                  color: Color(0xFF4ADE80),
+                                  fontSize: 8.5,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
                             ),
-                          ),
-                          const SizedBox(width: 4),
-                          Flexible(
-                            child: Text(
-                              room.lossTrophies == 0
-                                  ? 'Derrota: 0 🏆'
-                                  : 'Derrota: ${room.lossTrophies} 🏆',
-                              style: const TextStyle(
-                                color: Color(0xFFF87171),
-                                fontSize: 8.5,
-                                fontWeight: FontWeight.bold,
+                            const SizedBox(width: 4),
+                            Flexible(
+                              child: Text(
+                                room.lossTrophies == 0
+                                    ? 'Derrota: 0 🏆'
+                                    : 'Derrota: ${room.lossTrophies} 🏆',
+                                style: const TextStyle(
+                                  color: Color(0xFFF87171),
+                                  fontSize: 8.5,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
                             ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
+                          ],
+                        ),
+                      ],
+                    ),
 
-                  const SizedBox(height: 8),
+                    const SizedBox(height: 6),
 
-                  // 5. Botón Inferior de Acción (completamente al frente)
-                  _buildActionButton(room, isUnlocked, canAfford),
-                ],
+                    // 5. Botón Inferior de Acción (completamente al frente)
+                    _buildActionButton(room, isUnlocked, canAfford),
+                  ],
+                ),
               ),
-            ),
-          ],
-        ),
-      ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -817,7 +853,7 @@ class _VenezuelaRoomsCarouselScreenState extends State<VenezuelaRoomsCarouselScr
       final prevName = prevRoom != null ? prevRoom.name : 'Sala anterior';
 
       return Container(
-        height: 44,
+        height: 40,
         padding: const EdgeInsets.symmetric(horizontal: 8),
         decoration: BoxDecoration(
           color: AppPalette.cartoonCardDark,
@@ -848,20 +884,26 @@ class _VenezuelaRoomsCarouselScreenState extends State<VenezuelaRoomsCarouselScr
 
     if (!canAfford) {
       return Container(
-        height: 44,
+        height: 40,
         decoration: BoxDecoration(
           color: const Color(0xFF7F1D1D).withValues(alpha: 0.85),
           borderRadius: BorderRadius.circular(14),
           border: Border.all(color: const Color(0xFFEF4444), width: 1.5),
         ),
         child: Center(
-          child: Text(
-            '🪙 FICHAS INSUFICIENTES (Entrada: ${room.entryFee})',
-            style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.w900,
-              fontSize: 11,
-              letterSpacing: 0.4,
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 6),
+              child: Text(
+                '🪙 FICHAS INSUFICIENTES (Entrada: ${room.entryFee})',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w900,
+                  fontSize: 11,
+                  letterSpacing: 0.4,
+                ),
+              ),
             ),
           ),
         ),
@@ -869,7 +911,7 @@ class _VenezuelaRoomsCarouselScreenState extends State<VenezuelaRoomsCarouselScr
     }
 
     return App3dButton(
-      height: 44,
+      height: 40,
       borderRadius: 14,
       variant: App3dButtonVariant.emerald,
       onPressed: () => _onPlayRoom(room),

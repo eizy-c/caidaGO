@@ -44,6 +44,7 @@ import 'widgets/card_flight_overlay.dart';
 import 'widgets/deck_stack_view.dart';
 import 'widgets/table_canto_dialog.dart';
 import 'widgets/privacy_policy_dialog.dart';
+import 'widgets/multiplayer_chat_drawer.dart';
 import 'caida_lobby_screen.dart';
 
 class _PlayerState {
@@ -243,6 +244,11 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
   final List<Timer> _cantoAudioTimers = [];
   final List<Timer> _pendingAsyncTimers = [];
 
+  // Chat lateral deslizable (exclusivo para Multijugador)
+  bool _isChatDrawerOpen = false;
+  late AnimationController _chatSlideController;
+  late Animation<Offset> _chatSlideAnimation;
+
   Future<void> _safeDelay(Duration duration) {
     if (!mounted) return Future.value();
     final completer = Completer<void>();
@@ -296,6 +302,19 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
         }
       });
 
+    _chatSlideController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 260),
+    );
+    _chatSlideAnimation = Tween<Offset>(
+      begin: const Offset(1.0, 0.0),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(
+      parent: _chatSlideController,
+      curve: Curves.easeOutCubic,
+      reverseCurve: Curves.easeInCubic,
+    ));
+
     // Inicializar jugadores mínimos para evitar excepciones de índice antes de iniciar
     final initialUserName = _effectiveUserName ?? 'Tú';
     _setupPlayers(
@@ -329,6 +348,7 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
     _pendingAsyncTimers.clear();
     _timerController.dispose();
     _dealingController.dispose();
+    _chatSlideController.dispose();
     _botTimer?.cancel();
     _finishTimer?.cancel();
     for (final t in _cantoAudioTimers) {
@@ -2803,11 +2823,114 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
                     },
                   ),
                 ),
+
+                // 8. Botón flotante discreto de Chat (solo en modo multijugador)
+                if (widget.config?.isMultiplayer == true) ...[
+                  Positioned(
+                    right: 0,
+                    top: (screenHeight * 0.44).clamp(90.0, 260.0),
+                    child: _buildDiscreetChatToggleButton(),
+                  ),
+                ],
+
+                // 9. Drawer lateral deslizable de Chat y Frases Criollas
+                if (widget.config?.isMultiplayer == true && _isChatDrawerOpen) ...[
+                  // Fondo oscuro que detecta toques para cerrar
+                  Positioned.fill(
+                    child: GestureDetector(
+                      onTap: () => _toggleChatDrawer(false),
+                      behavior: HitTestBehavior.opaque,
+                      child: Container(
+                        color: Colors.black.withValues(alpha: 0.45),
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    right: 0,
+                    top: 0,
+                    bottom: 0,
+                    child: SlideTransition(
+                      position: _chatSlideAnimation,
+                      child: MultiplayerChatDrawer(
+                        onSendMessage: (msg) {
+                          _showPlayerChatCallout(0, msg);
+                        },
+                        onClose: () => _toggleChatDrawer(false),
+                      ),
+                    ),
+                  ),
+                ],
               ],
             );
           },
         );
       },
+    );
+  }
+
+  void _toggleChatDrawer(bool open) {
+    setState(() {
+      _isChatDrawerOpen = open;
+    });
+    if (open) {
+      _chatSlideController.forward();
+    } else {
+      _chatSlideController.reverse();
+    }
+  }
+
+  void _showPlayerChatCallout(int playerIndex, String message) {
+    if (playerIndex < 0 || playerIndex >= _players.length) return;
+    final player = _players[playerIndex];
+    player.currentCallout = message;
+    player.calloutTimer?.cancel();
+    player.calloutTimer = Timer(const Duration(milliseconds: 3500), () {
+      if (mounted) {
+        setState(() {
+          player.currentCallout = null;
+        });
+      }
+    });
+    AudioService().playCardSlide();
+    HapticService.instance.onSelection();
+    setState(() {});
+  }
+
+  Widget _buildDiscreetChatToggleButton() {
+    return TactilePressable(
+      depth: 2.5,
+      onTap: () => _toggleChatDrawer(true),
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(10, 8, 5, 8),
+        decoration: BoxDecoration(
+          gradient: AppGradients.cyanAccent,
+          borderRadius: const BorderRadius.horizontal(left: Radius.circular(16)),
+          border: Border.all(color: AppPalette.cartoonBorder, width: 1.8),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x60000000),
+              blurRadius: 8,
+              offset: Offset(-2, 2),
+            ),
+          ],
+        ),
+        child: const Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.chat_bubble_rounded,
+              color: Color(0xFF1E1B4B),
+              size: 18,
+            ),
+            SizedBox(width: 3),
+            Icon(
+              Icons.chevron_left_rounded,
+              color: Color(0xFF1E1B4B),
+              size: 16,
+            ),
+          ],
+        ),
+      ),
     );
   }
 
