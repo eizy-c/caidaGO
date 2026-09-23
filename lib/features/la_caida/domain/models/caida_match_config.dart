@@ -16,6 +16,10 @@ class CaidaMatchConfig {
   final int? vipPrizePool;
   final int? vipWinnerReward;
   final bool isMatandoCantos;
+  final bool isMultiplayer;
+  final List<String>? playerNames;
+  final List<int>? playerAvatarIds;
+  final List<String>? playerFrameIds;
 
   const CaidaMatchConfig({
     this.initialPlayers = 2,
@@ -30,6 +34,10 @@ class CaidaMatchConfig {
     this.vipPrizePool,
     this.vipWinnerReward,
     this.isMatandoCantos = true,
+    this.isMultiplayer = false,
+    this.playerNames,
+    this.playerAvatarIds,
+    this.playerFrameIds,
   });
 
   /// Crea una configuración para partida individual rápida

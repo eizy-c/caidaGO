@@ -3,6 +3,7 @@ import '../../../../core/presentation/widgets/app_3d_button.dart';
 import '../../../../core/presentation/widgets/cartoon_widgets.dart';
 import '../../../../core/theme/app_palette.dart';
 import '../../domain/models/caida_match_config.dart';
+import '../../economy/player_session.dart';
 import '../../presentation/caida_screen.dart';
 import '../../presentation/widgets/user_frame_view.dart';
 import '../domain/multiplayer_models.dart';
@@ -83,6 +84,37 @@ class _MultiplayerWaitingRoomScreenState
         .map((s) => s.name.replaceAll(' (Bot)', ''))
         .toList();
 
+    final mySeatIndex = widget.isHost ? 0 : widget.client.mySeatIndex;
+    final sortedSeats = <RoomSeat>[];
+
+    // Asiento 0: Jugador local
+    final mySeat = seats.firstWhere(
+      (s) => s.seatIndex == mySeatIndex,
+      orElse: () => RoomSeat(
+        seatIndex: 0,
+        name: widget.isHost ? widget.roomInfo.hostName : 'Tú',
+        avatarId: PlayerSession.shared.avatarIndex,
+        frameId: PlayerSession.shared.selectedFrameId,
+      ),
+    );
+    sortedSeats.add(mySeat);
+
+    // Asientos de los otros rivales / compañeros en la mesa
+    for (int i = 1; i < widget.roomInfo.targetPlayers; i++) {
+      final seatIdx = (mySeatIndex + i) % widget.roomInfo.targetPlayers;
+      final seat = seats.firstWhere(
+        (s) => s.seatIndex == seatIdx,
+        orElse: () => RoomSeat(
+          seatIndex: seatIdx,
+          name: 'Jugador ${i + 1}',
+          avatarId: (i % 14) + 1,
+          frameId: 'rank_novato',
+          isBot: true,
+        ),
+      );
+      sortedSeats.add(seat);
+    }
+
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(
         builder: (_) => CaidaScreen(
@@ -91,13 +123,12 @@ class _MultiplayerWaitingRoomScreenState
             initialTeams: widget.roomInfo.isTeams,
             autoStart: true,
             chooseMano: true,
-            userName: widget.isHost
-                ? widget.roomInfo.hostName
-                : widget.client.seatsNotifier.value
-                    .firstWhere((s) => s.seatIndex == widget.client.mySeatIndex,
-                        orElse: () => const RoomSeat(seatIndex: 1, name: 'Tú'))
-                    .name,
+            userName: mySeat.name,
             botNames: botNames.isNotEmpty ? botNames : ['Alejandro', 'Carl', 'Jhonny'],
+            isMultiplayer: true,
+            playerNames: sortedSeats.map((s) => s.name).toList(),
+            playerAvatarIds: sortedSeats.map((s) => s.avatarId).toList(),
+            playerFrameIds: sortedSeats.map((s) => s.frameId).toList(),
           ),
         ),
       ),

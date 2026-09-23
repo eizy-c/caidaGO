@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:gme/features/la_caida/economy/match_history_model.dart';
+import 'package:gme/features/la_caida/presentation/widgets/match_history_modal.dart';
 import 'package:gme/features/la_caida/economy/player_session.dart';
 import 'package:gme/features/la_caida/economy/venezuela_room_tier.dart';
 import 'package:gme/features/la_caida/economy/trophy_session_manager.dart';
@@ -284,6 +286,72 @@ void main() {
 
       expect(selectedRoom?.id, equals(1));
       expect(selectedMode, equals(GameMode.duel1v1));
+    });
+  });
+
+  group('Historial de Partidas - Salas VIP y Multijugador', () {
+    test('Persiste y deserializa salas regionales y partidas multijugador', () async {
+      final storage = MatchHistoryStorage.instance;
+
+      // 1. Partida en Chivacoa (Yaracuy)
+      final vipEntry = MatchHistoryEntry(
+        id: 'm_test_vip',
+        playedAt: DateTime.now(),
+        won: true,
+        gameMode: '1 vs 1',
+        userScore: 24,
+        opponentScore: 18,
+        coinsEarned: 100,
+        xpEarned: 25,
+        trophyDelta: 3,
+        roomName: 'Chivacoa',
+        roomRegion: 'Yaracuy',
+        roomCategory: 'Sala VIP',
+        isMultiplayer: false,
+      );
+      await storage.saveMatch(vipEntry);
+
+      // 2. Partida en Multijugador Local
+      final multiEntry = MatchHistoryEntry(
+        id: 'm_test_multi',
+        playedAt: DateTime.now(),
+        won: false,
+        gameMode: '2 vs 2',
+        userScore: 20,
+        opponentScore: 24,
+        coinsEarned: 0,
+        xpEarned: 15,
+        trophyDelta: 0,
+        roomName: 'Multijugador Local',
+        roomCategory: 'Multijugador',
+        isMultiplayer: true,
+      );
+      await storage.saveMatch(multiEntry);
+
+      expect(storage.matches.length, greaterThanOrEqualTo(2));
+      expect(storage.matches.first.roomName, equals('Multijugador Local'));
+      expect(storage.matches.first.isMultiplayer, isTrue);
+
+      final second = storage.matches[1];
+      expect(second.roomName, equals('Chivacoa'));
+      expect(second.roomRegion, equals('Yaracuy'));
+      expect(second.trophyDelta, equals(3));
+    });
+
+    testWidgets('MatchHistoryModal renderiza badges de Sala Regional y Multijugador', (tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: MatchHistoryModal(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('HISTORIAL DE PARTIDAS'), findsOneWidget);
+      expect(find.text('Chivacoa (Yaracuy)'), findsOneWidget);
+      expect(find.text('Multijugador Local'), findsOneWidget);
+      expect(find.text('+3 🏆'), findsOneWidget);
     });
   });
 }

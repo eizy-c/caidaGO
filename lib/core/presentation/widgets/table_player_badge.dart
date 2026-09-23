@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../theme/app_palette.dart';
-import '../../../features/la_caida/presentation/widgets/avatar_view.dart';
 import '../../../features/la_caida/presentation/widgets/user_frame_view.dart';
 import 'speech_bubble.dart';
 
@@ -86,62 +85,80 @@ class TablePlayerBadge extends StatelessWidget {
                         ),
                       ),
 
-                    // 2. Cuadro del Avatar con squircle, marco personalizado y borde suave
-                    AnimatedContainer(
-                      duration: const Duration(milliseconds: 250),
-                      width: avatarSize,
-                      height: avatarSize,
-                      decoration: BoxDecoration(
-                        color: AppPalette.cartoonCardDark,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: isCurrentTurn
-                              ? AppPalette.cartoonCyan
-                              : AppPalette.cartoonBorder,
-                          width: isCurrentTurn ? 2.5 : 1.5,
-                        ),
-                        boxShadow: [
-                          if (isCurrentTurn)
-                            BoxShadow(
-                              color: AppPalette.cartoonCyan.withValues(alpha: 0.45),
-                              blurRadius: 10,
-                              spreadRadius: 1.5,
-                            )
-                          else
-                            const BoxShadow(
-                              color: Color(0x35000000),
-                              blurRadius: 6,
-                              offset: Offset(0, 2),
-                            ),
-                        ],
-                      ),
-                      padding: const EdgeInsets.all(2),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(14),
-                        child: avatarId != null
-                            ? AvatarView(
-                                avatarId: avatarId!,
-                                size: avatarSize,
-                                showBorder: false,
-                              )
-                            : Stack(
-                                alignment: Alignment.center,
-                                children: [
-                                  Container(
-                                    color: avatarColor.withValues(alpha: 0.35),
-                                  ),
-                                  Icon(
-                                    isBot ? Icons.smart_toy_rounded : Icons.person_rounded,
-                                    size: 30,
-                                    color: Colors.white,
-                                  ),
-                                ],
+                    // 2. Cuadro del Avatar con Marco Oficial (UserFrameView)
+                    if (avatarId != null)
+                      AnimatedContainer(
+                        duration: const Duration(milliseconds: 250),
+                        width: avatarSize + 6,
+                        height: avatarSize + 6,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            if (isCurrentTurn)
+                              BoxShadow(
+                                color: AppPalette.cartoonCyan.withValues(alpha: 0.65),
+                                blurRadius: 14,
+                                spreadRadius: 3,
                               ),
+                          ],
+                        ),
+                        child: UserFrameView(
+                          avatarIndex: avatarId!,
+                          frameId: frameId ?? 'rank_novato',
+                          size: avatarSize,
+                          showLevelBadge: false,
+                        ),
+                      )
+                    else
+                      AnimatedContainer(
+                        duration: const Duration(milliseconds: 250),
+                        width: avatarSize,
+                        height: avatarSize,
+                        decoration: BoxDecoration(
+                          color: AppPalette.cartoonCardDark,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: isCurrentTurn
+                                ? AppPalette.cartoonCyan
+                                : const Color(0xFF4C3E9E),
+                            width: isCurrentTurn ? 2.5 : 1.5,
+                          ),
+                          boxShadow: [
+                            if (isCurrentTurn)
+                              BoxShadow(
+                                color: AppPalette.cartoonCyan.withValues(alpha: 0.45),
+                                blurRadius: 10,
+                                spreadRadius: 1.5,
+                              )
+                            else
+                              const BoxShadow(
+                                color: Color(0x35000000),
+                                blurRadius: 6,
+                                offset: Offset(0, 2),
+                              ),
+                          ],
+                        ),
+                        padding: const EdgeInsets.all(2),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(14),
+                          child: Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              Container(
+                                color: avatarColor.withValues(alpha: 0.35),
+                              ),
+                              Icon(
+                                isBot ? Icons.smart_toy_rounded : Icons.person_rounded,
+                                size: 30,
+                                color: Colors.white,
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
-                    ),
 
-                    // Corona/Joya superior del Marco si está desbloqueado
-                    if (frame?.crownIcon != null)
+                    // Corona/Joya superior del Marco si no se renderiza UserFrameView
+                    if (avatarId == null && frame?.crownIcon != null)
                       Positioned(
                         top: -8,
                         child: Icon(

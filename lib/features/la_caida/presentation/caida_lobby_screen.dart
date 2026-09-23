@@ -1204,9 +1204,11 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
               CartoonRoundButton(
                 width: 42,
                 height: 42,
-                backgroundColor: const Color(0xFFDCE2FD),
+                backgroundColor: const Color(0xFF2E267D),
+                borderColor: const Color(0xFF4C3E9E),
+                shadowColor: const Color(0xFF1D1748),
                 onPressed: () => setState(() => _currentView = LobbyViewMode.main),
-                child: const Icon(Icons.arrow_back_rounded, color: Color(0xFF1E1763), size: 22),
+                child: const Icon(Icons.arrow_back_rounded, color: Colors.white, size: 22),
               ),
               const SizedBox(width: 14),
               const Text(
@@ -1239,10 +1241,10 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
                 decoration: BoxDecoration(
                   gradient: AppGradients.goldReward,
                   borderRadius: BorderRadius.circular(22),
-                  border: Border.all(color: AppPalette.cartoonBorder, width: 2.2),
+                  border: Border.all(color: const Color(0xFFD97706), width: 2.2),
                   boxShadow: const [
                     BoxShadow(
-                      color: Color(0xFF1E1763),
+                      color: Color(0xFF92400E),
                       offset: Offset(0, 4),
                       blurRadius: 0,
                     ),
@@ -1285,10 +1287,10 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
                 decoration: BoxDecoration(
                   gradient: AppGradients.greenAccept,
                   borderRadius: BorderRadius.circular(22),
-                  border: Border.all(color: AppPalette.cartoonBorder, width: 2.2),
+                  border: Border.all(color: const Color(0xFF059669), width: 2.2),
                   boxShadow: const [
                     BoxShadow(
-                      color: Color(0xFF1E1763),
+                      color: Color(0xFF047857),
                       offset: Offset(0, 4),
                       blurRadius: 0,
                     ),
@@ -1329,10 +1331,10 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
             decoration: BoxDecoration(
               gradient: AppGradients.cyanAccent,
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: AppPalette.cartoonBorder, width: 2.2),
+              border: Border.all(color: const Color(0xFF0284C7), width: 2.2),
               boxShadow: const [
                 BoxShadow(
-                  color: Color(0xFF1E1763),
+                  color: Color(0xFF0369A1),
                   offset: Offset(0, 4),
                   blurRadius: 0,
                 ),

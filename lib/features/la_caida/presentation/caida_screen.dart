@@ -577,14 +577,25 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
             : (userName.isNotEmpty ? userName : profileService.name));
 
     // 1. Asiento 0: Jugador local (abajo en pantalla con avatar y marco personalizado)
+    final customAvatars = widget.config?.playerAvatarIds;
+    final customFrames = widget.config?.playerFrameIds;
+    final customNames = widget.config?.playerNames;
+
+    final userAvatarId = (customAvatars != null && customAvatars.isNotEmpty)
+        ? customAvatars[0]
+        : session.avatarIndex;
+    final userFrameId = (customFrames != null && customFrames.isNotEmpty)
+        ? customFrames[0]
+        : session.selectedFrameId;
+
     _players.add(_PlayerState(
       id: 'user',
       name: effectiveUserName,
       isBot: false,
       color: const Color(0xFF38BDF8),
       teamId: teams ? 1 : 0,
-      avatarId: session.avatarIndex,
-      frameId: session.selectedFrameId,
+      avatarId: userAvatarId,
+      frameId: userFrameId,
       level: _userLevel,
     ));
 
@@ -605,17 +616,27 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
 
     for (int i = 1; i <= rivalCount; i++) {
       final isTeammate = (totalPlayers == 4 && teams && i == 2);
-      final rawName = effectiveBotNames[(i - 1) % effectiveBotNames.length];
+      final rawName = (customNames != null && i < customNames.length)
+          ? customNames[i]
+          : effectiveBotNames[(i - 1) % effectiveBotNames.length];
       final playerName = isTeammate ? '$rawName (Compañero)' : rawName;
+
+      final rivalAvatarId = (customAvatars != null && i < customAvatars.length)
+          ? customAvatars[i]
+          : botAvatars[(i - 1) % botAvatars.length];
+
+      final rivalFrameId = (customFrames != null && i < customFrames.length)
+          ? customFrames[i]
+          : botFrames[(i - 1) % botFrames.length];
 
       _players.add(_PlayerState(
         id: 'player_$i',
         name: playerName,
-        isBot: !_isMultiplayerNetwork,
+        isBot: !_isMultiplayerNetwork && (customNames == null),
         color: botColors[(i - 1) % botColors.length],
         teamId: teams ? (i % 2 == 0 ? 1 : 2) : i,
-        avatarId: botAvatars[(i - 1) % botAvatars.length],
-        frameId: botFrames[(i - 1) % botFrames.length],
+        avatarId: rivalAvatarId,
+        frameId: rivalFrameId,
         level: (session.level - 1 + i).clamp(1, 10),
       ));
     }
@@ -1672,6 +1693,27 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
     final userTeamCards = userTeamPlayers.isNotEmpty ? userTeamPlayers.map((p) => p.totalMatchCardsWon).reduce(math.max) : _players[0].totalMatchCardsWon;
     final oppTeamCards = oppTeamPlayers.isNotEmpty ? oppTeamPlayers.map((p) => p.totalMatchCardsWon).reduce(math.max) : (sorted.length > 1 ? sorted[1].totalMatchCardsWon : 0);
 
+    int roomTrophyDelta = trophyDelta;
+    String? currentRoomName;
+    String? currentRoomRegion;
+    String? currentCategory;
+    final isMultiplayerMatch = widget.config?.isMultiplayer ?? false;
+
+    if (_venezuelaRoom != null) {
+      currentRoomName = _venezuelaRoom!.name;
+      currentRoomRegion = _venezuelaRoom!.region;
+      currentCategory = 'Sala VIP';
+      roomTrophyDelta = userWon ? _venezuelaRoom!.winTrophies : -(_venezuelaRoom!.lossTrophies.abs());
+    } else if (isMultiplayerMatch) {
+      currentRoomName = 'Multijugador Local';
+      currentCategory = 'Multijugador';
+    } else if (_vipTier != null) {
+      currentRoomName = _vipTier!.name;
+      currentCategory = 'Mesa VIP';
+    } else {
+      currentCategory = 'Casual';
+    }
+
     // Guardar partida en el historial persistente
     MatchHistoryStorage.instance.saveMatch(
       MatchHistoryEntry(
@@ -1683,10 +1725,14 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
         opponentScore: oppTeamScore,
         coinsEarned: userWon ? vipCoinsWon : 0,
         xpEarned: xpGained,
-        trophyDelta: trophyDelta,
+        trophyDelta: roomTrophyDelta,
         caidasCount: _matchUserCaidas,
         limpiasCount: _matchUserLimpias,
         cantosCount: _matchUserCantos,
+        roomName: currentRoomName,
+        roomRegion: currentRoomRegion,
+        roomCategory: currentCategory,
+        isMultiplayer: isMultiplayerMatch,
         auditLogs: List.from(_matchAuditLogs),
       ),
     );
@@ -1697,10 +1743,19 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
     _finishTimer = Timer(const Duration(milliseconds: 600), () {
       if (mounted) {
         String? customSubtitle;
-        if (_vipTier != null) {
+        if (_venezuelaRoom != null) {
+          final trophyText = userWon ? '+${_venezuelaRoom!.winTrophies} 🏆' : '${_venezuelaRoom!.lossTrophies} 🏆';
+          customSubtitle = userWon
+              ? '¡VICTORIA EN ${_venezuelaRoom!.name.toUpperCase()}!\nPremio: +$vipCoinsWon monedas ($trophyText • +$xpGained XP)'
+              : '${_venezuelaRoom!.name}: Ganó ${winner.name} con ${winner.score} pts ($trophyText • +$xpGained XP)';
+        } else if (_vipTier != null) {
           customSubtitle = userWon
               ? '¡VICTORIA VIP EN MESA ${_vipTier!.name.toUpperCase()}!\nPremio obtenido: +$vipCoinsWon monedas (+$xpGained XP)'
               : 'Mesa ${_vipTier!.name}: Ganó ${winner.name} con ${winner.score} pts (+$xpGained XP)';
+        } else if (isMultiplayerMatch) {
+          customSubtitle = userWon
+              ? '¡VICTORIA EN MULTIJUGADOR!\nGanaste la partida contra otros jugadores (+$xpGained XP)'
+              : 'Partida Multijugador finalizada (+$xpGained XP)';
         }
 
         final matchSummary = CaidaMatchSummary(

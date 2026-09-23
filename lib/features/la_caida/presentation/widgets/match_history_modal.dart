@@ -129,7 +129,7 @@ class MatchHistoryModal extends StatelessWidget {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  // Fila superior: Victoria/Derrota, Modo y Fecha
+                                  // Fila superior: Victoria/Derrota, Modo, Sala/Multijugador y Fecha
                                   Row(
                                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                     children: [
@@ -169,7 +169,47 @@ class MatchHistoryModal extends StatelessWidget {
                                       ),
                                     ],
                                   ),
-                                  const SizedBox(height: 8),
+                                  const SizedBox(height: 6),
+
+                                  // Badge de Sala / Multijugador
+                                  if (m.roomName != null || m.isMultiplayer)
+                                    Padding(
+                                      padding: const EdgeInsets.only(bottom: 6),
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2.5),
+                                        decoration: BoxDecoration(
+                                          color: m.isMultiplayer
+                                              ? const Color(0xFF0284C7).withValues(alpha: 0.25)
+                                              : const Color(0xFFD97706).withValues(alpha: 0.25),
+                                          borderRadius: BorderRadius.circular(6),
+                                          border: Border.all(
+                                            color: m.isMultiplayer
+                                                ? const Color(0xFF38BDF8).withValues(alpha: 0.5)
+                                                : const Color(0xFFFDE047).withValues(alpha: 0.5),
+                                            width: 1,
+                                          ),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Text(
+                                              m.isMultiplayer ? '📶 ' : '🏛️ ',
+                                              style: const TextStyle(fontSize: 10),
+                                            ),
+                                            Text(
+                                              m.roomRegion != null
+                                                  ? '${m.roomName} (${m.roomRegion})'
+                                                  : (m.roomName ?? (m.isMultiplayer ? 'Multijugador Local' : 'Sala VIP')),
+                                              style: TextStyle(
+                                                color: m.isMultiplayer ? const Color(0xFF7DD3FC) : const Color(0xFFFDE047),
+                                                fontSize: 10,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
 
                                   // Marcador y Recompensas
                                   Row(
@@ -214,10 +254,15 @@ class MatchHistoryModal extends StatelessWidget {
                                   Row(
                                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                     children: [
-                                      Text(
-                                        '${m.caidasCount} Caídas • ${m.limpiasCount} Limpias • ${m.cantosCount} Cantos',
-                                        style: const TextStyle(color: Colors.white54, fontSize: 10.5),
+                                      Expanded(
+                                        child: Text(
+                                          '${m.caidasCount} Caídas • ${m.limpiasCount} Limpias • ${m.cantosCount} Cantos',
+                                          style: const TextStyle(color: Colors.white54, fontSize: 10.5),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
                                       ),
+                                      const SizedBox(width: 8),
                                       TactilePressable(
                                         depth: 2.0,
                                         onTap: () {
