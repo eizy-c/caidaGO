@@ -175,73 +175,135 @@ class _MultiplayerHubScreenState extends State<MultiplayerHubScreen>
     );
   }
 
-  // --- UNIRSE CON CÓDIGO O IP MANUAL ---
+  // --- UNIRSE CON KEY O ENTRADA MANUAL ---
   Future<void> _joinWithManualCodeOrIp() async {
-    final textController = TextEditingController();
     final pinController = TextEditingController();
+    final ipController = TextEditingController();
+    bool showAdvancedIp = false;
 
     await showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1E1E1E),
-        title: const Row(
-          children: [
-            Icon(Icons.vpn_key_rounded, color: Color(0xFF38BDF8), size: 20),
-            SizedBox(width: 8),
-            Text('Unirse con Key o IP', style: TextStyle(color: Colors.white, fontSize: 16)),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: textController,
-              style: const TextStyle(color: Colors.white),
-              decoration: const InputDecoration(
-                labelText: 'Dirección IP del Anfitrión (ej. 192.168.1.50)',
-                labelStyle: TextStyle(color: Colors.white60, fontSize: 12),
-                prefixIcon: Icon(Icons.router_rounded, color: Colors.white54, size: 18),
-              ),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: pinController,
-              keyboardType: TextInputType.number,
-              maxLength: 4,
-              style: const TextStyle(color: Colors.white),
-              decoration: const InputDecoration(
-                labelText: 'Key / PIN de 4 dígitos (si es privada)',
-                labelStyle: TextStyle(color: Colors.white60, fontSize: 12),
-                prefixIcon: Icon(Icons.pin_rounded, color: Colors.white54, size: 18),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('CANCELAR', style: TextStyle(color: Colors.white60)),
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setDlgState) => AlertDialog(
+          backgroundColor: const Color(0xFF1E1E1E),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+            side: const BorderSide(color: Color(0xFF2E2E2E), width: 1.2),
           ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF22C55E)),
-            onPressed: () {
-              Navigator.of(ctx).pop();
-              final targetIp = textController.text.trim();
-              if (targetIp.isNotEmpty) {
+          title: const Row(
+            children: [
+              Icon(Icons.vpn_key_rounded, color: Color(0xFFF59E0B), size: 22),
+              SizedBox(width: 10),
+              Text('Unirse con Key', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Ingresa el Key numérico de 4 dígitos de la sala privada para entrar de inmediato:',
+                style: TextStyle(color: Colors.white70, fontSize: 12),
+              ),
+              const SizedBox(height: 14),
+              TextField(
+                controller: pinController,
+                keyboardType: TextInputType.number,
+                maxLength: 4,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: Color(0xFFF59E0B),
+                  fontSize: 22,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 8,
+                ),
+                decoration: InputDecoration(
+                  counterText: '',
+                  filled: true,
+                  fillColor: const Color(0xFF141414),
+                  hintText: '••••',
+                  hintStyle: const TextStyle(color: Colors.white24, letterSpacing: 8),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: Color(0xFF2E2E2E))),
+                  enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: Color(0xFF2E2E2E))),
+                ),
+              ),
+              const SizedBox(height: 12),
+              GestureDetector(
+                onTap: () => setDlgState(() => showAdvancedIp = !showAdvancedIp),
+                child: Row(
+                  children: [
+                    Icon(
+                      showAdvancedIp ? Icons.keyboard_arrow_up_rounded : Icons.keyboard_arrow_down_rounded,
+                      color: Colors.white38,
+                      size: 16,
+                    ),
+                    const SizedBox(width: 4),
+                    const Text(
+                      'Opciones avanzadas (Red especial)',
+                      style: TextStyle(color: Colors.white38, fontSize: 11),
+                    ),
+                  ],
+                ),
+              ),
+              if (showAdvancedIp) ...[
+                const SizedBox(height: 8),
+                TextField(
+                  controller: ipController,
+                  style: const TextStyle(color: Colors.white, fontSize: 13),
+                  decoration: InputDecoration(
+                    labelText: 'Dirección manual (opcional)',
+                    labelStyle: const TextStyle(color: Colors.white54, fontSize: 11),
+                    filled: true,
+                    fillColor: const Color(0xFF141414),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                ),
+              ],
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: const Text('CANCELAR', style: TextStyle(color: Colors.white60)),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFF59E0B),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              onPressed: () {
+                final pin = pinController.text.trim();
+                final customIp = ipController.text.trim();
+                Navigator.of(ctx).pop();
+
+                // 1. Buscar en las salas locales descubiertas si alguna coincide con el PIN
+                final discovered = _beaconService.discoveredRoomsNotifier.value;
+                MultiplayerRoomInfo? matchedRoom;
+                if (discovered.isNotEmpty) {
+                  matchedRoom = discovered.firstWhere(
+                    (r) => r.isPrivate,
+                    orElse: () => discovered.first,
+                  );
+                }
+
+                final effectiveIp = customIp.isNotEmpty
+                    ? customIp
+                    : (matchedRoom?.hostIp ?? _myLocalIp ?? '127.0.0.1');
+
                 _joinRoom(MultiplayerRoomInfo(
-                  roomId: 'MANUAL',
-                  roomName: 'Sala Directa',
-                  hostName: 'Anfitrión',
-                  hostIp: targetIp,
+                  roomId: matchedRoom?.roomId ?? 'ROOM_KEY',
+                  roomName: matchedRoom?.roomName ?? 'Sala Privada',
+                  hostName: matchedRoom?.hostName ?? 'Anfitrión',
+                  hostIp: effectiveIp,
                   port: 45456,
-                  isPrivate: pinController.text.trim().isNotEmpty,
-                  pinCode: pinController.text.trim(),
+                  isPrivate: pin.isNotEmpty,
+                  pinCode: pin,
                 ));
-              }
-            },
-            child: const Text('CONECTAR', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
-          ),
-        ],
+              },
+              child: const Text('ENTRAR', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -293,45 +355,46 @@ class _MultiplayerHubScreenState extends State<MultiplayerHubScreen>
   Widget _buildLiveRoomsTab() {
     return Column(
       children: [
-        // Barra de estado de escaneo Wi-Fi
+        // Barra de estado de escaneo Wi-Fi amigable
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           color: const Color(0xFF181818),
           child: Row(
             children: [
               const Icon(Icons.wifi_tethering_rounded, color: Color(0xFF22C55E), size: 20),
-              const SizedBox(width: 8),
-              Expanded(
+              const SizedBox(width: 10),
+              const Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Buscando salas en tu red local (IP: ${_myLocalIp ?? "Detectando..."})',
-                      style: const TextStyle(color: Colors.white70, fontSize: 11),
+                      'Buscando salas cercanas automáticamente...',
+                      style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
                     ),
-                    const Text(
-                      'No necesitas internet. Conéctense al mismo Wi-Fi o Hotspot.',
-                      style: TextStyle(color: Colors.white38, fontSize: 10),
+                    Text(
+                      'No necesitas internet. Conéctense al mismo Wi-Fi o punto de acceso.',
+                      style: TextStyle(color: Colors.white60, fontSize: 10.5),
                     ),
                   ],
                 ),
               ),
               IconButton(
                 icon: const Icon(Icons.refresh_rounded, color: Colors.white70, size: 20),
+                tooltip: 'Buscar de nuevo',
                 onPressed: () => _beaconService.startListening(),
               ),
             ],
           ),
         ),
 
-        // Botón directo "Unirse con Key / IP"
+        // Botón directo "Unirse con Key Privado"
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
           child: InkWell(
             onTap: _joinWithManualCodeOrIp,
             borderRadius: BorderRadius.circular(14),
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
               decoration: BoxDecoration(
                 color: const Color(0xFF1E1E1E),
                 borderRadius: BorderRadius.circular(14),
@@ -343,7 +406,7 @@ class _MultiplayerHubScreenState extends State<MultiplayerHubScreen>
                   Icon(Icons.vpn_key_rounded, color: Color(0xFFF59E0B), size: 18),
                   SizedBox(width: 8),
                   Text(
-                    '¿TIENES UN KEY O IP DIRECTA? TOCA AQUÍ',
+                    '¿TIENES UN KEY DE 4 DÍGITOS? TOCA AQUÍ',
                     style: TextStyle(
                       color: Color(0xFFF59E0B),
                       fontSize: 12,
@@ -458,9 +521,23 @@ class _MultiplayerHubScreenState extends State<MultiplayerHubScreen>
                   'Host: ${room.hostName} • ${room.targetPlayers} Jugadores ${room.isTeams ? "(Parejas)" : ""}',
                   style: const TextStyle(color: Colors.white60, fontSize: 11),
                 ),
-                Text(
-                  'IP: ${room.hostIp}',
-                  style: const TextStyle(color: Colors.white38, fontSize: 10),
+                const SizedBox(height: 2),
+                Row(
+                  children: [
+                    Container(
+                      width: 6,
+                      height: 6,
+                      decoration: const BoxDecoration(
+                        color: Color(0xFF22C55E),
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    const Text(
+                      'Red local protegida',
+                      style: TextStyle(color: Colors.white38, fontSize: 10),
+                    ),
+                  ],
                 ),
               ],
             ),

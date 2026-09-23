@@ -81,12 +81,21 @@ class LocalRoomBeaconService {
     discoveredRoomsNotifier.value = [];
 
     try {
-      _listenSocket = await RawDatagramSocket.bind(
-        InternetAddress.anyIPv4,
-        broadcastPort,
-        reuseAddress: true,
-        reusePort: true,
-      );
+      try {
+        _listenSocket = await RawDatagramSocket.bind(
+          InternetAddress.anyIPv4,
+          broadcastPort,
+          reuseAddress: true,
+          reusePort: true,
+        );
+      } catch (_) {
+        // Fallback para dispositivos donde reusePort arroja excepción del SO
+        _listenSocket = await RawDatagramSocket.bind(
+          InternetAddress.anyIPv4,
+          broadcastPort,
+          reuseAddress: true,
+        );
+      }
 
       _listenSocket?.broadcastEnabled = true;
 

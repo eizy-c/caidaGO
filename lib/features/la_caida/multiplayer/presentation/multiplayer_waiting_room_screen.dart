@@ -149,8 +149,8 @@ class _MultiplayerWaitingRoomScreenState
                 const SizedBox(width: 4),
                 Text(
                   room.networkMode == MultiplayerNetworkMode.localWifi
-                      ? 'Local Wi-Fi (${room.hostIp})'
-                      : 'Online',
+                      ? 'Red Local Wi-Fi'
+                      : 'En Línea',
                   style: const TextStyle(color: Colors.white60, fontSize: 11),
                 ),
                 if (room.isPrivate && room.pinCode != null) ...[

@@ -57,9 +57,9 @@ class PrivacyPolicyDialog extends StatelessWidget {
                     'CaidaGO NO recopila información personal identificable como nombres reales, correos electrónicos, números telefónicos, ubicación geográfica precisa ni contactos.',
               ),
               _buildSection(
-                title: '4. Conectividad y Juego Multijugador',
+                title: '4. Conectividad y Juego Multijugador Seguro',
                 content:
-                    'Las funciones multijugador utilizan conexiones locales o sesiones efímeras únicamente para sincronizar el estado de la mesa de cartas durante la partida en curso.',
+                    'CaidaGO requiere permisos de red (Internet y estado Wi-Fi) exclusivamente para descubrir salas en tu red local y sincronizar la partida de cartas en tiempo real. No se recopilan datos de navegación ni información del dispositivo. Las salas privadas están protegidas mediante clave numérica efímera de 4 dígitos para garantizar que solo ingresen jugadores autorizados.',
               ),
               _buildSection(
                 title: '5. Cumplimiento con Google Play Store',
