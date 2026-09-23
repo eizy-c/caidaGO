@@ -26,10 +26,10 @@ class LobbyThemeOption {
   static const List<LobbyThemeOption> allThemes = [
     LobbyThemeOption(
       id: 'royal_blue',
-      name: 'Azul Royale',
-      backgroundGradient: [Color(0xFF0F172A), Color(0xFF1E1B4B), Color(0xFF312E81)],
-      accentColor: Color(0xFF38BDF8),
-      icon: Icons.brightness_3_rounded,
+      name: 'Criollo Indigo (Oficial)',
+      backgroundGradient: [Color(0xFF3B32B0), Color(0xFF2E2692), Color(0xFF251E75)],
+      accentColor: Color(0xFF22D3EE),
+      icon: Icons.auto_awesome_rounded,
     ),
     LobbyThemeOption(
       id: 'casino_green',

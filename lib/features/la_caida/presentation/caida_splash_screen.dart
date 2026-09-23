@@ -162,19 +162,6 @@ class _CaidaSplashScreenState extends State<CaidaSplashScreen>
                               ),
                             ),
                           ),
-                          // Borde exterior 3D
-                          Text(
-                            'CAIDAGO',
-                            style: TextStyle(
-                              fontSize: 52,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: 2.5,
-                              foreground: Paint()
-                                ..style = PaintingStyle.stroke
-                                ..strokeWidth = 6.5
-                                ..color = const Color(0xFF0284C7),
-                            ),
-                          ),
                           // Gradiente interior celeste brillante
                           ShaderMask(
                             shaderCallback: (bounds) => const LinearGradient(

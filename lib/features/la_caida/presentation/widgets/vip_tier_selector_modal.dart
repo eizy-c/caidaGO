@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../../economy/player_session.dart';
 import '../../economy/vip_tier.dart';
 import '../../../../core/presentation/widgets/app_3d_button.dart';
+import '../../../../core/presentation/widgets/cartoon_widgets.dart';
+import '../../../../core/theme/app_palette.dart';
 
 /// Modal interactivo para seleccionar y apostar en salas / mesas VIP de La Caída.
 /// Incluye toggle entre 1v1 y Parejas (4P) con actualización en vivo de pozos y premios netos,
@@ -75,12 +77,12 @@ class _VipTierSelectorModalState extends State<VipTierSelectorModal> {
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                colors: [Color(0xFF1E1E1E), Color(0xFF121212)],
+                colors: [Color(0xFF2E267D), Color(0xFF26206D)],
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
               ),
               borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-              border: Border.all(color: const Color(0xFF2E2E2E), width: 1.0),
+              border: Border.all(color: AppPalette.cartoonBorder, width: 2.2),
               boxShadow: const [
                 BoxShadow(
                   color: Colors.black87,
@@ -556,6 +558,7 @@ class _VipTierSelectorModalState extends State<VipTierSelectorModal> {
       label: label,
       variant: App3dButtonVariant.custom,
       backgroundColor: buttonColor,
+      gradient: isEnabled ? AppGradients.greenAccept : (!isUnlocked ? null : AppGradients.redDanger),
       depth: isEnabled ? 3.5 : 0.0,
       borderRadius: 12,
       padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),

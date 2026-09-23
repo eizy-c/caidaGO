@@ -4,15 +4,17 @@ import '../../economy/player_stats_model.dart';
 import '../../economy/user_progress.dart';
 import '../../economy/rank_system.dart';
 import '../../economy/achievement_catalog.dart';
+import '../../../../core/theme/app_palette.dart';
 import 'profile_and_level_modal.dart';
 import 'user_frame_view.dart';
 import 'rank_badge_widget.dart';
 import 'game_toast_queue.dart';
+import '../../../../core/presentation/widgets/cartoon_widgets.dart';
+import '../../../../core/presentation/widgets/app_3d_button.dart';
 
 /// Modal oficial "Perfil del Jugador" que unifica la vista de estadísticas de juego
 /// detalladas (Generales, Jugadas de Caída y Cantos Tradicionales) y la pestaña de Logros.
-/// Rediseñado con estética oscura, elegante y sobria con bordes neutros (#2E2E2E)
-/// a juego completo con ProfileAndLevelModal e InventoryModal.
+/// Rediseñado con estética Cartoon Indigo a juego con el Lobby y demás módulos.
 class PlayerProfileStatsModal extends StatefulWidget {
   final PlayerSession? session;
   final PlayerStatsModel? stats;
@@ -95,12 +97,12 @@ class _PlayerProfileStatsModalState extends State<PlayerProfileStatsModal> {
             child: Container(
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [Color(0xFF1E1E1E), Color(0xFF121212)],
+                  colors: [Color(0xFF2E267D), Color(0xFF26206D)],
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                 ),
                 borderRadius: BorderRadius.circular(24),
-                border: Border.all(color: const Color(0xFF2E2E2E), width: 1.2),
+                border: Border.all(color: AppPalette.cartoonBorder, width: 2.2),
                 boxShadow: const [
                   BoxShadow(
                     color: Colors.black87,
@@ -154,10 +156,20 @@ class _PlayerProfileStatsModalState extends State<PlayerProfileStatsModal> {
               ),
             ],
           ),
-          IconButton(
-            icon: const Icon(Icons.close_rounded, color: Colors.white70),
-            onPressed: () => Navigator.of(context).pop(),
-            visualDensity: VisualDensity.compact,
+          TactilePressable(
+            depth: 2.5,
+            onTap: () => Navigator.of(context).pop(),
+            child: Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                gradient: AppGradients.redDanger,
+                shape: BoxShape.circle,
+                boxShadow: const [
+                  BoxShadow(color: Colors.black45, blurRadius: 4, offset: Offset(0, 2)),
+                ],
+              ),
+              child: const Icon(Icons.close_rounded, color: Colors.white, size: 18),
+            ),
           ),
         ],
       ),
@@ -169,19 +181,21 @@ class _PlayerProfileStatsModalState extends State<PlayerProfileStatsModal> {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
-        color: const Color(0xFF181818),
+        color: AppPalette.cartoonBgDark,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFF2E2E2E)),
+        border: Border.all(color: AppPalette.cartoonBorder, width: 1.2),
       ),
       child: Row(
         children: [
           Expanded(
-            child: GestureDetector(
+            child: TactilePressable(
+              depth: 1.5,
               onTap: () => setState(() => _selectedTabIndex = 0),
               child: Container(
                 padding: const EdgeInsets.symmetric(vertical: 9),
                 decoration: BoxDecoration(
-                  color: _selectedTabIndex == 0 ? const Color(0xFF2E2E2E) : Colors.transparent,
+                  gradient: _selectedTabIndex == 0 ? AppGradients.cyanAccent : null,
+                  color: _selectedTabIndex == 0 ? null : Colors.transparent,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 alignment: Alignment.center,
@@ -190,19 +204,21 @@ class _PlayerProfileStatsModalState extends State<PlayerProfileStatsModal> {
                   style: TextStyle(
                     color: _selectedTabIndex == 0 ? Colors.white : Colors.white60,
                     fontSize: 13,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w900,
                   ),
                 ),
               ),
             ),
           ),
           Expanded(
-            child: GestureDetector(
+            child: TactilePressable(
+              depth: 1.5,
               onTap: () => setState(() => _selectedTabIndex = 1),
               child: Container(
                 padding: const EdgeInsets.symmetric(vertical: 9),
                 decoration: BoxDecoration(
-                  color: _selectedTabIndex == 1 ? const Color(0xFF2E2E2E) : Colors.transparent,
+                  gradient: _selectedTabIndex == 1 ? AppGradients.cyanAccent : null,
+                  color: _selectedTabIndex == 1 ? null : Colors.transparent,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 alignment: Alignment.center,
@@ -211,7 +227,7 @@ class _PlayerProfileStatsModalState extends State<PlayerProfileStatsModal> {
                   style: TextStyle(
                     color: _selectedTabIndex == 1 ? Colors.white : Colors.white60,
                     fontSize: 13,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w900,
                   ),
                 ),
               ),
@@ -245,9 +261,9 @@ class _PlayerProfileStatsModalState extends State<PlayerProfileStatsModal> {
           Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: const Color(0xFF181818),
+              color: AppPalette.cartoonCardDark,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: const Color(0xFF2E2E2E), width: 1.0),
+              border: Border.all(color: AppPalette.cartoonBorder, width: 1.5),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -336,9 +352,9 @@ class _PlayerProfileStatsModalState extends State<PlayerProfileStatsModal> {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFF181818),
+        color: AppPalette.cartoonCardDark,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFF2E2E2E), width: 1.0),
+        border: Border.all(color: AppPalette.cartoonBorder, width: 1.5),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -381,9 +397,9 @@ class _PlayerProfileStatsModalState extends State<PlayerProfileStatsModal> {
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF262626),
+                          color: AppPalette.cartoonBgDark,
                           borderRadius: BorderRadius.circular(6),
-                          border: Border.all(color: const Color(0xFF333333), width: 1),
+                          border: Border.all(color: AppPalette.cartoonBorder, width: 1),
                         ),
                         child: const Row(
                           mainAxisSize: MainAxisSize.min,
@@ -423,9 +439,9 @@ class _PlayerProfileStatsModalState extends State<PlayerProfileStatsModal> {
                       child: Container(
                         height: 14,
                         decoration: BoxDecoration(
-                          color: const Color(0xFF262626),
+                          color: AppPalette.cartoonBgDark,
                           borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: const Color(0xFF333333), width: 0.8),
+                          border: Border.all(color: AppPalette.cartoonBorder, width: 1),
                         ),
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(8),
@@ -439,7 +455,9 @@ class _PlayerProfileStatsModalState extends State<PlayerProfileStatsModal> {
                                     alignment: Alignment.centerLeft,
                                     widthFactor: progressRatio.clamp(0.0, 1.0),
                                     child: Container(
-                                      color: const Color(0xFF22C55E),
+                                      decoration: const BoxDecoration(
+                                        gradient: AppGradients.greenAccept,
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -475,9 +493,9 @@ class _PlayerProfileStatsModalState extends State<PlayerProfileStatsModal> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF262626),
+                            color: AppPalette.cartoonBgDark,
                             borderRadius: BorderRadius.circular(6),
-                            border: Border.all(color: const Color(0xFF333333), width: 0.8),
+                            border: Border.all(color: AppPalette.cartoonBorder, width: 1),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
@@ -502,8 +520,8 @@ class _PlayerProfileStatsModalState extends State<PlayerProfileStatsModal> {
                             child: LinearProgressIndicator(
                               value: rankProg.progressInTier,
                               minHeight: 7,
-                              backgroundColor: const Color(0xFF262626),
-                              valueColor: const AlwaysStoppedAnimation<Color>(Colors.white70),
+                              backgroundColor: AppPalette.cartoonBgDark,
+                              valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFFFBBF24)),
                             ),
                           ),
                         ),
@@ -527,14 +545,14 @@ class _PlayerProfileStatsModalState extends State<PlayerProfileStatsModal> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF242424),
+                    color: AppPalette.cartoonBgDark,
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: const Color(0xFF2E2E2E), width: 0.8),
+                    border: Border.all(color: AppPalette.cartoonBorder, width: 1),
                   ),
                   child: Text(
                     'Título: "${progress.rankTitle}"',
                     style: const TextStyle(
-                      color: Colors.white60,
+                      color: Colors.white70,
                       fontSize: 10,
                       fontWeight: FontWeight.w600,
                     ),
@@ -553,9 +571,9 @@ class _PlayerProfileStatsModalState extends State<PlayerProfileStatsModal> {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: const Color(0xFF181818),
+        color: AppPalette.cartoonCardDark,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFF2E2E2E), width: 1.0),
+        border: Border.all(color: AppPalette.cartoonBorder, width: 1.5),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -586,9 +604,9 @@ class _PlayerProfileStatsModalState extends State<PlayerProfileStatsModal> {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: const Color(0xFF181818),
+        color: AppPalette.cartoonCardDark,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFF2E2E2E), width: 1.0),
+        border: Border.all(color: AppPalette.cartoonBorder, width: 1.5),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -619,9 +637,9 @@ class _PlayerProfileStatsModalState extends State<PlayerProfileStatsModal> {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: const Color(0xFF181818),
+        color: AppPalette.cartoonCardDark,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFF2E2E2E), width: 1.0),
+        border: Border.all(color: AppPalette.cartoonBorder, width: 1.5),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -707,11 +725,11 @@ class _PlayerProfileStatsModalState extends State<PlayerProfileStatsModal> {
         return Container(
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: const Color(0xFF181818),
+            color: AppPalette.cartoonCardDark,
             borderRadius: BorderRadius.circular(14),
             border: Border.all(
-              color: const Color(0xFF2E2E2E),
-              width: 1.0,
+              color: AppPalette.cartoonBorder,
+              width: 1.5,
             ),
           ),
           child: Row(
@@ -869,7 +887,7 @@ class _PlayerProfileStatsModalState extends State<PlayerProfileStatsModal> {
                             borderRadius: BorderRadius.circular(6),
                             child: LinearProgressIndicator(
                               value: progressRatio,
-                              backgroundColor: const Color(0xFF262626),
+                              backgroundColor: AppPalette.cartoonBgDark,
                               valueColor: AlwaysStoppedAnimation(
                                 !isUnlocked
                                     ? Colors.white24
@@ -905,9 +923,9 @@ class _PlayerProfileStatsModalState extends State<PlayerProfileStatsModal> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF262626),
+                    color: AppPalette.cartoonBgDark,
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: const Color(0xFF333333)),
+                    border: Border.all(color: AppPalette.cartoonBorder),
                   ),
                   child: const Row(
                     mainAxisSize: MainAxisSize.min,
@@ -929,9 +947,9 @@ class _PlayerProfileStatsModalState extends State<PlayerProfileStatsModal> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF242424),
+                    color: AppPalette.cartoonBgDark,
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: const Color(0xFF333333)),
+                    border: Border.all(color: AppPalette.cartoonBorder),
                   ),
                   child: const Row(
                     mainAxisSize: MainAxisSize.min,
@@ -950,14 +968,11 @@ class _PlayerProfileStatsModalState extends State<PlayerProfileStatsModal> {
                   ),
                 )
               else if (isCompleted)
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF10B981),
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    minimumSize: const Size(60, 28),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                  ),
+                App3dButton(
+                  label: 'Reclamar',
+                  variant: App3dButtonVariant.emerald,
+                  depth: 3.0,
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   onPressed: () {
                     _stats.claimAchievement(ach.id);
                     _session.addCoins(ach.coinReward);

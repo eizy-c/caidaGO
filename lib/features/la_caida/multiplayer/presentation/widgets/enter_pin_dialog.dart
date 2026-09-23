@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../../core/presentation/widgets/app_3d_button.dart';
+import '../../../../../core/presentation/widgets/cartoon_widgets.dart';
+import '../../../../../core/theme/app_palette.dart';
 
 /// Modal interactivo para ingresar el Key o PIN de 4 dígitos para unirse a una sala privada
 class EnterPinDialog extends StatefulWidget {
@@ -76,9 +78,9 @@ class _EnterPinDialogState extends State<EnterPinDialog> {
         child: Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: const Color(0xFF1E1E1E),
+            color: AppPalette.cartoonBgDark,
             borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: const Color(0xFF2E2E2E), width: 1.2),
+            border: Border.all(color: AppPalette.cartoonBorder, width: 2.2),
             boxShadow: const [
               BoxShadow(
                 color: Colors.black87,
@@ -109,9 +111,18 @@ class _EnterPinDialogState extends State<EnterPinDialog> {
                       ),
                     ],
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.close_rounded, color: Colors.white54, size: 20),
-                    onPressed: () => Navigator.of(context).pop(),
+                  TactilePressable(
+                    depth: 2.0,
+                    onTap: () => Navigator.of(context).pop(),
+                    child: Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        gradient: AppGradients.redDanger,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: AppPalette.cartoonBorder, width: 1.2),
+                      ),
+                      child: const Icon(Icons.close_rounded, color: Colors.white, size: 16),
+                    ),
                   ),
                 ],
               ),
@@ -133,20 +144,20 @@ class _EnterPinDialogState extends State<EnterPinDialog> {
                     height: 52,
                     margin: const EdgeInsets.symmetric(horizontal: 6),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF141414),
+                      color: AppPalette.cartoonCardDark,
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
                         color: isFilled
-                            ? const Color(0xFFF59E0B)
-                            : const Color(0xFF333333),
-                        width: isFilled ? 1.8 : 1.0,
+                            ? const Color(0xFFFBBF24)
+                            : AppPalette.cartoonBorder,
+                        width: isFilled ? 2.0 : 1.2,
                       ),
                     ),
                     alignment: Alignment.center,
                     child: Text(
                       isFilled ? '•' : '',
                       style: const TextStyle(
-                        color: Color(0xFFF59E0B),
+                        color: Color(0xFFFDE047),
                         fontSize: 26,
                         fontWeight: FontWeight.bold,
                       ),

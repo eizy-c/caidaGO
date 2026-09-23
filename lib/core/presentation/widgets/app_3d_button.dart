@@ -8,14 +8,14 @@ enum App3dButtonVariant {
   olive, // #999966 (Acciones secundarias)
   dark, // #232323 (Charcoal / Contraste)
   sand, // #D5D4BC (Pergamino Claro)
-  gold, // Dorado / Ámbar (JUGAR, VIP, Premios)
-  emerald, // Verde Esmeralda (Tutorial, Éxito)
-  crimson, // Rojo Carmesí (Abandonar, Peligro)
+  gold, // Dorado / Ámbar con gradiente (JUGAR, VIP, Premios)
+  emerald, // Verde Esmeralda con gradiente (Aceptar, Tutorial, Éxito)
+  crimson, // Rojo Carmesí con gradiente (Abandonar, Cancelar, Peligro)
   custom, // Colores personalizados pasados por parámetro
 }
 
 /// Botón 3D táctil animado inspirado fielmente en las mecánicas de `.btn-177`:
-/// - Cara superior redondeada con contraste nítido.
+/// - Cara superior redondeada con contraste nítido y soporte de gradiente semántico.
 /// - Base lateral extruida 3D inferior (`:before`) con tono oscurecido.
 /// - Sombra difusa inferior (`:after`) que da sensación de elevación física.
 /// - Animación de presión física en el eje Y (`translateY: +depth`) con curva suave y respuesta háptica.
@@ -27,6 +27,7 @@ class App3dButton extends StatefulWidget {
   final double? iconSize;
   final App3dButtonVariant variant;
   final Color? backgroundColor;
+  final Gradient? gradient;
   final Color? edgeColor;
   final Color? textColor;
   final Color? iconColor;
@@ -48,6 +49,7 @@ class App3dButton extends StatefulWidget {
     this.iconSize,
     this.variant = App3dButtonVariant.cyan,
     this.backgroundColor,
+    this.gradient,
     this.edgeColor,
     this.textColor,
     this.iconColor,
@@ -69,6 +71,7 @@ class App3dButton extends StatefulWidget {
     required String label,
     App3dButtonVariant variant = App3dButtonVariant.cyan,
     Color? backgroundColor,
+    Gradient? gradient,
     Color? edgeColor,
     Color? textColor,
     Color? iconColor,
@@ -90,6 +93,7 @@ class App3dButton extends StatefulWidget {
       iconSize: iconSize,
       variant: variant,
       backgroundColor: backgroundColor,
+      gradient: gradient,
       edgeColor: edgeColor,
       textColor: textColor,
       iconColor: iconColor,
@@ -137,13 +141,50 @@ class _App3dButtonState extends State<App3dButton> {
     }
   }
 
+  Gradient? get _resolvedGradient {
+    if (!_isEnabled) return null;
+    if (widget.gradient != null) return widget.gradient;
+
+    switch (widget.variant) {
+      case App3dButtonVariant.emerald:
+        return const LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Color(0xFF10B981), Color(0xFF059669)],
+        );
+      case App3dButtonVariant.crimson:
+        return const LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Color(0xFFEF4444), Color(0xFFDC2626)],
+        );
+      case App3dButtonVariant.gold:
+        return const LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Color(0xFFFBBF24), Color(0xFFD97706)],
+        );
+      case App3dButtonVariant.cyan:
+        return const LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Color(0xFF22D3EE), Color(0xFF0284C7)],
+        );
+      case App3dButtonVariant.olive:
+      case App3dButtonVariant.dark:
+      case App3dButtonVariant.sand:
+      case App3dButtonVariant.custom:
+        return null;
+    }
+  }
+
   Color get _resolvedEdgeColor {
     if (!_isEnabled) return Colors.transparent;
     if (widget.edgeColor != null) return widget.edgeColor!;
 
     switch (widget.variant) {
       case App3dButtonVariant.cyan:
-        return AppPalette.get3dEdgeColor(AppPalette.cyan, 0.22);
+        return const Color(0xFF0369A1);
       case App3dButtonVariant.olive:
         return AppPalette.get3dEdgeColor(AppPalette.olive, 0.25);
       case App3dButtonVariant.dark:
@@ -167,7 +208,7 @@ class _App3dButtonState extends State<App3dButton> {
 
     switch (widget.variant) {
       case App3dButtonVariant.cyan:
-        return const Color(0xFF0F172A);
+        return Colors.white;
       case App3dButtonVariant.olive:
         return Colors.white;
       case App3dButtonVariant.dark:
@@ -293,7 +334,7 @@ class _App3dButtonState extends State<App3dButton> {
 
             // 3. Cara Superior Interactiva con Desplazamiento Y
             AnimatedContainer(
-              duration: const Duration(milliseconds: 90),
+              duration: const Duration(milliseconds: 70),
               curve: Curves.easeOutCubic,
               margin: EdgeInsets.only(
                 top: currentTranslation,
@@ -303,7 +344,8 @@ class _App3dButtonState extends State<App3dButton> {
               height: widget.height,
               padding: widget.padding,
               decoration: BoxDecoration(
-                color: _resolvedBgColor,
+                color: _resolvedGradient == null ? _resolvedBgColor : null,
+                gradient: _resolvedGradient,
                 borderRadius: BorderRadius.all(r),
                 border: _isEnabled
                     ? Border.all(

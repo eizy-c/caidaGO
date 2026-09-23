@@ -38,6 +38,13 @@ class RankInfo {
     required this.secondaryColor,
   });
 
+  /// Gradiente oficial del rango para insignias y fondos
+  LinearGradient get gradient => LinearGradient(
+        colors: [primaryColor, secondaryColor],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      );
+
   /// Retorna el nivel de división actual (ej: 4, 3, 2, 1) según los trofeos del jugador
   /// División más alta dentro del rango es 1 (ej: Oro 3 -> Oro 2 -> Oro 1)
   int divisionFor(int trophies) {

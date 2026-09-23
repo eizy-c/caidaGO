@@ -65,14 +65,17 @@ class _AboutSettingsScreenState extends State<AboutSettingsScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('LUEGO', style: TextStyle(color: Colors.white60)),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppPalette.cartoonYellow,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            child: const Text(
+              'LUEGO',
+              style: TextStyle(
+                color: Color(0xFFEF4444),
+                fontWeight: FontWeight.w900,
+              ),
             ),
-            onPressed: () {
+          ),
+          TactilePressable(
+            depth: 3,
+            onTap: () {
               Navigator.of(ctx).pop();
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
@@ -81,7 +84,25 @@ class _AboutSettingsScreenState extends State<AboutSettingsScreen> {
                 ),
               );
             },
-            child: const Text('CALIFICAR ⭐', style: TextStyle(color: Color(0xFF1E1B4B), fontWeight: FontWeight.bold)),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              decoration: BoxDecoration(
+                gradient: AppGradients.greenAccept,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppPalette.cartoonBorder, width: 1.5),
+                boxShadow: const [
+                  BoxShadow(color: Color(0xFF1B165E), offset: Offset(0, 2)),
+                ],
+              ),
+              child: const Text(
+                'CALIFICAR ⭐',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 0.5,
+                ),
+              ),
+            ),
           ),
         ],
       ),
@@ -129,13 +150,28 @@ class _AboutSettingsScreenState extends State<AboutSettingsScreen> {
           ],
         ),
         actions: [
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppPalette.cartoonYellow,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          TactilePressable(
+            depth: 3,
+            onTap: () => Navigator.of(ctx).pop(),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+              decoration: BoxDecoration(
+                gradient: AppGradients.greenAccept,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppPalette.cartoonBorder, width: 1.5),
+                boxShadow: const [
+                  BoxShadow(color: Color(0xFF1B165E), offset: Offset(0, 2)),
+                ],
+              ),
+              child: const Text(
+                'ENTENDIDO',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 0.6,
+                ),
+              ),
             ),
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('ENTENDIDO', style: TextStyle(color: Color(0xFF1E1B4B), fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -171,13 +207,28 @@ class _AboutSettingsScreenState extends State<AboutSettingsScreen> {
           ],
         ),
         actions: [
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppPalette.cartoonYellow,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          TactilePressable(
+            depth: 3,
+            onTap: () => Navigator.of(ctx).pop(),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+              decoration: BoxDecoration(
+                gradient: AppGradients.greenAccept,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppPalette.cartoonBorder, width: 1.5),
+                boxShadow: const [
+                  BoxShadow(color: Color(0xFF1B165E), offset: Offset(0, 2)),
+                ],
+              ),
+              child: const Text(
+                '¡GENIAL!',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 0.6,
+                ),
+              ),
             ),
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('¡GENIAL!', style: TextStyle(color: Color(0xFF1E1B4B), fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -508,25 +559,23 @@ class _AboutSettingsScreenState extends State<AboutSettingsScreen> {
     String? subtitle,
     required VoidCallback onTap,
   }) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(14),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-          decoration: BoxDecoration(
-            color: const Color(0xFF332D8C),
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: AppPalette.cartoonBorder, width: 1.8),
-            boxShadow: const [
-              BoxShadow(
-                color: Color(0xFF1B165E),
-                offset: Offset(0, 2.5),
-                blurRadius: 0,
-              ),
-            ],
-          ),
+    return TactilePressable(
+      depth: 2.5,
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+        decoration: BoxDecoration(
+          color: const Color(0xFF332D8C),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: AppPalette.cartoonBorder, width: 1.8),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0xFF1B165E),
+              offset: Offset(0, 2.5),
+              blurRadius: 0,
+            ),
+          ],
+        ),
           child: Row(
             children: [
               Icon(icon, color: AppPalette.cartoonCyan, size: 22),
@@ -565,9 +614,8 @@ class _AboutSettingsScreenState extends State<AboutSettingsScreen> {
             ],
           ),
         ),
-      ),
-    );
-  }
+      );
+    }
 
   Widget _buildSocialRow() {
     return Row(

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/presentation/widgets/app_3d_button.dart';
+import '../../../../core/presentation/widgets/cartoon_widgets.dart';
+import '../../../../core/theme/app_palette.dart';
 import '../../domain/models/caida_match_config.dart';
 import '../../presentation/caida_screen.dart';
 import '../../presentation/widgets/user_frame_view.dart';
@@ -117,14 +119,20 @@ class _MultiplayerWaitingRoomScreenState
     final room = widget.roomInfo;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF141414),
+      backgroundColor: const Color(0xFF26206D),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1E1E1E),
+        backgroundColor: AppPalette.cartoonBgDark,
         elevation: 0,
         centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
-          onPressed: () => Navigator.of(context).pop(),
+        leading: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: CartoonRoundButton(
+            width: 38,
+            height: 38,
+            backgroundColor: const Color(0xFFDCE2FD),
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Icon(Icons.arrow_back_rounded, color: Color(0xFF1E1763), size: 20),
+          ),
         ),
         title: Column(
           children: [
@@ -232,9 +240,9 @@ class _MultiplayerWaitingRoomScreenState
             // Barra inferior de acciones
             Container(
               padding: const EdgeInsets.all(16),
-              decoration: const BoxDecoration(
-                color: Color(0xFF1A1A1A),
-                border: Border(top: BorderSide(color: Color(0xFF2E2E2E), width: 1)),
+              decoration: BoxDecoration(
+                color: AppPalette.cartoonBgDark,
+                border: Border(top: BorderSide(color: AppPalette.cartoonBorder, width: 2.0)),
               ),
               child: Row(
                 children: [
@@ -258,12 +266,12 @@ class _MultiplayerWaitingRoomScreenState
                         height: 48,
                         depth: 4.5,
                         borderRadius: 16,
-                        variant: App3dButtonVariant.gold,
+                        variant: App3dButtonVariant.emerald,
                         icon: Icons.play_arrow_rounded,
                         iconSize: 22,
                         label: 'INICIAR PARTIDA',
                         textStyle: const TextStyle(
-                          color: Color(0xFF713F12),
+                          color: Colors.white,
                           fontSize: 15,
                           fontWeight: FontWeight.w900,
                           letterSpacing: 0.8,
@@ -288,13 +296,13 @@ class _MultiplayerWaitingRoomScreenState
 
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFF1E1E1E),
+        color: AppPalette.cartoonCardDark,
         borderRadius: BorderRadius.circular(18),
         border: Border.all(
           color: isOccupied
-              ? (isReady ? const Color(0xFF22C55E) : const Color(0xFF38BDF8))
-              : const Color(0xFF2E2E2E),
-          width: isOccupied ? 1.5 : 1.0,
+              ? (isReady ? const Color(0xFF10B981) : const Color(0xFF22D3EE))
+              : AppPalette.cartoonBorder,
+          width: isOccupied ? 2.0 : 1.5,
         ),
         boxShadow: const [
           BoxShadow(color: Colors.black26, blurRadius: 6, offset: Offset(0, 2)),
@@ -373,9 +381,9 @@ class _MultiplayerWaitingRoomScreenState
               width: 56,
               height: 56,
               decoration: BoxDecoration(
-                color: const Color(0xFF141414),
+                color: AppPalette.cartoonBgDark,
                 shape: BoxShape.circle,
-                border: Border.all(color: const Color(0xFF2E2E2E), width: 1.2),
+                border: Border.all(color: AppPalette.cartoonBorder, width: 1.5),
               ),
               child: const Icon(Icons.person_add_alt_1_rounded, color: Colors.white30, size: 24),
             ),
@@ -386,15 +394,15 @@ class _MultiplayerWaitingRoomScreenState
             ),
             if (widget.isHost) ...[
               const SizedBox(height: 8),
-              InkWell(
+              TactilePressable(
+                depth: 2.0,
                 onTap: () => widget.host?.toggleBotInSeat(index),
-                borderRadius: BorderRadius.circular(8),
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF262626),
+                    color: AppPalette.cartoonBgDark,
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: const Color(0xFF38BDF8), width: 0.8),
+                    border: Border.all(color: const Color(0xFF38BDF8), width: 1.0),
                   ),
                   child: const Row(
                     mainAxisSize: MainAxisSize.min,

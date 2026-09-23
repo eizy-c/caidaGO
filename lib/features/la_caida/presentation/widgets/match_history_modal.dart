@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../economy/match_history_model.dart';
+import '../../../../core/presentation/widgets/cartoon_widgets.dart';
+import '../../../../core/theme/app_palette.dart';
 import 'table_auditor_panel.dart';
 
 /// Modal para consultar el historial de las últimas partidas jugadas
@@ -32,12 +34,12 @@ class MatchHistoryModal extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                colors: [Color(0xFF1E1E1E), Color(0xFF121212)],
+                colors: [Color(0xFF2E267D), Color(0xFF26206D)],
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
               ),
               borderRadius: const BorderRadius.vertical(top: Radius.circular(26)),
-              border: Border.all(color: const Color(0xFF2E2E2E), width: 1.0),
+              border: Border.all(color: AppPalette.cartoonBorder, width: 2.2),
               boxShadow: const [
                 BoxShadow(color: Colors.black87, blurRadius: 20, offset: Offset(0, -4)),
               ],
@@ -73,9 +75,18 @@ class MatchHistoryModal extends StatelessWidget {
                         ),
                       ],
                     ),
-                    IconButton(
-                      icon: const Icon(Icons.close_rounded, color: Colors.white70),
-                      onPressed: () => Navigator.of(context).pop(),
+                    TactilePressable(
+                      depth: 2.0,
+                      onTap: () => Navigator.of(context).pop(),
+                      child: Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          gradient: AppGradients.redDanger,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: AppPalette.cartoonBorder, width: 1.2),
+                        ),
+                        child: const Icon(Icons.close_rounded, color: Colors.white, size: 18),
+                      ),
                     ),
                   ],
                 ),
@@ -108,11 +119,11 @@ class MatchHistoryModal extends StatelessWidget {
                             return Container(
                               padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
-                                color: const Color(0xFF1E1E1E),
+                                color: AppPalette.cartoonCardDark,
                                 borderRadius: BorderRadius.circular(14),
                                 border: Border.all(
-                                  color: const Color(0xFF2E2E2E),
-                                  width: 1.0,
+                                  color: AppPalette.cartoonBorder,
+                                  width: 1.5,
                                 ),
                               ),
                               child: Column(
@@ -207,16 +218,17 @@ class MatchHistoryModal extends StatelessWidget {
                                         '${m.caidasCount} Caídas • ${m.limpiasCount} Limpias • ${m.cantosCount} Cantos',
                                         style: const TextStyle(color: Colors.white54, fontSize: 10.5),
                                       ),
-                                      GestureDetector(
+                                      TactilePressable(
+                                        depth: 2.0,
                                         onTap: () {
                                           TableAuditorPanel.show(context, auditLogs: m.auditLogs);
                                         },
                                         child: Container(
                                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                           decoration: BoxDecoration(
-                                            color: const Color(0xFF242424),
+                                            color: AppPalette.cartoonBgDark,
                                             borderRadius: BorderRadius.circular(8),
-                                            border: Border.all(color: const Color(0xFF2E2E2E), width: 1),
+                                            border: Border.all(color: AppPalette.cartoonBorder, width: 1.2),
                                           ),
                                           child: const Row(
                                             mainAxisSize: MainAxisSize.min,

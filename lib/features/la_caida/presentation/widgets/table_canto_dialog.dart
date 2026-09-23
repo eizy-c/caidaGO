@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import '../../domain/caida_models.dart';
+import '../../../../core/presentation/widgets/cartoon_widgets.dart';
 
 /// Diálogo modal estilizado e intuitivo para que el jugador Mano elija
 /// si cantará la mesa comenzando desde el 1 (1->2->3->4) o desde el 4 (4->3->2->1).
@@ -39,27 +39,29 @@ class TableCantoDialog extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Icono de repartidor / mano
+            // Icono de repartidor / mano con gradiente dorado
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.05),
+                gradient: AppGradients.goldReward,
                 shape: BoxShape.circle,
-                border: Border.all(color: const Color(0xFF2E2E2E), width: 1.0),
+                boxShadow: const [
+                  BoxShadow(color: Colors.black45, blurRadius: 6, offset: Offset(0, 2)),
+                ],
               ),
               child: const Icon(
                 Icons.front_hand_rounded,
-                color: Color(0xFFF59E0B),
+                color: Color(0xFF1E1B4B),
                 size: 28,
               ),
             ),
             const SizedBox(height: 12),
 
-            // Título principal
+            // Título principal limpio
             const Text(
               '¡ERES LA MANO!',
               style: TextStyle(
-                color: Color(0xFFF59E0B),
+                color: Color(0xFFFBBF24),
                 fontSize: 14,
                 fontWeight: FontWeight.w900,
                 letterSpacing: 1.5,
@@ -90,10 +92,10 @@ class TableCantoDialog extends StatelessWidget {
             ),
             const SizedBox(height: 22),
 
-            // Opciones 1 y 4 lado a lado (Grandes y protagonistas)
+            // Opciones 1 y 4 lado a lado con botones táctiles
             Row(
               children: [
-                // OPCIÓN 1
+                // OPCIÓN 1: Gradiente verde (Aceptar conteo normal)
                 Expanded(
                   child: _buildBigChoiceCard(
                     context: context,
@@ -101,12 +103,12 @@ class TableCantoDialog extends StatelessWidget {
                     number: '1',
                     actionLabel: 'Cantar 1',
                     sequence: '1 → 2 → 3 → 4',
-                    accentColor: const Color(0xFF22C55E),
+                    gradient: AppGradients.greenAccept,
                   ),
                 ),
                 const SizedBox(width: 14),
 
-                // OPCIÓN 4
+                // OPCIÓN 4: Gradiente dorado (Conteo invertido)
                 Expanded(
                   child: _buildBigChoiceCard(
                     context: context,
@@ -114,7 +116,7 @@ class TableCantoDialog extends StatelessWidget {
                     number: '4',
                     actionLabel: 'Cantar 4',
                     sequence: '4 → 3 → 2 → 1',
-                    accentColor: const Color(0xFFF59E0B),
+                    gradient: AppGradients.goldReward,
                   ),
                 ),
               ],
@@ -131,60 +133,66 @@ class TableCantoDialog extends StatelessWidget {
     required String number,
     required String actionLabel,
     required String sequence,
-    required Color accentColor,
+    required Gradient gradient,
   }) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: () {
-          HapticFeedback.mediumImpact();
-          Navigator.of(context).pop(direction);
-        },
-        borderRadius: BorderRadius.circular(20),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
-          decoration: BoxDecoration(
-            color: const Color(0xFF222222),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: const Color(0xFF2E2E2E), width: 1.0),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Número gigante protagonista
-              Text(
-                number,
-                style: TextStyle(
-                  color: accentColor,
-                  fontSize: 54,
-                  fontWeight: FontWeight.w900,
-                  height: 1.0,
-                ),
+    return TactilePressable(
+      depth: 4,
+      onTap: () {
+        Navigator.of(context).pop(direction);
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
+        decoration: BoxDecoration(
+          gradient: gradient,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: const [
+            BoxShadow(
+              color: Colors.black54,
+              offset: Offset(0, 4),
+              blurRadius: 6,
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Número gigante protagonista limpio
+            Text(
+              number,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 54,
+                fontWeight: FontWeight.w900,
+                height: 1.0,
+                shadows: [
+                  Shadow(color: Colors.black45, blurRadius: 4, offset: Offset(0, 2)),
+                ],
               ),
-              const SizedBox(height: 10),
+            ),
+            const SizedBox(height: 10),
 
-              // Botón o etiqueta de acción
-              Text(
-                actionLabel,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 14.5,
-                  fontWeight: FontWeight.w800,
-                ),
+            // Botón o etiqueta de acción
+            Text(
+              actionLabel,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 15,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 0.5,
               ),
-              const SizedBox(height: 4),
+            ),
+            const SizedBox(height: 4),
 
-              // Secuencia de conteo
-              Text(
-                sequence,
-                style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.6),
-                  fontSize: 11.5,
-                  fontWeight: FontWeight.w600,
-                ),
+            // Secuencia de conteo
+            Text(
+              sequence,
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.85),
+                fontSize: 11.5,
+                fontWeight: FontWeight.bold,
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

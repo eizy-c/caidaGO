@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../../economy/chest_slot_model.dart';
 import '../../economy/player_session.dart';
 import '../../../../core/presentation/widgets/app_3d_button.dart';
+import '../../../../core/presentation/widgets/cartoon_widgets.dart';
+import '../../../../core/theme/app_palette.dart';
 
 /// Widget interactivo para la barra de 4 slots de cofres de recompensa en la parte inferior del lobby.
 class ChestSlotsView extends StatefulWidget {
@@ -51,10 +53,10 @@ class _ChestSlotsViewState extends State<ChestSlotsView> {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        backgroundColor: const Color(0xFF161616),
+        backgroundColor: AppPalette.cartoonBgDark,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
-          side: const BorderSide(color: Color(0xFF2E2E2E), width: 1.0),
+          side: BorderSide(color: AppPalette.cartoonBorder, width: 2.0),
         ),
         title: const Row(
           children: [
@@ -98,12 +100,12 @@ class _ChestSlotsViewState extends State<ChestSlotsView> {
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
             gradient: const LinearGradient(
-              colors: [Color(0xFF1E1B4B), Color(0xFF312E81)],
+              colors: [Color(0xFF2E267D), Color(0xFF26206D)],
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
             ),
             borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: const Color(0xFF2E2E2E), width: 1.2),
+            border: Border.all(color: AppPalette.cartoonBorder, width: 2.2),
             boxShadow: const [
               BoxShadow(color: Colors.black54, blurRadius: 16, offset: Offset(0, 4)),
             ],
@@ -126,9 +128,9 @@ class _ChestSlotsViewState extends State<ChestSlotsView> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF181818),
+                  color: AppPalette.cartoonCardDark,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: const Color(0xFF2E2E2E), width: 1.2),
+                  border: Border.all(color: AppPalette.cartoonBorder, width: 1.5),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -172,10 +174,10 @@ class _ChestSlotsViewState extends State<ChestSlotsView> {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        backgroundColor: const Color(0xFF161616),
+        backgroundColor: AppPalette.cartoonBgDark,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
-          side: const BorderSide(color: Color(0xFF2E2E2E), width: 1.0),
+          side: BorderSide(color: AppPalette.cartoonBorder, width: 2.0),
         ),
         title: const Row(
           children: [
@@ -238,9 +240,9 @@ class _ChestSlotsViewState extends State<ChestSlotsView> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
-        color: const Color(0xFF0F172A).withValues(alpha: 0.75),
+        color: AppPalette.cartoonBgDark,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: Colors.white12, width: 1),
+        border: Border.all(color: AppPalette.cartoonBorder, width: 1.8),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -261,8 +263,8 @@ class _ChestSlotsViewState extends State<ChestSlotsView> {
 
     switch (state) {
       case ChestState.empty:
-        borderColor = const Color(0xFF2E2E2E);
-        bgColor = const Color(0xFF1E293B).withValues(alpha: 0.5);
+        borderColor = AppPalette.cartoonBorder;
+        bgColor = AppPalette.cartoonCardDark;
         centerContent = const Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -273,7 +275,7 @@ class _ChestSlotsViewState extends State<ChestSlotsView> {
         );
         break;
       case ChestState.unlocking:
-        borderColor = const Color(0xFF2E2E2E);
+        borderColor = AppPalette.cartoonBorder;
         bgColor = const Color(0xFF1E1B4B);
         final rem = chest.getFormattedRemainingTime();
         centerContent = Column(
@@ -293,7 +295,7 @@ class _ChestSlotsViewState extends State<ChestSlotsView> {
         );
         break;
       case ChestState.ready:
-        borderColor = const Color(0xFF2E2E2E);
+        borderColor = const Color(0xFFFBBF24);
         bgColor = const Color(0xFF78350F).withValues(alpha: 0.85);
         centerContent = const Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -314,7 +316,8 @@ class _ChestSlotsViewState extends State<ChestSlotsView> {
     }
 
     return Expanded(
-      child: GestureDetector(
+      child: TactilePressable(
+        depth: 3.0,
         onTap: () => _onSlotTapped(chest),
         child: Container(
           height: 64,

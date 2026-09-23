@@ -273,14 +273,18 @@ class _MultiplayerHubScreenState extends State<MultiplayerHubScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(ctx).pop(),
-              child: const Text('CANCELAR', style: TextStyle(color: Colors.white60)),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppPalette.cartoonYellow,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              child: const Text(
+                'CANCELAR',
+                style: TextStyle(
+                  color: Color(0xFFEF4444),
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 0.5,
+                ),
               ),
-              onPressed: () {
+            ),
+            TactilePressable(
+              depth: 3,
+              onTap: () {
                 final pin = pinController.text.trim();
                 final customIp = ipController.text.trim();
                 Navigator.of(ctx).pop();
@@ -308,9 +312,24 @@ class _MultiplayerHubScreenState extends State<MultiplayerHubScreen> {
                   pinCode: pin,
                 ));
               },
-              child: const Text(
-                'ENTRAR',
-                style: TextStyle(color: Color(0xFF1E1B4B), fontWeight: FontWeight.bold),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                decoration: BoxDecoration(
+                  gradient: AppGradients.greenAccept,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppPalette.cartoonBorder, width: 1.5),
+                  boxShadow: const [
+                    BoxShadow(color: Color(0xFF1B165E), offset: Offset(0, 2)),
+                  ],
+                ),
+                child: const Text(
+                  'ENTRAR',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 0.6,
+                  ),
+                ),
               ),
             ),
           ],
@@ -406,7 +425,8 @@ class _MultiplayerHubScreenState extends State<MultiplayerHubScreen> {
                       return Expanded(
                         child: Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 4),
-                          child: InkWell(
+                          child: TactilePressable(
+                            depth: 2,
                             onTap: () {
                               setSheetState(() {
                                 _targetPlayers = count;
@@ -417,11 +437,11 @@ class _MultiplayerHubScreenState extends State<MultiplayerHubScreen> {
                                 if (count != 4) _isTeams = false;
                               });
                             },
-                            borderRadius: BorderRadius.circular(14),
                             child: Container(
                               padding: const EdgeInsets.symmetric(vertical: 10),
                               decoration: BoxDecoration(
-                                color: isSel ? AppPalette.cartoonCyan : const Color(0xFF262169),
+                                color: isSel ? null : const Color(0xFF262169),
+                                gradient: isSel ? AppGradients.cyanAccent : null,
                                 borderRadius: BorderRadius.circular(14),
                                 border: Border.all(
                                   color: isSel ? AppPalette.cartoonBorder : AppPalette.cartoonBorder.withValues(alpha: 0.6),
@@ -556,18 +576,18 @@ class _MultiplayerHubScreenState extends State<MultiplayerHubScreen> {
 
                   const SizedBox(height: 20),
 
-                  // Botón Confirmar Crear Sala
-                  InkWell(
+                  // Botón Confirmar Crear Sala (Verde Aceptar)
+                  TactilePressable(
+                    depth: 3.5,
                     onTap: () {
                       Navigator.of(ctx).pop();
                       _createRoom();
                     },
-                    borderRadius: BorderRadius.circular(16),
                     child: Container(
                       width: double.infinity,
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       decoration: BoxDecoration(
-                        color: AppPalette.cartoonYellow,
+                        gradient: AppGradients.greenAccept,
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(color: AppPalette.cartoonBorder, width: 2.2),
                         boxShadow: const [
@@ -582,9 +602,7 @@ class _MultiplayerHubScreenState extends State<MultiplayerHubScreen> {
                       child: const CartoonStrokeText(
                         'ABRIR SALA (SIN INTERNET)',
                         fontSize: 15,
-                        textColor: Color(0xFF1E1B4B),
-                        strokeColor: Colors.white,
-                        strokeWidth: 2,
+                        textColor: Colors.white,
                       ),
                     ),
                   ),
@@ -905,56 +923,53 @@ class _MultiplayerHubScreenState extends State<MultiplayerHubScreen> {
   Widget _buildBottomBar() {
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 10, 20, 16),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: _openCreateRoomSheet,
-          borderRadius: BorderRadius.circular(18),
-          child: Container(
-            height: 54,
-            decoration: BoxDecoration(
-              color: AppPalette.cartoonYellow,
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: AppPalette.cartoonBorder, width: 2.4),
-              boxShadow: const [
-                BoxShadow(
-                  color: Color(0xFF1B165E),
-                  offset: Offset(0, 4),
-                  blurRadius: 0,
+      child: TactilePressable(
+        onTap: _openCreateRoomSheet,
+        depth: 4,
+        child: Container(
+          height: 54,
+          decoration: BoxDecoration(
+            gradient: AppGradients.goldReward,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: AppPalette.cartoonBorder, width: 2.4),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0xFF1B165E),
+                offset: Offset(0, 4),
+                blurRadius: 0,
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Icono redondeado en rojo con tuerca/engranaje
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  gradient: AppGradients.redDanger,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: AppPalette.cartoonBorder, width: 1.8),
                 ),
-              ],
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                // Icono redondeado en rojo con tuerca/engranaje
-                Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color: AppPalette.cartoonRed,
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: AppPalette.cartoonBorder, width: 1.8),
-                  ),
-                  child: const Icon(
-                    Icons.settings_rounded,
-                    color: Colors.white,
-                    size: 20,
-                  ),
+                child: const Icon(
+                  Icons.settings_rounded,
+                  color: Colors.white,
+                  size: 20,
                 ),
-                const SizedBox(width: 12),
-                // Texto CREAR SALA
-                const Text(
-                  'CREAR SALA',
-                  style: TextStyle(
-                    color: AppPalette.cartoonCardText,
-                    fontSize: 16.5,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 1.0,
-                  ),
+              ),
+              const SizedBox(width: 12),
+              // Texto CREAR SALA
+              const Text(
+                'CREAR SALA',
+                style: TextStyle(
+                  color: AppPalette.cartoonCardText,
+                  fontSize: 16.5,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 1.0,
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),

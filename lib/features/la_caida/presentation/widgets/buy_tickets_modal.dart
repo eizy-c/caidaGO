@@ -4,6 +4,7 @@ import '../../economy/player_session.dart';
 import '../../economy/ticket_shop_offer.dart';
 import '../../economy/booster_model.dart';
 import '../../../../core/presentation/widgets/app_3d_button.dart';
+import '../../../../core/theme/app_palette.dart';
 
 /// Modal de Tienda de Tickets y Potenciadores para partidas de La Caída.
 class BuyTicketsModal extends StatefulWidget {
@@ -148,12 +149,12 @@ class _BuyTicketsModalState extends State<BuyTicketsModal> {
             padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                colors: [Color(0xFF1E1E1E), Color(0xFF121212)],
+                colors: [Color(0xFF2E267D), Color(0xFF26206D)],
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
               ),
               borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-              border: Border.all(color: const Color(0xFF2E2E2E), width: 1.0),
+              border: Border.all(color: AppPalette.cartoonBorder, width: 2.2),
               boxShadow: const [
                 BoxShadow(
                   color: Colors.black87,
@@ -569,12 +570,12 @@ class _BuyTicketsModalState extends State<BuyTicketsModal> {
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: isHighlighted
-            ? const Color(0xFF262626)
-            : const Color(0xFF1E1E1E),
+            ? AppPalette.cartoonCardDark
+            : AppPalette.cartoonBgDark,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: const Color(0xFF2E2E2E),
-          width: 1.0,
+          color: AppPalette.cartoonBorder,
+          width: 1.5,
         ),
         boxShadow: isHighlighted
             ? const [
@@ -693,7 +694,7 @@ class _BuyTicketsModalState extends State<BuyTicketsModal> {
             icon: (isEnabled && isPriceCoin) ? Icons.monetization_on_rounded : null,
             iconColor: const Color(0xFFFDE047),
             iconSize: 13,
-            variant: isHighlighted ? App3dButtonVariant.gold : App3dButtonVariant.cyan,
+            variant: isHighlighted ? App3dButtonVariant.gold : App3dButtonVariant.emerald,
             depth: 3.5,
             borderRadius: 10,
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -701,7 +702,7 @@ class _BuyTicketsModalState extends State<BuyTicketsModal> {
               fontSize: 11,
               fontWeight: FontWeight.w900,
               color: isEnabled
-                  ? (isHighlighted ? const Color(0xFF1E1B4B) : const Color(0xFF0F172A))
+                  ? (isHighlighted ? const Color(0xFF1E1B4B) : Colors.white)
                   : const Color(0xFF7E7E7E),
             ),
           ),

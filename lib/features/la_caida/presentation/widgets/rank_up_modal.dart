@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../economy/rank_system.dart';
 import '../../../../core/presentation/widgets/app_3d_button.dart';
+import '../../../../core/theme/app_palette.dart';
 
 /// Modal animado que aparece cuando el jugador sube o baja de rango.
 class RankUpModal extends StatefulWidget {
@@ -89,9 +90,9 @@ class _RankUpModalState extends State<RankUpModal>
           child: Container(
             constraints: const BoxConstraints(maxWidth: 340),
             decoration: BoxDecoration(
-              color: const Color(0xFF1E1E1E),
+              color: AppPalette.cartoonBgDark,
               borderRadius: BorderRadius.circular(24),
-              border: Border.all(color: const Color(0xFF2E2E2E), width: 1.2),
+              border: Border.all(color: AppPalette.cartoonBorder, width: 2.2),
               boxShadow: const [
                 BoxShadow(
                   color: Colors.black54,

@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../economy/rank_system.dart';
 
-/// Emblema visual del rango del jugador.
-/// Muestra el emoji del rango + nombre de división.
-/// Tamaño: 'small' para lobby, 'medium' para perfil.
+/// Emblema visual del rango del jugador con gradiente semántico según trofeos.
+/// Muestra el icono del rango + nombre y división con tipografía limpia sin bordes oscuros.
 class RankBadgeWidget extends StatelessWidget {
   final int trophies;
   final bool showDivision;
@@ -26,19 +25,26 @@ class RankBadgeWidget extends StatelessWidget {
 
     return Container(
       padding: EdgeInsets.symmetric(
-        horizontal: compact ? 6 : 8,
-        vertical: compact ? 3 : 4,
+        horizontal: compact ? 8 : 10,
+        vertical: compact ? 3 : 5,
       ),
       decoration: BoxDecoration(
-        color: rank.primaryColor.withValues(alpha: 0.18),
+        gradient: LinearGradient(
+          colors: [
+            rank.primaryColor.withValues(alpha: 0.35),
+            rank.secondaryColor.withValues(alpha: 0.20),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: rank.primaryColor.withValues(alpha: 0.7),
-          width: 1.2,
+          color: rank.secondaryColor.withValues(alpha: 0.85),
+          width: 1.4,
         ),
         boxShadow: [
           BoxShadow(
-            color: rank.primaryColor.withValues(alpha: 0.25),
+            color: rank.primaryColor.withValues(alpha: 0.30),
             blurRadius: 6,
             spreadRadius: 0,
           ),
@@ -52,15 +58,18 @@ class RankBadgeWidget extends StatelessWidget {
             size: compact ? fontSize + 1 : fontSize + 3,
             color: rank.secondaryColor,
           ),
-          if (!compact) const SizedBox(width: 4),
+          if (!compact) const SizedBox(width: 5),
           if (!compact)
             Text(
               fullName,
               style: TextStyle(
-                color: rank.secondaryColor,
+                color: Colors.white,
                 fontSize: fontSize,
-                fontWeight: FontWeight.w800,
-                letterSpacing: 0.2,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 0.3,
+                shadows: const [
+                  Shadow(color: Colors.black45, blurRadius: 3, offset: Offset(0, 1)),
+                ],
               ),
             ),
         ],
@@ -69,7 +78,7 @@ class RankBadgeWidget extends StatelessWidget {
   }
 }
 
-/// Barra de progreso de trofeos dentro del rango actual.
+/// Barra de progreso de trofeos con gradiente del rango actual.
 class RankProgressBar extends StatelessWidget {
   final int trophies;
   final double height;
@@ -97,32 +106,46 @@ class RankProgressBar extends StatelessWidget {
               style: TextStyle(
                 color: rank.secondaryColor,
                 fontSize: 11,
-                fontWeight: FontWeight.w800,
+                fontWeight: FontWeight.w900,
               ),
             ),
             if (rank.maxTrophies >= 0)
               Text(
                 '${progress.trophiesToNextDivision} para subir',
                 style: const TextStyle(
-                  color: Colors.white54,
+                  color: Colors.white70,
                   fontSize: 10,
+                  fontWeight: FontWeight.bold,
                 ),
               )
             else
               const Text(
                 'Rango máximo',
-                style: TextStyle(color: Colors.white54, fontSize: 10),
+                style: TextStyle(
+                  color: Colors.white70,
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
           ],
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: 5),
         ClipRRect(
           borderRadius: BorderRadius.circular(height),
-          child: LinearProgressIndicator(
-            value: ratio,
-            minHeight: height,
-            backgroundColor: rank.primaryColor.withValues(alpha: 0.2),
-            valueColor: AlwaysStoppedAnimation<Color>(rank.primaryColor),
+          child: Container(
+            height: height,
+            width: double.infinity,
+            color: rank.primaryColor.withValues(alpha: 0.22),
+            child: FractionallySizedBox(
+              alignment: Alignment.centerLeft,
+              widthFactor: ratio.clamp(0.0, 1.0),
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: rank.gradient,
+                  borderRadius: BorderRadius.circular(height),
+                ),
+              ),
+            ),
           ),
         ),
       ],

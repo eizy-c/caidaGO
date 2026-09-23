@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import '../../../core/theme/app_palette.dart';
 import '../../../core/presentation/widgets/app_3d_button.dart';
 import '../../../core/presentation/widgets/spanish_card_view.dart';
 import '../../../core/services/user_profile_service.dart';
@@ -23,6 +24,9 @@ import 'widgets/vip_tier_selector_modal.dart';
 import '../multiplayer/presentation/multiplayer_hub_screen.dart';
 import '../tutorial/presentation/tutorial_screen.dart';
 import 'about_settings_screen.dart';
+import '../../../core/presentation/widgets/cartoon_widgets.dart';
+import '../economy/rank_system.dart';
+import '../economy/player_stats_model.dart';
 
 
 
@@ -191,10 +195,10 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
           final seconds = (remaining.inSeconds % 60).toString().padLeft(2, '0');
 
           return AlertDialog(
-            backgroundColor: const Color(0xFF161616),
+            backgroundColor: AppPalette.cartoonBgDark,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(24),
-              side: const BorderSide(color: Color(0xFF2E2E2E), width: 1.0),
+              side: BorderSide(color: AppPalette.cartoonBorder, width: 2.0),
             ),
             title: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -212,9 +216,9 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF222222),
+                    color: AppPalette.cartoonCardDark,
                     borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: const Color(0xFF2E2E2E)),
+                    border: Border.all(color: AppPalette.cartoonBorder, width: 1.2),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -239,11 +243,11 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
                     margin: const EdgeInsets.only(bottom: 10),
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF222222),
+                      color: AppPalette.cartoonCardDark,
                       borderRadius: BorderRadius.circular(14),
                       border: Border.all(
-                        color: const Color(0xFF2E2E2E),
-                        width: 1,
+                        color: AppPalette.cartoonBorder,
+                        width: 1.5,
                       ),
                     ),
                     child: Row(
@@ -359,14 +363,14 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
             child: Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: const Color(0xFF1E1E1E),
+                color: AppPalette.cartoonBgDark,
                 borderRadius: BorderRadius.circular(24),
-                border: Border.all(color: const Color(0xFF2E2E2E), width: 1.2),
-                boxShadow: [
+                border: Border.all(color: AppPalette.cartoonBorder, width: 2.2),
+                boxShadow: const [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.6),
+                    color: Colors.black54,
                     blurRadius: 20,
-                    offset: const Offset(0, 8),
+                    offset: Offset(0, 8),
                   ),
                 ],
               ),
@@ -376,9 +380,9 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF252525),
+                      color: AppPalette.cartoonCardDark,
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: const Color(0xFF2E2E2E), width: 1.0),
+                      border: Border.all(color: AppPalette.cartoonBorder, width: 1.5),
                     ),
                     child: Text(
                       isVsBot
@@ -397,9 +401,9 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF181818),
+                      color: AppPalette.cartoonCardDark,
                       borderRadius: BorderRadius.circular(18),
-                      border: Border.all(color: const Color(0xFF2E2E2E), width: 1),
+                      border: Border.all(color: AppPalette.cartoonBorder, width: 1.5),
                     ),
                     child: Column(
                       children: [
@@ -421,7 +425,7 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
                                   decoration: BoxDecoration(
                                     color: Colors.white10,
                                     borderRadius: BorderRadius.circular(6),
-                                    border: Border.all(color: const Color(0xFF2E2E2E), width: 1),
+                                    border: Border.all(color: AppPalette.cartoonBorder, width: 1),
                                   ),
                                   child: const Icon(Icons.confirmation_number_rounded, color: Color(0xFF38BDF8), size: 18),
                                 ),
@@ -493,9 +497,9 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFF252525),
+                                    color: AppPalette.cartoonBgDark,
                                     borderRadius: BorderRadius.circular(10),
-                                    border: Border.all(color: const Color(0xFF2E2E2E), width: 1),
+                                    border: Border.all(color: AppPalette.cartoonBorder, width: 1.2),
                                   ),
                                   child: Text(
                                     '$_selectedTotalPlayers Jugadores',
@@ -528,9 +532,9 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFF252525),
+                                    color: AppPalette.cartoonBgDark,
                                     borderRadius: BorderRadius.circular(10),
-                                    border: Border.all(color: const Color(0xFF2E2E2E), width: 1),
+                                    border: Border.all(color: AppPalette.cartoonBorder, width: 1.2),
                                   ),
                                   child: Row(
                                     mainAxisSize: MainAxisSize.min,
@@ -570,7 +574,7 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
                     height: 48,
                     depth: 5,
                     borderRadius: 16,
-                    variant: _session.tickets >= 1 ? App3dButtonVariant.gold : App3dButtonVariant.crimson,
+                    variant: _session.tickets >= 1 ? App3dButtonVariant.emerald : App3dButtonVariant.crimson,
                     label: _session.tickets >= 1 ? '¡Empezar!' : '¡SIN TICKETS! - RECARGAR',
                     textStyle: const TextStyle(
                       color: Colors.white,
@@ -640,45 +644,42 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
     );
   }
 
-  // --- BARRA SUPERIOR SEGÚN REFERENCIA ---
+  // --- BARRA SUPERIOR SEGÚN REFERENCIA UNIFICADA ---
   Widget _buildTopBar() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       decoration: BoxDecoration(
-        color: const Color(0xFF0B1120).withValues(alpha: 0.8),
-        border: const Border(bottom: BorderSide(color: Colors.white10, width: 1)),
+        color: AppPalette.cartoonBgDark.withValues(alpha: 0.9),
+        border: const Border(bottom: BorderSide(color: AppPalette.cartoonBorder, width: 2)),
       ),
       child: Row(
         children: [
-          // Botón de Ajustes (Engranaje)
-          GestureDetector(
-            onTap: _openSettingsDialog,
-            child: Container(
-              padding: const EdgeInsets.all(7),
-              decoration: BoxDecoration(
-                color: const Color(0xFF1E293B),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: Colors.white12, width: 1),
-              ),
-              child: const Icon(Icons.settings_rounded, color: Colors.white, size: 20),
-            ),
+          // Botón de Ajustes (Engranaje) con efecto táctil cartoon
+          CartoonRoundButton(
+            width: 40,
+            height: 40,
+            borderRadius: 12,
+            depth: 2.5,
+            onPressed: _openSettingsDialog,
+            child: const Icon(Icons.settings_rounded, color: AppPalette.cartoonCardText, size: 22),
           ),
           const Spacer(),
 
-          // Chip de Tickets: 🎫 7/10 con temporizador mini ⏱ 08:02
-          GestureDetector(
+          // Chip de Tickets con gradiente Cyan y efecto táctil
+          TactilePressable(
+            depth: 2,
             onTap: _openBuyTicketsModal,
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
               decoration: BoxDecoration(
-                color: const Color(0xFF0284C7).withValues(alpha: 0.9),
+                gradient: AppGradients.cyanAccent,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFF38BDF8), width: 1.1),
-                boxShadow: [
+                border: Border.all(color: AppPalette.cartoonBorder, width: 1.5),
+                boxShadow: const [
                   BoxShadow(
-                    color: const Color(0xFF0284C7).withValues(alpha: 0.35),
-                    blurRadius: 6,
-                    offset: const Offset(0, 2),
+                    color: Color(0xFF1B165E),
+                    blurRadius: 0,
+                    offset: Offset(0, 2),
                   ),
                 ],
               ),
@@ -705,25 +706,33 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
           ),
           const SizedBox(width: 8),
 
-          // Chip de Monedas: 💰 2506 (+)
-          GestureDetector(
+          // Chip de Monedas con gradiente Dorado y efecto táctil
+          TactilePressable(
+            depth: 2,
             onTap: () => _openBuyTicketsModal(initialTab: 1),
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
               decoration: BoxDecoration(
-                color: const Color(0xFF1E293B),
+                gradient: AppGradients.goldReward,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFFF59E0B), width: 1.1),
+                border: Border.all(color: AppPalette.cartoonBorder, width: 1.5),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Color(0xFF1B165E),
+                    blurRadius: 0,
+                    offset: Offset(0, 2),
+                  ),
+                ],
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.monetization_on_rounded, color: Color(0xFFFDE047), size: 16),
+                  const Icon(Icons.monetization_on_rounded, color: Color(0xFF1E1B4B), size: 16),
                   const SizedBox(width: 5),
                   Text(
                     '${_session.coins}',
                     style: const TextStyle(
-                      color: Colors.white,
+                      color: Color(0xFF1E1B4B),
                       fontWeight: FontWeight.w900,
                       fontSize: 12.5,
                     ),
@@ -732,10 +741,10 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
                   Container(
                     padding: const EdgeInsets.all(1.5),
                     decoration: const BoxDecoration(
-                      color: Color(0xFFFDE047),
+                      color: Color(0xFF1E1B4B),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.add, size: 10, color: Color(0xFF0F172A)),
+                    child: const Icon(Icons.add, size: 10, color: Colors.white),
                   ),
                 ],
               ),
@@ -826,30 +835,29 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
     final progress = userProg.levelProgressPercentage;
     final level = userProg.currentLevel;
 
-    return GestureDetector(
+    final rank = RankInfo.forTrophies(PlayerStatsModel.shared.trophies);
+
+    return TactilePressable(
+      depth: 3,
       onTap: () => _openProfileAndLevelModal(),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
         decoration: BoxDecoration(
-          color: const Color(0xFF1E293B).withValues(alpha: 0.8),
+          color: AppPalette.cartoonCardDark,
           borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: Colors.white12, width: 1),
+          border: Border.all(color: AppPalette.cartoonBorder, width: 2),
           boxShadow: const [
-            BoxShadow(color: Colors.black38, blurRadius: 6, offset: Offset(0, 2)),
+            BoxShadow(color: Color(0xFF1B165E), offset: Offset(0, 3.5), blurRadius: 0),
           ],
         ),
         child: Row(
           children: [
-            // Badge naranja CAIDAGO con icono de baraja
+            // Badge con gradiente del Rango actual (Bronce, Plata, Oro, etc.)
             Container(
               width: 58,
               height: 52,
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFFF59E0B), Color(0xFFD97706)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
+                gradient: rank.gradient,
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: const [
                   BoxShadow(color: Colors.black26, blurRadius: 4, offset: Offset(0, 2)),
@@ -973,8 +981,9 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
         ),
         const SizedBox(height: 12),
 
-        // Botón Gigante 3D Amarillo/Dorado: ▶ JUGAR (Demuestra tu habilidad)
-        GestureDetector(
+        // Botón Gigante 3D Amarillo/Dorado: ▶ JUGAR con efecto de presión táctil
+        TactilePressable(
+          depth: 5,
           onTap: () {
             setState(() => _currentView = LobbyViewMode.unJugador);
           },
@@ -982,11 +991,7 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
             width: double.infinity,
             padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFFFDE047), Color(0xFFF59E0B), Color(0xFFD97706)],
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-              ),
+              gradient: AppGradients.goldReward,
               borderRadius: BorderRadius.circular(26),
               border: Border.all(color: Colors.white.withValues(alpha: 0.6), width: 2),
               boxShadow: [
@@ -1047,14 +1052,14 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
   Widget _buildSecondaryModesRow() {
     return Row(
       children: [
-        // Botón TUTORIAL (Verde oliva / Caqui)
+        // Botón TUTORIAL (Verde esmeralda con gradiente)
         Expanded(
           child: App3dButton.icon(
             onPressed: _openTutorial,
             height: 48,
             depth: 4,
             borderRadius: 16,
-            variant: App3dButtonVariant.olive,
+            variant: App3dButtonVariant.emerald,
             icon: Icons.school_rounded,
             iconSize: 18,
             label: 'TUTORIAL',
@@ -1068,14 +1073,14 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
         ),
         const SizedBox(width: 12),
 
-        // Botón MULTIJUGADOR (Coral / Rojo)
+        // Botón MULTIJUGADOR (Turquesa / Cyan con gradiente)
         Expanded(
           child: App3dButton.icon(
             onPressed: _openMultiplayerComingSoonDialog,
             height: 48,
             depth: 4,
             borderRadius: 16,
-            variant: App3dButtonVariant.crimson,
+            variant: App3dButtonVariant.cyan,
             icon: Icons.wifi_rounded,
             iconSize: 18,
             label: 'MULTIJUGADOR',
@@ -1140,19 +1145,20 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
     required Color color,
     required VoidCallback onTap,
   }) {
-    return GestureDetector(
+    return TactilePressable(
+      depth: 3,
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
         decoration: BoxDecoration(
-          color: const Color(0xFF1E293B).withValues(alpha: 0.8),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: color.withValues(alpha: 0.5), width: 1.2),
-          boxShadow: [
+          color: AppPalette.cartoonCardDark,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppPalette.cartoonBorder, width: 2),
+          boxShadow: const [
             BoxShadow(
-              color: color.withValues(alpha: 0.15),
-              blurRadius: 6,
-              offset: const Offset(0, 2),
+              color: Color(0xFF1B165E),
+              offset: Offset(0, 3),
+              blurRadius: 0,
             ),
           ],
         ),
@@ -1168,7 +1174,8 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
               style: const TextStyle(
                 color: Colors.white,
                 fontSize: 10.5,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 0.2,
               ),
             ),
           ],
@@ -1185,30 +1192,21 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Row(
             children: [
-              GestureDetector(
-                onTap: () => setState(() => _currentView = LobbyViewMode.main),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF0F172A).withValues(alpha: 0.8),
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: const Color(0xFF2E2E2E), width: 1),
-                  ),
-                  child: const Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.arrow_back_ios_rounded, color: Color(0xFFFBBF24), size: 16),
-                      SizedBox(width: 6),
-                      Text(
-                        'Volver al Menú',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w900,
-                          fontSize: 14,
-                        ),
-                      ),
-                    ],
-                  ),
+              CartoonRoundButton(
+                width: 42,
+                height: 42,
+                backgroundColor: const Color(0xFFDCE2FD),
+                onPressed: () => setState(() => _currentView = LobbyViewMode.main),
+                child: const Icon(Icons.arrow_back_rounded, color: Color(0xFF1E1763), size: 22),
+              ),
+              const SizedBox(width: 14),
+              const Text(
+                'MODOS DE JUEGO',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w900,
+                  fontSize: 18,
+                  letterSpacing: 0.8,
                 ),
               ),
             ],
@@ -1219,35 +1217,32 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            GestureDetector(
+            TactilePressable(
+              depth: 4.0,
               onTap: () => _showGamePreferencesDialog(
                 players: _selectedTeams ? 2 : _selectedTotalPlayers.clamp(2, 4),
                 teams: false,
                 isVsBot: true,
               ),
               child: Container(
-                width: 145,
-                height: 155,
+                width: 150,
+                height: 165,
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFFFBBF24), Color(0xFFD97706)],
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                  ),
-                  borderRadius: BorderRadius.circular(24),
-                  border: Border.all(color: const Color(0xFF2E2E2E), width: 1.5),
-                  boxShadow: [
+                  gradient: AppGradients.goldReward,
+                  borderRadius: BorderRadius.circular(22),
+                  border: Border.all(color: AppPalette.cartoonBorder, width: 2.2),
+                  boxShadow: const [
                     BoxShadow(
-                      color: const Color(0xFFD97706).withValues(alpha: 0.4),
-                      blurRadius: 12,
-                      offset: const Offset(0, 5),
+                      color: Color(0xFF1E1763),
+                      offset: Offset(0, 4),
+                      blurRadius: 0,
                     ),
                   ],
                 ),
                 child: const Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.smart_toy_rounded, color: Colors.white, size: 52),
+                    Icon(Icons.smart_toy_rounded, color: Colors.white, size: 54),
                     SizedBox(height: 8),
                     Text(
                       'Vs Bot',
@@ -1257,46 +1252,43 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
                         fontWeight: FontWeight.w900,
                       ),
                     ),
-                    SizedBox(height: 2),
+                    SizedBox(height: 3),
                     Text(
                       'Mano a Mano (1v1)',
-                      style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold),
+                      style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
                     ),
                   ],
                 ),
               ),
             ),
-            const SizedBox(width: 20),
+            const SizedBox(width: 18),
 
-            GestureDetector(
+            TactilePressable(
+              depth: 4.0,
               onTap: () => _showGamePreferencesDialog(
                 players: 4,
                 teams: true,
                 isVsBot: false,
               ),
               child: Container(
-                width: 145,
-                height: 155,
+                width: 150,
+                height: 165,
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFFEA580C), Color(0xFFC2410C)],
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                  ),
-                  borderRadius: BorderRadius.circular(24),
-                  border: Border.all(color: const Color(0xFF2E2E2E), width: 1.5),
-                  boxShadow: [
+                  gradient: AppGradients.greenAccept,
+                  borderRadius: BorderRadius.circular(22),
+                  border: Border.all(color: AppPalette.cartoonBorder, width: 2.2),
+                  boxShadow: const [
                     BoxShadow(
-                      color: const Color(0xFFC2410C).withValues(alpha: 0.4),
-                      blurRadius: 12,
-                      offset: const Offset(0, 5),
+                      color: Color(0xFF1E1763),
+                      offset: Offset(0, 4),
+                      blurRadius: 0,
                     ),
                   ],
                 ),
                 child: const Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.group_rounded, color: Colors.white, size: 52),
+                    Icon(Icons.group_rounded, color: Colors.white, size: 54),
                     SizedBox(height: 8),
                     Text(
                       '2 vs 2',
@@ -1306,10 +1298,10 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
                         fontWeight: FontWeight.w900,
                       ),
                     ),
-                    SizedBox(height: 2),
+                    SizedBox(height: 3),
                     Text(
                       'En Parejas (4 Jug.)',
-                      style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold),
+                      style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
                     ),
                   ],
                 ),
@@ -1317,26 +1309,23 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
             ),
           ],
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 22),
 
-        GestureDetector(
+        TactilePressable(
+          depth: 4.0,
           onTap: () => _openVipModal(),
           child: Container(
-            width: 310,
+            width: 318,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFF8B5CF6), Color(0xFF6D28D9)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
+              gradient: AppGradients.cyanAccent,
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: const Color(0xFF2E2E2E), width: 1.2),
-              boxShadow: [
+              border: Border.all(color: AppPalette.cartoonBorder, width: 2.2),
+              boxShadow: const [
                 BoxShadow(
-                  color: const Color(0xFF7C3AED).withValues(alpha: 0.45),
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
+                  color: Color(0xFF1E1763),
+                  offset: Offset(0, 4),
+                  blurRadius: 0,
                 ),
               ],
             ),
@@ -1345,10 +1334,10 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.15),
+                    color: Colors.white.withValues(alpha: 0.25),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.workspace_premium_rounded, color: Color(0xFFFDE047), size: 26),
+                  child: const Icon(Icons.workspace_premium_rounded, color: Colors.white, size: 28),
                 ),
                 const SizedBox(width: 12),
                 const Expanded(
@@ -1358,7 +1347,7 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
                       Text(
                         'MESAS VIP • APUESTAS',
                         style: TextStyle(
-                          color: Color(0xFFFDE047),
+                          color: Colors.white,
                           fontSize: 11,
                           fontWeight: FontWeight.w900,
                           letterSpacing: 1,
@@ -1376,7 +1365,7 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
                     ],
                   ),
                 ),
-                const Icon(Icons.arrow_forward_ios_rounded, color: Colors.white70, size: 16),
+                const Icon(Icons.arrow_forward_ios_rounded, color: Colors.white, size: 16),
               ],
             ),
           ),
