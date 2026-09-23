@@ -7,7 +7,6 @@ import '../../../core/services/user_profile_service.dart';
 import '../domain/models/caida_match_config.dart';
 import '../economy/daily_challenge_system.dart';
 import '../economy/player_session.dart';
-import '../economy/user_progress.dart';
 import 'widgets/game_toast_queue.dart';
 import 'caida_screen.dart';
 import 'widgets/booster_selector_widget.dart';
@@ -827,15 +826,10 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
     );
   }
 
-  /// Tarjeta de Perfil y Nivel del Usuario (Horizontal superior)
+  /// Tarjeta de Perfil del Usuario en el Menú (Avatar, Nombre y Rango)
   Widget _buildProfileLevelCard() {
-    final userProg = UserProgress(totalXp: _session.xp);
-    final xpCurrent = userProg.currentTierXp;
-    final xpRequired = userProg.neededInCurrentTier;
-    final progress = userProg.levelProgressPercentage;
-    final level = userProg.currentLevel;
-
-    final rank = RankInfo.forTrophies(PlayerStatsModel.shared.trophies);
+    final trophies = PlayerStatsModel.shared.trophies;
+    final rank = RankInfo.forTrophies(trophies);
 
     return TactilePressable(
       depth: 3,
@@ -852,10 +846,10 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
         ),
         child: Row(
           children: [
-            // Badge con gradiente del Rango actual (Bronce, Plata, Oro, etc.)
+            // Badge con gradiente del Rango actual (CAIDAGO)
             Container(
-              width: 58,
-              height: 52,
+              width: 52,
+              height: 48,
               decoration: BoxDecoration(
                 gradient: rank.gradient,
                 borderRadius: BorderRadius.circular(12),
@@ -866,7 +860,7 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
               child: const Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.style_rounded, color: Colors.white, size: 18),
+                  Icon(Icons.style_rounded, color: Colors.white, size: 17),
                   SizedBox(height: 2),
                   Text(
                     'CAIDAGO',
@@ -880,72 +874,85 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
                 ],
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 8),
 
-            // Centro: Nivel y Barra de Progreso XP
+            // Avatar con Marco cosmético (sin indicador numérico de nivel)
+            UserFrameView(
+              avatarIndex: _session.avatarIndex,
+              frameId: _session.selectedFrameId,
+              size: 46,
+              showLevelBadge: false,
+            ),
+            const SizedBox(width: 10),
+
+            // Centro: Nombre de Jugador y Rango Oficial con Trofeos
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    'Nivel $level',
+                    _session.name.isNotEmpty ? _session.name : 'Jugador',
                     style: const TextStyle(
                       color: Colors.white,
-                      fontSize: 13.5,
+                      fontSize: 15,
                       fontWeight: FontWeight.w900,
+                      letterSpacing: 0.4,
                     ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 4),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(6),
-                    child: Container(
-                      height: 8,
-                      width: double.infinity,
-                      color: const Color(0xFF0F172A),
-                      child: FractionallySizedBox(
-                        alignment: Alignment.centerLeft,
-                        widthFactor: progress,
-                        child: Container(
-                          decoration: const BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [Color(0xFFFDE047), Color(0xFFF59E0B)],
-                            ),
+                  const SizedBox(height: 3),
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                        decoration: BoxDecoration(
+                          gradient: rank.gradient,
+                          borderRadius: BorderRadius.circular(5),
+                          border: Border.all(color: Colors.white24, width: 0.8),
+                        ),
+                        child: Text(
+                          rank.fullNameFor(trophies),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 9.5,
+                            fontWeight: FontWeight.w900,
                           ),
                         ),
                       ),
-                    ),
-                  ),
-                  const SizedBox(height: 3),
-                  Center(
-                    child: Text(
-                      '$xpCurrent / $xpRequired XP',
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.6),
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
+                      const SizedBox(width: 6),
+                      Text(
+                        '$trophies 🏆',
+                        style: const TextStyle(
+                          color: Color(0xFFFBBF24),
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
+                    ],
                   ),
                 ],
               ),
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: 6),
 
-            // Derecha: Avatar con marco y flecha >
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                UserFrameView(
-                  avatarIndex: _session.avatarIndex,
-                  frameId: _session.selectedFrameId,
-                  level: _session.level,
-                  size: 50,
-                  showLevelBadge: true,
-                ),
-                const SizedBox(width: 4),
-                const Icon(Icons.chevron_right_rounded, color: Colors.white54, size: 20),
-              ],
+            // Derecha: Botón de personalización / perfil
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+              decoration: BoxDecoration(
+                color: AppPalette.cartoonBgDark,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: AppPalette.cartoonBorder, width: 1.2),
+              ),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.palette_rounded, color: AppPalette.cartoonCyan, size: 14),
+                  SizedBox(width: 3),
+                  Icon(Icons.chevron_right_rounded, color: Colors.white54, size: 14),
+                ],
+              ),
             ),
           ],
         ),

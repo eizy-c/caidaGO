@@ -718,37 +718,63 @@ class _PlayerProfileStatsModalState extends State<PlayerProfileStatsModal> {
         final isUnlocked = AchievementCatalog.isUnlocked(ach, _stats);
         final reqItem = AchievementCatalog.getRequirement(ach);
         final isCompleted = isUnlocked && currentProgress >= ach.targetProgress;
+        final isInProgress = isUnlocked && !isCompleted && !isClaimed;
         final progressRatio = isUnlocked
             ? (currentProgress / ach.targetProgress).clamp(0.0, 1.0)
             : 0.0;
 
-        return Container(
-          padding: const EdgeInsets.all(10),
+        final cardContent = Container(
+          padding: const EdgeInsets.all(11),
           decoration: BoxDecoration(
-            color: AppPalette.cartoonCardDark,
+            color: isInProgress
+                ? const Color(0xFF352B8C)
+                : (isCompleted && !isClaimed
+                    ? const Color(0xFF1E3A34)
+                    : AppPalette.cartoonCardDark),
             borderRadius: BorderRadius.circular(14),
             border: Border.all(
-              color: AppPalette.cartoonBorder,
-              width: 1.5,
+              color: isInProgress
+                  ? const Color(0xFF22D3EE)
+                  : (isCompleted && !isClaimed
+                      ? const Color(0xFF10B981)
+                      : AppPalette.cartoonBorder),
+              width: isInProgress || (isCompleted && !isClaimed) ? 1.8 : 1.5,
             ),
+            boxShadow: isInProgress
+                ? [
+                    BoxShadow(
+                      color: const Color(0xFF22D3EE).withValues(alpha: 0.20),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ]
+                : null,
           ),
           child: Row(
             children: [
-              // Icono con indicador de candado si está bloqueado por nivel
+              // Icono con contenedor estilizado y colorido (no gris plano)
               Stack(
                 children: [
                   Container(
-                    width: 40,
-                    height: 40,
+                    width: 42,
+                    height: 42,
                     decoration: BoxDecoration(
                       color: isUnlocked
-                          ? Colors.white.withValues(alpha: 0.06)
-                          : const Color(0xFF242424),
+                          ? ach.iconColor.withValues(alpha: 0.16)
+                          : const Color(0xFF201B5E),
                       shape: BoxShape.circle,
+                      border: Border.all(
+                        color: isUnlocked
+                            ? ach.iconColor.withValues(alpha: 0.6)
+                            : Colors.white24,
+                        width: 1.5,
+                      ),
                     ),
                     child: Icon(
                       ach.icon,
-                      color: isUnlocked ? Colors.white70 : Colors.white30,
+                      color: isUnlocked
+                          ? ach.iconColor
+                          : ach.iconColor.withValues(alpha: 0.5),
                       size: 22,
                     ),
                   ),
@@ -757,15 +783,16 @@ class _PlayerProfileStatsModalState extends State<PlayerProfileStatsModal> {
                       bottom: 0,
                       right: 0,
                       child: Container(
-                        padding: const EdgeInsets.all(2),
-                        decoration: const BoxDecoration(
-                          color: Color(0xFF333333),
+                        padding: const EdgeInsets.all(2.5),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF1E1763),
                           shape: BoxShape.circle,
+                          border: Border.all(color: const Color(0xFFFBBF24), width: 1),
                         ),
                         child: const Icon(
                           Icons.lock_rounded,
-                          color: Colors.white70,
-                          size: 10,
+                          color: Color(0xFFFBBF24),
+                          size: 9,
                         ),
                       ),
                     ),
@@ -893,7 +920,7 @@ class _PlayerProfileStatsModalState extends State<PlayerProfileStatsModal> {
                                     ? Colors.white24
                                     : (isCompleted
                                         ? const Color(0xFF10B981)
-                                        : Colors.white70),
+                                        : const Color(0xFF22D3EE)),
                               ),
                               minHeight: 6,
                             ),
@@ -905,9 +932,11 @@ class _PlayerProfileStatsModalState extends State<PlayerProfileStatsModal> {
                               ? '${currentProgress.clamp(0, ach.targetProgress)} / ${ach.targetProgress}'
                               : '0 / ${ach.targetProgress}',
                           style: TextStyle(
-                            color: isUnlocked ? Colors.white70 : Colors.white38,
+                            color: isInProgress
+                                ? Colors.white
+                                : (isUnlocked ? Colors.white70 : Colors.white38),
                             fontSize: 10,
-                            fontWeight: FontWeight.bold,
+                            fontWeight: isInProgress ? FontWeight.w900 : FontWeight.bold,
                           ),
                         ),
                       ],
@@ -995,24 +1024,47 @@ class _PlayerProfileStatsModalState extends State<PlayerProfileStatsModal> {
                 )
               else
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4.5),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF242424),
+                    gradient: AppGradients.cyanAccent,
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: const Color(0xFF333333)),
+                    border: Border.all(color: const Color(0xFF1E1763), width: 1),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Color(0xFF0284C7),
+                        blurRadius: 3,
+                        offset: Offset(0, 1.5),
+                      ),
+                    ],
                   ),
-                  child: const Text(
-                    'En curso',
-                    style: TextStyle(
-                      color: Colors.white38,
-                      fontSize: 9.5,
-                      fontWeight: FontWeight.bold,
-                    ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.bolt_rounded, color: Colors.white, size: 11),
+                      SizedBox(width: 2),
+                      Text(
+                        'En curso',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 0.3,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
             ],
           ),
         );
+
+        if (!isUnlocked) {
+          return Opacity(
+            opacity: 0.50,
+            child: cardContent,
+          );
+        }
+        return cardContent;
       },
     );
   }
