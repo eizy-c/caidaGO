@@ -369,6 +369,13 @@ class PlayerSession extends ChangeNotifier {
     rewardCoins(amount);
   }
 
+  /// Establece directamente el saldo de monedas (útil en testing o reseteos)
+  void setCoins(int value) {
+    _coins = value.clamp(0, 99999999);
+    notifyListeners();
+    save();
+  }
+
   /// Descuenta saldo en monedas para ingresar a una mesa de apuesta VIP.
   /// Retorna true si el jugador contaba con los fondos suficientes.
   bool deductCoinsForVipMatch(int amount) {

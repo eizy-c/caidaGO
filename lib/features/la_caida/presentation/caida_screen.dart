@@ -10,6 +10,8 @@ import '../../../core/presentation/widgets/spanish_card_view.dart';
 import '../../../core/presentation/widgets/table_player_badge.dart';
 import '../../../core/presentation/widgets/wood_table_background.dart';
 import '../../../core/presentation/widgets/app_3d_button.dart';
+import '../../../core/presentation/widgets/cartoon_widgets.dart';
+import '../../../core/theme/app_palette.dart';
 import '../../../core/services/audio_service.dart';
 import '../../../core/services/debug_logger.dart';
 import '../../../core/services/feedback_service.dart';
@@ -31,6 +33,8 @@ import '../economy/booster_model.dart';
 import '../economy/daily_challenge_system.dart';
 import '../economy/achievement_catalog.dart';
 import '../economy/vip_tier.dart';
+import '../economy/venezuela_room_tier.dart';
+import '../economy/trophy_session_manager.dart';
 import '../economy/match_history_model.dart';
 import 'widgets/game_toast_queue.dart';
 import 'widgets/table_auditor_panel.dart';
@@ -260,6 +264,7 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
   List<String>? get _effectiveBotNames =>
       widget.config?.botNames ?? widget.botNames ?? PlayerSession.shared.botNames;
   VipTierOffer? get _vipTier => widget.config?.vipTier ?? widget.vipTier;
+  VenezuelaRoomTier? get _venezuelaRoom => widget.config?.venezuelaRoom;
   int? get _vipPrizePool => widget.config?.vipPrizePool ?? widget.vipPrizePool;
   int? get _vipWinnerReward => widget.config?.vipWinnerReward ?? widget.vipWinnerReward;
 
@@ -1513,8 +1518,28 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
     int vipCoinsWon = 0;
     bool chestAwarded = false;
     int? chestSlotIndex;
-
-    if (_vipTier != null) {
+    if (_venezuelaRoom != null) {
+      TrophySessionManager.shared.processMatchResult(
+        roomId: _venezuelaRoom!.id,
+        isWinner: userWon,
+        mode: _isTeams ? GameMode.teams2v2 : GameMode.duel1v1,
+      );
+      if (userWon) {
+        int baseWinCoins = _vipWinnerReward ?? _venezuelaRoom!.getPrizePerWinner(_isTeams ? GameMode.teams2v2 : GameMode.duel1v1);
+        if (hasCoinsBooster) {
+          baseWinCoins = (baseWinCoins * 1.5).round(); // Lluvia de Monedas: +50%
+        }
+        vipCoinsWon = baseWinCoins;
+        session.rewardCoins(vipCoinsWon, xpGain: xpGained);
+        chestAwarded = session.addChestOnWin();
+        if (chestAwarded) {
+          chestSlotIndex = session.chests.indexWhere((c) => c.getState() == ChestState.unlocking);
+          if (chestSlotIndex == -1) chestSlotIndex = 0;
+        }
+      } else {
+        session.addXp(xpGained);
+      }
+    } else if (_vipTier != null) {
       if (userWon) {
         int baseWinCoins = _vipWinnerReward ?? _vipTier!.calculateNetPrizePerWinner(isTeams: _isTeams);
         if (hasCoinsBooster) {
@@ -1746,10 +1771,10 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
       barrierDismissible: true,
       barrierColor: Colors.black87,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF161616),
+        backgroundColor: AppPalette.cartoonBgDark,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
-          side: const BorderSide(color: Color(0xFF2E2E2E), width: 1.0),
+          side: const BorderSide(color: AppPalette.cartoonBorder, width: 2.0),
         ),
         title: const Row(
           children: [
@@ -1791,7 +1816,7 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
             label: 'Abandonar',
             variant: App3dButtonVariant.crimson,
             depth: 3.5,
-            borderRadius: 10,
+            borderRadius: 12,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             textStyle: const TextStyle(
               color: Colors.white,
@@ -1816,170 +1841,268 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
     }
   }
 
-  void _openMatchSettings() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: const Color(0xFF161616),
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-        side: BorderSide(color: Color(0xFF2E2E2E), width: 1),
-      ),
-      builder: (ctx) => SafeArea(
+  Widget _buildSettingsOptionCard({
+    required IconData icon,
+    required Color iconColor,
+    required String title,
+    String? subtitle,
+    Widget? trailing,
+    VoidCallback? onTap,
+    bool isDanger = false,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      child: TactilePressable(
+        onTap: onTap,
+        depth: onTap != null ? 2.0 : 0.0,
         child: Container(
-          constraints: BoxConstraints(
-            maxHeight: MediaQuery.of(ctx).size.height * 0.85,
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          decoration: BoxDecoration(
+            color: isDanger
+                ? const Color(0xFF450A0A).withValues(alpha: 0.6)
+                : AppPalette.cartoonCardDark,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: isDanger
+                  ? const Color(0xFFEF4444).withValues(alpha: 0.8)
+                  : AppPalette.cartoonBorder,
+              width: 1.5,
+            ),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x25000000),
+                blurRadius: 4,
+                offset: Offset(0, 2),
+              ),
+            ],
           ),
-          child: SingleChildScrollView(
-            physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 40,
-                  height: 4,
-                  margin: const EdgeInsets.only(bottom: 16),
-                  decoration: BoxDecoration(
-                    color: Colors.white24,
-                    borderRadius: BorderRadius.circular(2),
+          child: Row(
+            children: [
+              Container(
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(
+                  color: iconColor.withValues(alpha: 0.18),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: iconColor.withValues(alpha: 0.4),
+                    width: 1.2,
                   ),
                 ),
-                const Text(
-                  'OPCIONES DE PARTIDA',
-                  style: TextStyle(
-                    color: Color(0xFFF59E0B),
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 1,
-                  ),
-                ),
-                const SizedBox(height: 16),
-              ListTile(
-                leading: Icon(
-                  AudioService().isMuted ? Icons.volume_off_rounded : Icons.volume_up_rounded,
-                  color: AudioService().isMuted ? const Color(0xFFEF4444) : const Color(0xFF38BDF8),
-                ),
-                title: Text(
-                  AudioService().isMuted ? 'Efectos de sonido (Silenciado)' : 'Efectos de sonido (Activado)',
-                  style: const TextStyle(color: Colors.white),
-                ),
-                trailing: Switch(
-                  value: !AudioService().isMuted,
-                  activeThumbColor: const Color(0xFF38BDF8),
-                  onChanged: (val) {
-                    setState(() {
-                      AudioService().toggleMute();
-                    });
-                    Navigator.pop(ctx);
-                    _openMatchSettings();
-                  },
-                ),
+                child: Icon(icon, color: iconColor, size: 20),
               ),
-              ListTile(
-                leading: const Icon(Icons.record_voice_over_rounded, color: Color(0xFF38BDF8)),
-                title: Text('Canto de Mesa: ${_cantoDirection == DealDirection.ascending ? "Ascendente (1..4)" : "Descendente (4..1)"}', style: const TextStyle(color: Colors.white)),
-                subtitle: const Text('Cambiar dirección del conteo inicial del repartidor', style: TextStyle(color: Colors.white54, fontSize: 11)),
-                onTap: () async {
-                  Navigator.pop(ctx);
-                  final dir = await TableCantoDialog.show(context);
-                  if (dir != null) {
-                    setState(() => _cantoDirection = dir);
-                  }
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.refresh_rounded, color: Color(0xFF38BDF8)),
-                title: const Text('Reiniciar mano actual', style: TextStyle(color: Colors.white)),
-                onTap: () {
-                  Navigator.pop(ctx);
-                  _initMatch(_playerCount, _isTeams, _players[0].name);
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.exit_to_app_rounded, color: Color(0xFFEF4444)),
-                title: const Text('Abandonar partida', style: TextStyle(color: Color(0xFFEF4444), fontWeight: FontWeight.bold)),
-                subtitle: const Text('Salir sin registrar victoria ni derrota en estadísticas', style: TextStyle(color: Colors.white54, fontSize: 11)),
-                onTap: () {
-                  Navigator.pop(ctx);
-                  _confirmAbandonMatch();
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.smart_toy_rounded, color: Color(0xFF60A5FA)),
-                title: const Text('Personalizar Bots (IA)', style: TextStyle(color: Colors.white)),
-                subtitle: const Text('Configurar nombres de rivales y compañeros', style: TextStyle(color: Colors.white54, fontSize: 11)),
-                onTap: () {
-                  Navigator.pop(ctx);
-                  BotCustomizationModal.show(
-                    context,
-                    session: PlayerSession.shared,
-                    onSaved: (_) {
-                      setState(() {});
-                    },
-                  );
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.feedback_rounded, color: Color(0xFFF59E0B)),
-                title: const Text('Buzón de Sugerencias', style: TextStyle(color: Colors.white)),
-                subtitle: const Text('Comparte tus ideas o reportes con el equipo', style: TextStyle(color: Colors.white54, fontSize: 11)),
-                trailing: const Icon(Icons.open_in_new_rounded, color: Colors.white54, size: 16),
-                onTap: () {
-                  Navigator.pop(ctx);
-                  FeedbackService.openFeedbackForm(context: context);
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.help_outline_rounded, color: Color(0xFFFBBF24)),
-                title: const Text('Reglas de CaidaGO', style: TextStyle(color: Colors.white)),
-                onTap: () {
-                  Navigator.pop(ctx);
-                  GameRulesDialog.show(context, 'la_caida');
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.privacy_tip_rounded, color: Color(0xFF38BDF8)),
-                title: const Text('Política de Privacidad', style: TextStyle(color: Colors.white)),
-                onTap: () {
-                  Navigator.pop(ctx);
-                  PrivacyPolicyDialog.show(context);
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.verified_user_rounded, color: Color(0xFF34D399)),
-                title: const Text('Licencias y Software Libre', style: TextStyle(color: Colors.white)),
-                onTap: () {
-                  Navigator.pop(ctx);
-                  showLicensePage(
-                    context: context,
-                    applicationName: 'CaidaGO',
-                    applicationVersion: '1.0.0',
-                    applicationLegalese: '© 2026 CaidaGO • Desarrollado por Eizy Systems\nTodos los derechos reservados.',
-                  );
-                },
-              ),
-              const Divider(color: Colors.white12),
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 4),
-                child: Text(
-                  'CaidaGO v1.0.0\nDesarrollado por Eizy Systems • 2026\n© 2026 CaidaGO. Todos los derechos reservados.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: Colors.white38,
-                    fontSize: 11,
-                    height: 1.35,
-                    fontWeight: FontWeight.w500,
-                  ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      title,
+                      style: TextStyle(
+                        color: isDanger ? const Color(0xFFFCA5A5) : Colors.white,
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    if (subtitle != null) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        subtitle,
+                        style: TextStyle(
+                          color: isDanger
+                              ? const Color(0xFFFCA5A5).withValues(alpha: 0.7)
+                              : Colors.white60,
+                          fontSize: 11,
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
               ),
+              ?trailing,
             ],
           ),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
+
+  void _openMatchSettings() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        decoration: const BoxDecoration(
+          color: AppPalette.cartoonBgDark,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          border: Border(
+            top: BorderSide(color: AppPalette.cartoonBorder, width: 2.0),
+            left: BorderSide(color: AppPalette.cartoonBorder, width: 2.0),
+            right: BorderSide(color: AppPalette.cartoonBorder, width: 2.0),
+          ),
+        ),
+        child: SafeArea(
+          child: Container(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(ctx).size.height * 0.85,
+            ),
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 44,
+                    height: 5,
+                    margin: const EdgeInsets.only(bottom: 14),
+                    decoration: BoxDecoration(
+                      color: Colors.white24,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  const CartoonStrokeText(
+                    'OPCIONES DE PARTIDA',
+                    fontSize: 16,
+                    textColor: AppPalette.cartoonYellow,
+                  ),
+                  const SizedBox(height: 16),
+                  _buildSettingsOptionCard(
+                    icon: AudioService().isMuted ? Icons.volume_off_rounded : Icons.volume_up_rounded,
+                    iconColor: AudioService().isMuted ? AppPalette.cartoonRed : AppPalette.cartoonCyan,
+                    title: AudioService().isMuted ? 'Efectos de sonido: Silenciado' : 'Efectos de sonido: Activado',
+                    trailing: CartoonSwitch(
+                      value: !AudioService().isMuted,
+                      onChanged: (val) {
+                        setState(() {
+                          AudioService().toggleMute();
+                        });
+                        Navigator.pop(ctx);
+                        _openMatchSettings();
+                      },
+                    ),
+                  ),
+                  _buildSettingsOptionCard(
+                    icon: Icons.record_voice_over_rounded,
+                    iconColor: AppPalette.cartoonCyan,
+                    title: 'Canto de Mesa: ${_cantoDirection == DealDirection.ascending ? "Ascendente (1..4)" : "Descendente (4..1)"}',
+                    subtitle: 'Cambiar dirección del conteo inicial del repartidor',
+                    trailing: const Icon(Icons.chevron_right_rounded, color: Colors.white54, size: 20),
+                    onTap: () async {
+                      Navigator.pop(ctx);
+                      final dir = await TableCantoDialog.show(context);
+                      if (dir != null) {
+                        setState(() => _cantoDirection = dir);
+                      }
+                    },
+                  ),
+                  _buildSettingsOptionCard(
+                    icon: Icons.refresh_rounded,
+                    iconColor: AppPalette.cartoonCyan,
+                    title: 'Reiniciar mano actual',
+                    subtitle: 'Vuelve a repartir las cartas de la ronda',
+                    trailing: const Icon(Icons.chevron_right_rounded, color: Colors.white54, size: 20),
+                    onTap: () {
+                      Navigator.pop(ctx);
+                      _initMatch(_playerCount, _isTeams, _players[0].name);
+                    },
+                  ),
+                  _buildSettingsOptionCard(
+                    icon: Icons.exit_to_app_rounded,
+                    iconColor: const Color(0xFFEF4444),
+                    title: 'Abandonar partida',
+                    subtitle: 'Salir sin registrar victoria ni derrota en estadísticas',
+                    isDanger: true,
+                    trailing: const Icon(Icons.warning_amber_rounded, color: Color(0xFFEF4444), size: 20),
+                    onTap: () {
+                      Navigator.pop(ctx);
+                      _confirmAbandonMatch();
+                    },
+                  ),
+                  _buildSettingsOptionCard(
+                    icon: Icons.smart_toy_rounded,
+                    iconColor: const Color(0xFF818CF8),
+                    title: 'Personalizar Bots (IA)',
+                    subtitle: 'Configurar nombres de rivales y compañeros',
+                    trailing: const Icon(Icons.chevron_right_rounded, color: Colors.white54, size: 20),
+                    onTap: () {
+                      Navigator.pop(ctx);
+                      BotCustomizationModal.show(
+                        context,
+                        session: PlayerSession.shared,
+                        onSaved: (_) {
+                          setState(() {});
+                        },
+                      );
+                    },
+                  ),
+                  _buildSettingsOptionCard(
+                    icon: Icons.feedback_rounded,
+                    iconColor: const Color(0xFFF59E0B),
+                    title: 'Buzón de Sugerencias',
+                    subtitle: 'Comparte tus ideas o reportes con el equipo',
+                    trailing: const Icon(Icons.open_in_new_rounded, color: Colors.white54, size: 18),
+                    onTap: () {
+                      Navigator.pop(ctx);
+                      FeedbackService.openFeedbackForm(context: context);
+                    },
+                  ),
+                  _buildSettingsOptionCard(
+                    icon: Icons.help_outline_rounded,
+                    iconColor: AppPalette.cartoonYellow,
+                    title: 'Reglas de CaidaGO',
+                    trailing: const Icon(Icons.chevron_right_rounded, color: Colors.white54, size: 20),
+                    onTap: () {
+                      Navigator.pop(ctx);
+                      GameRulesDialog.show(context, 'la_caida');
+                    },
+                  ),
+                  _buildSettingsOptionCard(
+                    icon: Icons.privacy_tip_rounded,
+                    iconColor: const Color(0xFF38BDF8),
+                    title: 'Política de Privacidad',
+                    trailing: const Icon(Icons.chevron_right_rounded, color: Colors.white54, size: 20),
+                    onTap: () {
+                      Navigator.pop(ctx);
+                      PrivacyPolicyDialog.show(context);
+                    },
+                  ),
+                  _buildSettingsOptionCard(
+                    icon: Icons.verified_user_rounded,
+                    iconColor: const Color(0xFF34D399),
+                    title: 'Licencias y Software Libre',
+                    trailing: const Icon(Icons.chevron_right_rounded, color: Colors.white54, size: 20),
+                    onTap: () {
+                      Navigator.pop(ctx);
+                      showLicensePage(
+                        context: context,
+                        applicationName: 'CaidaGO',
+                        applicationVersion: '1.0.0',
+                        applicationLegalese: '© 2026 CaidaGO • Desarrollado por Eizy Systems\nTodos los derechos reservados.',
+                      );
+                    },
+                  ),
+                  const Divider(color: Colors.white12, height: 24),
+                  const Text(
+                    'CaidaGO v1.0.0\nDesarrollado por Eizy Systems • 2026\n© 2026 CaidaGO. Todos los derechos reservados.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.white38,
+                      fontSize: 11,
+                      height: 1.35,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -2534,26 +2657,34 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      GestureDetector(
+                      TactilePressable(
                         onTap: () => TableAuditorPanel.show(context, auditLogs: _matchAuditLogs),
+                        depth: 2.0,
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
+                          padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4.5),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF181818).withValues(alpha: 0.9),
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(color: const Color(0xFF2E2E2E), width: 1.0),
+                            color: AppPalette.cartoonCardDark,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: AppPalette.cartoonBorder, width: 1.5),
+                            boxShadow: const [
+                              BoxShadow(
+                                color: Color(0x35000000),
+                                blurRadius: 4,
+                                offset: Offset(0, 1.5),
+                              ),
+                            ],
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Icon(Icons.assignment_rounded, color: Colors.white70, size: 13),
+                              const Icon(Icons.assignment_rounded, color: AppPalette.cartoonYellow, size: 14),
                               const SizedBox(width: 4),
                               Text(
                                 'Auditor (${_matchAuditLogs.length})',
                                 style: const TextStyle(
                                   color: Colors.white,
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
+                                  fontSize: 10.5,
+                                  fontWeight: FontWeight.w900,
                                 ),
                               ),
                             ],
@@ -2562,40 +2693,47 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
                       ),
                       const SizedBox(width: 6),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4.5),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF1E1B4B).withValues(alpha: 0.65),
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: Colors.white24, width: 0.8),
-                        ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          '$_playerCount Jug.',
-                          style: const TextStyle(
-                            color: Colors.white70,
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        if (_roundNumber > 1) ...[
-                          const SizedBox(width: 4),
-                          Text(
-                            '• R$_roundNumber',
-                            style: const TextStyle(
-                              color: Color(0xFFFDE047),
-                              fontSize: 9,
-                              fontWeight: FontWeight.bold,
+                          color: AppPalette.cartoonCardDark,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: AppPalette.cartoonBorder, width: 1.5),
+                          boxShadow: const [
+                            BoxShadow(
+                              color: Color(0x35000000),
+                              blurRadius: 4,
+                              offset: Offset(0, 1.5),
                             ),
-                          ),
-                        ],
-                      ],
-                    ),
+                          ],
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              '$_playerCount Jug.',
+                              style: const TextStyle(
+                                color: Colors.white70,
+                                fontSize: 10,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                            if (_roundNumber > 1) ...[
+                              const SizedBox(width: 4),
+                              Text(
+                                '• R$_roundNumber',
+                                style: const TextStyle(
+                                  color: Color(0xFFFDE047),
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-            ),
+                ),
 
                 // 7. Capa superior de naipes en vuelo y efectos de impacto
                 Positioned.fill(

@@ -1,3 +1,4 @@
+import '../../economy/venezuela_room_tier.dart';
 import '../../economy/vip_tier.dart';
 
 /// Configuración inmutable para inicializar y parametrizar una partida de La Caída.
@@ -11,6 +12,7 @@ class CaidaMatchConfig {
   final String? userName;
   final List<String> botNames;
   final VipTierOffer? vipTier;
+  final VenezuelaRoomTier? venezuelaRoom;
   final int? vipPrizePool;
   final int? vipWinnerReward;
   final bool isMatandoCantos;
@@ -24,6 +26,7 @@ class CaidaMatchConfig {
     this.userName,
     this.botNames = const ['Alejandro', 'Carl', 'Jhonny'],
     this.vipTier,
+    this.venezuelaRoom,
     this.vipPrizePool,
     this.vipWinnerReward,
     this.isMatandoCantos = true,
@@ -73,8 +76,31 @@ class CaidaMatchConfig {
     );
   }
 
+  /// Crea una configuración para sala VIP Regional de Venezuela
+  factory CaidaMatchConfig.venezuelaRoomMatch({
+    required String userName,
+    required VenezuelaRoomTier room,
+    required GameMode mode,
+    List<String> botNames = const ['Alejandro', 'Carl', 'Jhonny'],
+    bool isMatandoCantos = true,
+  }) {
+    final isTeams = mode == GameMode.teams2v2;
+    return CaidaMatchConfig(
+      initialPlayers: isTeams ? 4 : 2,
+      initialTeams: isTeams,
+      autoStart: true,
+      chooseMano: true,
+      userName: userName,
+      botNames: botNames,
+      venezuelaRoom: room,
+      vipPrizePool: room.getTotalPot(mode),
+      vipWinnerReward: room.getPrizePerWinner(mode),
+      isMatandoCantos: isMatandoCantos,
+    );
+  }
+
   int get botCount => (initialPlayers - 1).clamp(1, 3);
-  bool get isVip => vipTier != null;
+  bool get isVip => vipTier != null || venezuelaRoom != null;
 
   CaidaMatchConfig copyWith({
     int? initialPlayers,
@@ -85,6 +111,7 @@ class CaidaMatchConfig {
     String? userName,
     List<String>? botNames,
     VipTierOffer? vipTier,
+    VenezuelaRoomTier? venezuelaRoom,
     int? vipPrizePool,
     int? vipWinnerReward,
     bool? isMatandoCantos,
@@ -98,6 +125,7 @@ class CaidaMatchConfig {
       userName: userName ?? this.userName,
       botNames: botNames ?? this.botNames,
       vipTier: vipTier ?? this.vipTier,
+      venezuelaRoom: venezuelaRoom ?? this.venezuelaRoom,
       vipPrizePool: vipPrizePool ?? this.vipPrizePool,
       vipWinnerReward: vipWinnerReward ?? this.vipWinnerReward,
       isMatandoCantos: isMatandoCantos ?? this.isMatandoCantos,

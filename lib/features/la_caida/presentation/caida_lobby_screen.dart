@@ -19,7 +19,9 @@ import 'widgets/match_history_modal.dart';
 import 'widgets/player_profile_stats_modal.dart';
 import 'widgets/profile_and_level_modal.dart';
 import 'widgets/user_frame_view.dart';
-import 'widgets/vip_tier_selector_modal.dart';
+import 'widgets/venezuela_rooms_carousel.dart';
+import '../economy/venezuela_room_tier.dart';
+import '../economy/trophy_session_manager.dart';
 import '../multiplayer/presentation/multiplayer_hub_screen.dart';
 import '../tutorial/presentation/tutorial_screen.dart';
 import 'about_settings_screen.dart';
@@ -120,14 +122,14 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
   }
 
   void _openVipModal({bool initialIsTeams = false}) {
-    VipTierSelectorModal.show(
+    VenezuelaRoomsCarouselScreen.show(
       context,
-      session: _session,
-      initialIsTeams: initialIsTeams,
-      onTierSelected: (tier, isTeams) {
-        final matchConfig = CaidaMatchConfig.vipMatch(
-          tier: tier,
-          isTeams: isTeams,
+      manager: TrophySessionManager.shared,
+      initialMode: initialIsTeams ? GameMode.teams2v2 : GameMode.duel1v1,
+      onStartMatch: (room, mode) {
+        final matchConfig = CaidaMatchConfig.venezuelaRoomMatch(
+          room: room,
+          mode: mode,
           userName: _session.name,
           botNames: _session.botNames,
           isMatandoCantos: _isMatandoCantos,

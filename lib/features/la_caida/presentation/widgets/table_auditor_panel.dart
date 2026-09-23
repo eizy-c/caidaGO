@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../../core/theme/app_palette.dart';
+import '../../../../core/presentation/widgets/cartoon_widgets.dart';
 import '../../economy/match_history_model.dart';
 
 /// Panel deslizante de Auditoría de Mesa en vivo durante la partida.
@@ -44,16 +46,16 @@ class _TableAuditorPanelState extends State<TableAuditorPanel> {
           maxHeight: MediaQuery.of(context).size.height * 0.75,
         ),
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xFF1E1338), Color(0xFF0F071A)],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
+        decoration: const BoxDecoration(
+          color: AppPalette.cartoonBgDark,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          border: Border(
+            top: BorderSide(color: AppPalette.cartoonBorder, width: 2.0),
+            left: BorderSide(color: AppPalette.cartoonBorder, width: 2.0),
+            right: BorderSide(color: AppPalette.cartoonBorder, width: 2.0),
           ),
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(26)),
-          border: Border.all(color: const Color(0xFF2E2E2E), width: 1.5),
-          boxShadow: const [
-            BoxShadow(color: Colors.black87, blurRadius: 20, offset: Offset(0, -4)),
+          boxShadow: [
+            BoxShadow(color: Color(0x60000000), blurRadius: 20, offset: Offset(0, -4)),
           ],
         ),
         child: Column(
@@ -77,27 +79,30 @@ class _TableAuditorPanelState extends State<TableAuditorPanel> {
               children: [
                 const Row(
                   children: [
-                    Icon(Icons.assignment_rounded, color: Color(0xFFFDE047), size: 22),
+                    Icon(Icons.assignment_rounded, color: AppPalette.cartoonYellow, size: 22),
                     SizedBox(width: 8),
-                    Text(
+                    CartoonStrokeText(
                       'AUDITOR DE MESA',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 15,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 1.0,
-                      ),
+                      fontSize: 16,
+                      textColor: AppPalette.cartoonYellow,
                     ),
                   ],
                 ),
-                IconButton(
-                  icon: const Icon(Icons.close_rounded, color: Colors.white70),
+                CartoonRoundButton(
+                  width: 32,
+                  height: 32,
+                  borderRadius: 10,
+                  depth: 2.0,
+                  backgroundColor: const Color(0xFF352B6E),
+                  borderColor: AppPalette.cartoonBorder,
+                  shadowColor: const Color(0xFF151035),
                   onPressed: () => Navigator.of(context).pop(),
+                  child: const Icon(Icons.close_rounded, color: Colors.white, size: 18),
                 ),
               ],
             ),
 
-            const SizedBox(height: 10),
+            const SizedBox(height: 12),
 
             // Selector de 3 pestañas: Cantos | Puntos | Jugadas
             Row(
@@ -127,27 +132,37 @@ class _TableAuditorPanelState extends State<TableAuditorPanel> {
   Widget _buildTabButton(int index, String label) {
     final isSelected = _selectedTab == index;
     return Expanded(
-      child: GestureDetector(
+      child: TactilePressable(
         onTap: () => setState(() => _selectedTab = index),
+        depth: 2.0,
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 8),
           decoration: BoxDecoration(
             color: isSelected
-                ? const Color(0xFFA855F7).withValues(alpha: 0.3)
-                : Colors.white.withValues(alpha: 0.05),
+                ? AppPalette.cartoonCyan.withValues(alpha: 0.22)
+                : AppPalette.cartoonCardDark,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: isSelected ? const Color(0xFFA855F7) : Colors.white12,
-              width: 1.2,
+              color: isSelected ? AppPalette.cartoonCyan : AppPalette.cartoonBorder,
+              width: 1.5,
             ),
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: AppPalette.cartoonCyan.withValues(alpha: 0.25),
+                      blurRadius: 4,
+                      offset: const Offset(0, 1.5),
+                    ),
+                  ]
+                : null,
           ),
           child: Center(
             child: Text(
               label,
               style: TextStyle(
-                color: isSelected ? Colors.white : Colors.white60,
+                color: isSelected ? AppPalette.cartoonCyan : Colors.white70,
                 fontSize: 11.5,
-                fontWeight: isSelected ? FontWeight.w900 : FontWeight.w600,
+                fontWeight: isSelected ? FontWeight.w900 : FontWeight.w700,
               ),
             ),
           ),
@@ -177,9 +192,16 @@ class _TableAuditorPanelState extends State<TableAuditorPanel> {
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           decoration: BoxDecoration(
-            color: const Color(0xFF160E2E),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.white12, width: 1),
+            color: AppPalette.cartoonCardDark,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: AppPalette.cartoonBorder, width: 1.2),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x25000000),
+                blurRadius: 4,
+                offset: Offset(0, 1.5),
+              ),
+            ],
           ),
           child: Row(
             children: [
@@ -187,13 +209,14 @@ class _TableAuditorPanelState extends State<TableAuditorPanel> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF38BDF8).withValues(alpha: 0.15),
+                  color: AppPalette.cartoonCyan.withValues(alpha: 0.18),
                   borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: AppPalette.cartoonCyan.withValues(alpha: 0.3), width: 1.0),
                 ),
                 child: Text(
                   item.round,
                   style: const TextStyle(
-                    color: Color(0xFF38BDF8),
+                    color: AppPalette.cartoonCyan,
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
                   ),
