@@ -622,27 +622,24 @@ class _AboutSettingsScreenState extends State<AboutSettingsScreen> {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         _buildSocialButton(
-          icon: Icons.music_note_rounded,
-          label: 'TikTok',
-          url: 'https://tiktok.com',
+          icon: Icons.code_rounded,
+          label: 'GitHub',
+          handle: '@eizy-c',
+          url: 'https://github.com/eizy-c',
         ),
         const SizedBox(width: 14),
         _buildSocialButton(
           icon: Icons.camera_alt_rounded,
           label: 'Instagram',
-          url: 'https://instagram.com',
+          handle: '@eizy-c',
+          url: 'https://instagram.com/eizy-c',
         ),
         const SizedBox(width: 14),
         _buildSocialButton(
-          icon: Icons.sports_esports_rounded,
-          label: 'Discord',
-          url: 'https://discord.com',
-        ),
-        const SizedBox(width: 14),
-        _buildSocialButton(
-          icon: Icons.play_arrow_rounded,
-          label: 'YouTube',
-          url: 'https://youtube.com',
+          icon: Icons.music_note_rounded,
+          label: 'TikTok',
+          handle: '@eizy.c',
+          url: 'https://tiktok.com/@eizy.c',
         ),
       ],
     );
@@ -651,18 +648,41 @@ class _AboutSettingsScreenState extends State<AboutSettingsScreen> {
   Widget _buildSocialButton({
     required IconData icon,
     required String label,
+    required String handle,
     required String url,
   }) {
-    return CartoonRoundButton(
-      width: 50,
-      height: 50,
-      borderRadius: 14,
-      onPressed: () => _launchUrl(url),
-      child: Icon(
-        icon,
-        color: AppPalette.cartoonCardText,
-        size: 24,
-      ),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        CartoonRoundButton(
+          width: 54,
+          height: 54,
+          borderRadius: 16,
+          onPressed: () => _launchUrl(url),
+          child: Icon(
+            icon,
+            color: AppPalette.cartoonCardText,
+            size: 26,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          label,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 11,
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+        Text(
+          handle,
+          style: const TextStyle(
+            color: AppPalette.cartoonCyan,
+            fontSize: 9.5,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ],
     );
   }
 }

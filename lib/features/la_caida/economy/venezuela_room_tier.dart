@@ -56,9 +56,10 @@ class VenezuelaRoomTier {
   }
 
   /// Premio neto a recibir por cada jugador ganador según la modalidad de juego.
-  /// Tanto en 1v1 como en 2v2 cada ganador se lleva el premio nominal íntegro.
+  /// En 1v1 el ganador se lleva el pozo completo (entryFee * 2).
+  /// En 2v2 cada miembro del equipo ganador se lleva la mitad del pozo total (entryFee * 2).
   int getPrizePerWinner(GameMode mode) {
-    return basePrize;
+    return mode == GameMode.teams2v2 ? (entryFee * 4) ~/ 2 : entryFee * 2;
   }
 
   /// Determina si un saldo de monedas es suficiente para pagar la tarifa de entrada.
@@ -77,8 +78,8 @@ class VenezuelaRoomCatalog {
       name: 'Chivacoa',
       region: 'Yaracuy',
       subtitle: 'Mesa del Alambique',
-      entryFee: 50,
-      basePrize: 100,
+      entryFee: 200,
+      basePrize: 400,
       trophyCap: 15,
       winTrophies: 3,
       lossTrophies: 0,

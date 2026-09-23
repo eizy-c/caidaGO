@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../../core/presentation/widgets/app_3d_button.dart';
+import '../../../../core/presentation/widgets/cartoon_widgets.dart';
+import '../../../../core/theme/app_palette.dart';
 import '../../economy/player_session.dart';
 import '../../economy/trophy_session_manager.dart';
 import '../../economy/venezuela_room_tier.dart';
@@ -101,14 +103,19 @@ class _VenezuelaRoomsCarouselScreenState extends State<VenezuelaRoomsCarouselScr
             constraints: BoxConstraints(maxHeight: screenHeight * 0.95),
             decoration: const BoxDecoration(
               gradient: LinearGradient(
-                colors: [Color(0xFF0F172A), Color(0xFF020617)],
+                colors: [Color(0xFF352B8C), AppPalette.cartoonBgDark, Color(0xFF1D1752)],
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
               ),
               borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+              border: Border(
+                top: BorderSide(color: AppPalette.cartoonBorder, width: 2.2),
+                left: BorderSide(color: AppPalette.cartoonBorder, width: 1.5),
+                right: BorderSide(color: AppPalette.cartoonBorder, width: 1.5),
+              ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black87,
+                  color: Color(0xFF130F3A),
                   blurRadius: 30,
                   offset: Offset(0, -8),
                 ),
@@ -126,28 +133,26 @@ class _VenezuelaRoomsCarouselScreenState extends State<VenezuelaRoomsCarouselScr
                       width: 44,
                       height: 5,
                       decoration: BoxDecoration(
-                        color: Colors.white24,
+                        color: Colors.white.withValues(alpha: 0.3),
                         borderRadius: BorderRadius.circular(10),
                       ),
                     ),
                   ),
 
-                  // Cabecera con balance de monedas y total de trofeos
+                  // Cabecera Cartoon con balance de monedas y total de trofeos
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     child: Row(
                       children: [
-                        // Botón cerrar
-                        GestureDetector(
-                          onTap: () => Navigator.of(context).pop(),
-                          child: Container(
-                            padding: const EdgeInsets.all(6),
-                            decoration: BoxDecoration(
-                              color: Colors.white10,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: const Icon(Icons.close_rounded, color: Colors.white, size: 20),
-                          ),
+                        // Botón cerrar Cartoon
+                        CartoonRoundButton(
+                          width: 36,
+                          height: 36,
+                          backgroundColor: const Color(0xFF2E267D),
+                          borderColor: const Color(0xFF4C3E9E),
+                          shadowColor: const Color(0xFF1D1748),
+                          onPressed: () => Navigator.of(context).pop(),
+                          child: const Icon(Icons.close_rounded, color: Colors.white, size: 18),
                         ),
                         const SizedBox(width: 10),
 
@@ -162,13 +167,13 @@ class _VenezuelaRoomsCarouselScreenState extends State<VenezuelaRoomsCarouselScr
                                   color: Colors.white,
                                   fontSize: 15,
                                   fontWeight: FontWeight.w900,
-                                  letterSpacing: 0.6,
+                                  letterSpacing: 0.8,
                                 ),
                               ),
                               Text(
                                 'Venezuela • Progresión por Trofeos',
                                 style: TextStyle(
-                                  color: Color(0xFF94A3B8),
+                                  color: Color(0xFFDCE2FD),
                                   fontSize: 11,
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -179,13 +184,13 @@ class _VenezuelaRoomsCarouselScreenState extends State<VenezuelaRoomsCarouselScr
 
                         // Píldora de Trofeos Totales
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
                           decoration: BoxDecoration(
                             gradient: const LinearGradient(
                               colors: [Color(0xFFD97706), Color(0xFFB45309)],
                             ),
                             borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: const Color(0xFFFDE047), width: 1),
+                            border: Border.all(color: const Color(0xFFFDE047), width: 1.2),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
@@ -207,11 +212,11 @@ class _VenezuelaRoomsCarouselScreenState extends State<VenezuelaRoomsCarouselScr
 
                         // Píldora de Monedas
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF1E293B),
+                            color: AppPalette.cartoonCardDark,
                             borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: const Color(0xFFF59E0B), width: 1),
+                            border: Border.all(color: AppPalette.cartoonBorder, width: 1.5),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
@@ -308,14 +313,14 @@ class _VenezuelaRoomsCarouselScreenState extends State<VenezuelaRoomsCarouselScr
     );
   }
 
-  /// Selector de Modo Segmentado [ Duelo 1 vs 1 ] y [ Parejas 2 vs 2 ]
+  /// Selector de Modo Segmentado Cartoon [ Duelo 1 vs 1 ] y [ Parejas 2 vs 2 ]
   Widget _buildModeSegmentedSelector() {
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: const Color(0xFF1E293B),
+        color: AppPalette.cartoonCardDark,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: Colors.white12, width: 1),
+        border: Border.all(color: AppPalette.cartoonBorder, width: 1.5),
       ),
       child: Row(
         children: [
@@ -357,17 +362,30 @@ class _VenezuelaRoomsCarouselScreenState extends State<VenezuelaRoomsCarouselScr
         padding: const EdgeInsets.symmetric(vertical: 7),
         decoration: BoxDecoration(
           gradient: isSelected
-              ? const LinearGradient(
-                  colors: [Color(0xFFF59E0B), Color(0xFFD97706)],
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                )
+              ? (mode == GameMode.teams2v2
+                  ? AppGradients.greenAccept
+                  : AppGradients.goldReward)
               : null,
           color: isSelected ? null : Colors.transparent,
           borderRadius: BorderRadius.circular(14),
+          border: isSelected
+              ? Border.all(
+                  color: mode == GameMode.teams2v2
+                      ? const Color(0xFF059669)
+                      : const Color(0xFFD97706),
+                  width: 1.5,
+                )
+              : null,
           boxShadow: isSelected
-              ? const [
-                  BoxShadow(color: Colors.black38, blurRadius: 4, offset: Offset(0, 2)),
+              ? [
+                  BoxShadow(
+                    color: (mode == GameMode.teams2v2
+                            ? const Color(0xFF047857)
+                            : const Color(0xFF92400E))
+                        .withValues(alpha: 0.6),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
                 ]
               : null,
         ),
@@ -385,7 +403,7 @@ class _VenezuelaRoomsCarouselScreenState extends State<VenezuelaRoomsCarouselScr
             Text(
               subtitle,
               style: TextStyle(
-                color: isSelected ? Colors.white.withValues(alpha: 0.9) : Colors.white38,
+                color: isSelected ? Colors.white.withValues(alpha: 0.95) : Colors.white38,
                 fontSize: 9.5,
                 fontWeight: FontWeight.bold,
               ),
@@ -396,7 +414,7 @@ class _VenezuelaRoomsCarouselScreenState extends State<VenezuelaRoomsCarouselScr
     );
   }
 
-  /// Construye la tarjeta naipe vertical (~260x370 dp) de una sala
+  /// Construye la tarjeta de sala enmarcada con su marco oficial regional en el borde
   Widget _buildRoomCard(VenezuelaRoomTier room) {
     final isUnlocked = widget.manager.isRoomUnlocked(room.id);
     final trophies = widget.manager.getTrophies(room.id);
@@ -409,32 +427,29 @@ class _VenezuelaRoomsCarouselScreenState extends State<VenezuelaRoomsCarouselScr
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: isUnlocked ? room.gradientColors : [const Color(0xFF1E293B), const Color(0xFF0F172A)],
+          colors: isUnlocked
+              ? room.gradientColors
+              : [const Color(0xFF1D1752), const Color(0xFF130E38)],
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
         ),
         borderRadius: BorderRadius.circular(22),
-        border: Border.all(
-          color: isUnlocked
-              ? (room.isFrozenTheme ? const Color(0xFF7DD3FC) : room.accentColor)
-              : Colors.white12,
-          width: isUnlocked ? 2.2 : 1.2,
-        ),
         boxShadow: [
           BoxShadow(
             color: isUnlocked
-                ? room.primaryColor.withValues(alpha: 0.35)
-                : Colors.black54,
+                ? room.primaryColor.withValues(alpha: 0.45)
+                : const Color(0xFF130F3A),
             blurRadius: 18,
             offset: const Offset(0, 8),
           ),
         ],
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(22),
         child: Stack(
+          fit: StackFit.expand,
           children: [
-            // Resplandor de fondo escarchado o luminoso
+            // 1. Resplandor escarchado si aplica
             if (room.isFrozenTheme && isUnlocked)
               Positioned(
                 top: -20,
@@ -449,60 +464,41 @@ class _VenezuelaRoomsCarouselScreenState extends State<VenezuelaRoomsCarouselScr
                 ),
               ),
 
-            // Contenido principal de la tarjeta
+            // 2. Contenido interno de la tarjeta (con padding superior para no tapar la placa del marco)
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              padding: const EdgeInsets.fromLTRB(16, 52, 16, 14),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // 1. Cabecera: Nombre de la Sala, Región y Subtítulo
+                  // Fila con subtítulo temático e indicador de jugadores en línea
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Flexible(
-                                  child: Text(
-                                    room.name.toUpperCase(),
-                                    style: TextStyle(
-                                      color: isUnlocked ? Colors.white : Colors.white54,
-                                      fontWeight: FontWeight.w900,
-                                      fontSize: 16,
-                                      letterSpacing: 0.8,
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                                if (room.isFrozenTheme) ...[
-                                  const SizedBox(width: 4),
-                                  const Text('❄️', style: TextStyle(fontSize: 13)),
-                                ],
-                              ],
-                            ),
-                            Text(
-                              room.region,
-                              style: TextStyle(
-                                color: isUnlocked ? room.accentColor : Colors.white38,
-                                fontSize: 10.5,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
+                      Flexible(
+                        child: Text(
+                          '"${room.subtitle}"',
+                          style: TextStyle(
+                            color: isUnlocked
+                                ? (room.isFrozenTheme
+                                    ? const Color(0xFFBAE6FD)
+                                    : room.accentColor)
+                                : Colors.white38,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                            fontStyle: FontStyle.italic,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
-
-                      // Contador de Jugadores Activos
+                      const SizedBox(width: 4),
+                      // Indicador de jugadores en línea claro y descriptivo
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                         decoration: BoxDecoration(
-                          color: Colors.black45,
+                          color: Colors.black.withValues(alpha: 0.65),
                           borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: Colors.white12),
+                          border: Border.all(color: Colors.white24, width: 0.8),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
@@ -517,10 +513,10 @@ class _VenezuelaRoomsCarouselScreenState extends State<VenezuelaRoomsCarouselScr
                             ),
                             const SizedBox(width: 4),
                             Text(
-                              '${room.simulatedActivePlayers}',
+                              '${room.simulatedActivePlayers} en línea',
                               style: const TextStyle(
-                                color: Colors.white70,
-                                fontSize: 10,
+                                color: Colors.white,
+                                fontSize: 9.5,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -530,135 +526,142 @@ class _VenezuelaRoomsCarouselScreenState extends State<VenezuelaRoomsCarouselScr
                     ],
                   ),
 
-                  // Subtítulo temático
-                  const SizedBox(height: 3),
-                  Text(
-                    '"${room.subtitle}"',
-                    style: TextStyle(
-                      color: isUnlocked ? Colors.white60 : Colors.white24,
-                      fontSize: 10,
-                      fontStyle: FontStyle.italic,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-
-                  // 2. Ilustración Central / Anillo con Marco de Mesa
+                  // Centro / Espacio ilustrativo temático
                   Expanded(
                     child: Center(
-                      child: Container(
-                        constraints: const BoxConstraints(maxHeight: 120, maxWidth: 120),
-                        child: Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            // Imagen del Marco Oficial
-                            Image.asset(
-                              room.frameAsset,
-                              fit: BoxFit.contain,
-                              errorBuilder: (ctx, err, stack) => _buildFallbackFrame(room, isUnlocked),
-                            ),
-
-                            // Icono de Candado si está bloqueada
-                            if (!isUnlocked)
-                              Container(
-                                width: 56,
-                                height: 56,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: Colors.black.withValues(alpha: 0.75),
-                                  border: Border.all(color: Colors.white24, width: 2),
-                                ),
-                                child: const Icon(
-                                  Icons.lock_rounded,
-                                  color: Color(0xFFFDE047),
-                                  size: 28,
+                      child: isUnlocked
+                          ? Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.black.withValues(alpha: 0.3),
+                                border: Border.all(
+                                  color: room.accentColor.withValues(alpha: 0.4),
+                                  width: 1.5,
                                 ),
                               ),
-                          ],
-                        ),
-                      ),
+                              child: Icon(
+                                room.isFrozenTheme
+                                    ? Icons.ac_unit_rounded
+                                    : (room.id == 1
+                                        ? Icons.eco_rounded
+                                        : (room.id == 2
+                                            ? Icons.wb_sunny_rounded
+                                            : (room.id == 3
+                                                ? Icons.waves_rounded
+                                                : (room.id == 4
+                                                    ? Icons.bolt_rounded
+                                                    : Icons.workspace_premium_rounded)))),
+                                color: room.accentColor,
+                                size: 36,
+                              ),
+                            )
+                          : Container(
+                              width: 52,
+                              height: 52,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.black.withValues(alpha: 0.8),
+                                border: Border.all(color: Colors.white24, width: 2),
+                              ),
+                              child: const Icon(
+                                Icons.lock_rounded,
+                                color: Color(0xFFFDE047),
+                                size: 26,
+                              ),
+                            ),
                     ),
                   ),
 
-                  const SizedBox(height: 6),
-
-                  // 3. Caja de Premio y Pozo
+                  // 3. Caja de Entrada, Pozo Total y Premio (100% visible con cuánto se entra)
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
                     decoration: BoxDecoration(
-                      color: Colors.black54,
+                      color: Colors.black.withValues(alpha: 0.65),
                       borderRadius: BorderRadius.circular(14),
                       border: Border.all(
-                        color: isUnlocked ? const Color(0xFFF59E0B).withValues(alpha: 0.6) : Colors.white10,
+                        color: isUnlocked
+                            ? const Color(0xFFF59E0B).withValues(alpha: 0.8)
+                            : Colors.white12,
+                        width: 1.2,
                       ),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        // Premio por Ganador
+                        // ENTRADA
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Text(
-                                _selectedMode == GameMode.teams2v2 ? 'PREMIO C/U' : 'PREMIO GANADOR',
-                                style: const TextStyle(
+                              const Text(
+                                'ENTRADA',
+                                style: TextStyle(
                                   color: Color(0xFF94A3B8),
-                                  fontSize: 8.5,
+                                  fontSize: 8,
                                   fontWeight: FontWeight.w900,
                                 ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
                               ),
-                              Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const Text('🪙', style: TextStyle(fontSize: 13)),
-                                  const SizedBox(width: 3),
-                                  Flexible(
-                                    child: Text(
-                                      '$prizePerWinner',
-                                      style: const TextStyle(
-                                        color: Color(0xFFFDE047),
-                                        fontWeight: FontWeight.w900,
-                                        fontSize: 14,
-                                      ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ],
+                              Text(
+                                '🪙 ${room.entryFee}',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w900,
+                                  fontSize: 12,
+                                ),
                               ),
                             ],
                           ),
                         ),
 
-                        // Pozo Total
+                        // POZO TOTAL (4 Jugadores en 2v2, 2 Jugadores en 1v1)
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                _selectedMode == GameMode.teams2v2 ? 'POZO (4J)' : 'POZO (2J)',
+                                style: const TextStyle(
+                                  color: Color(0xFF94A3B8),
+                                  fontSize: 8,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
+                              Text(
+                                '🪙 $totalPot',
+                                style: const TextStyle(
+                                  color: Color(0xFFFDE047),
+                                  fontWeight: FontWeight.w900,
+                                  fontSize: 12.5,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        // PREMIO
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.end,
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Text(
-                                'POZO TOTAL',
-                                style: TextStyle(
+                              Text(
+                                _selectedMode == GameMode.teams2v2 ? 'PREMIO C/U' : 'PREMIO GAN.',
+                                style: const TextStyle(
                                   color: Color(0xFF94A3B8),
-                                  fontSize: 8.5,
-                                  fontWeight: FontWeight.bold,
+                                  fontSize: 8,
+                                  fontWeight: FontWeight.w900,
                                 ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
                               ),
                               Text(
-                                '🪙 $totalPot',
+                                '🪙 $prizePerWinner',
                                 style: const TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF34D399),
+                                  fontWeight: FontWeight.w900,
                                   fontSize: 12,
                                 ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
                               ),
                             ],
                           ),
@@ -683,7 +686,9 @@ class _VenezuelaRoomsCarouselScreenState extends State<VenezuelaRoomsCarouselScr
                               Text(
                                 isCompleted ? 'SALA COMPLETADA' : 'TROFEOS DE SALA',
                                 style: TextStyle(
-                                  color: isCompleted ? const Color(0xFFFDE047) : Colors.white70,
+                                  color: isCompleted
+                                      ? const Color(0xFFFDE047)
+                                      : Colors.white70,
                                   fontWeight: FontWeight.w900,
                                   fontSize: 9.5,
                                 ),
@@ -693,7 +698,9 @@ class _VenezuelaRoomsCarouselScreenState extends State<VenezuelaRoomsCarouselScr
                           Text(
                             '$trophies / ${room.trophyCap}',
                             style: TextStyle(
-                              color: isCompleted ? const Color(0xFFFDE047) : Colors.white,
+                              color: isCompleted
+                                  ? const Color(0xFFFDE047)
+                                  : Colors.white,
                               fontWeight: FontWeight.w900,
                               fontSize: 10.5,
                             ),
@@ -728,7 +735,11 @@ class _VenezuelaRoomsCarouselScreenState extends State<VenezuelaRoomsCarouselScr
                           Flexible(
                             child: Text(
                               'Victoria: +${room.winTrophies} 🏆',
-                              style: const TextStyle(color: Color(0xFF4ADE80), fontSize: 8.5, fontWeight: FontWeight.bold),
+                              style: const TextStyle(
+                                color: Color(0xFF4ADE80),
+                                fontSize: 8.5,
+                                fontWeight: FontWeight.bold,
+                              ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -736,8 +747,14 @@ class _VenezuelaRoomsCarouselScreenState extends State<VenezuelaRoomsCarouselScr
                           const SizedBox(width: 4),
                           Flexible(
                             child: Text(
-                              room.lossTrophies == 0 ? 'Derrota: 0 🏆' : 'Derrota: ${room.lossTrophies} 🏆',
-                              style: const TextStyle(color: Color(0xFFF87171), fontSize: 8.5, fontWeight: FontWeight.bold),
+                              room.lossTrophies == 0
+                                  ? 'Derrota: 0 🏆'
+                                  : 'Derrota: ${room.lossTrophies} 🏆',
+                              style: const TextStyle(
+                                color: Color(0xFFF87171),
+                                fontSize: 8.5,
+                                fontWeight: FontWeight.bold,
+                              ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -747,13 +764,35 @@ class _VenezuelaRoomsCarouselScreenState extends State<VenezuelaRoomsCarouselScr
                     ],
                   ),
 
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 8),
 
                   // 5. Botón Inferior de Acción
                   _buildActionButton(room, isUnlocked, canAfford),
                 ],
               ),
             ),
+
+            // 3. MARCO OFICIAL REGIONAL EN EL BORDE DE LA TARJETA
+            Positioned.fill(
+              child: IgnorePointer(
+                child: Image.asset(
+                  room.frameAsset,
+                  fit: BoxFit.fill,
+                  errorBuilder: (ctx, err, stack) =>
+                      _buildFallbackFrame(room, isUnlocked),
+                ),
+              ),
+            ),
+
+            // 4. Scrim atenuado si la sala está bloqueada
+            if (!isUnlocked)
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: Container(
+                    color: Colors.black.withValues(alpha: 0.45),
+                  ),
+                ),
+              ),
           ],
         ),
       ),
@@ -771,9 +810,9 @@ class _VenezuelaRoomsCarouselScreenState extends State<VenezuelaRoomsCarouselScr
         height: 44,
         padding: const EdgeInsets.symmetric(horizontal: 8),
         decoration: BoxDecoration(
-          color: const Color(0xFF1E293B),
+          color: AppPalette.cartoonCardDark,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: Colors.white12),
+          border: Border.all(color: AppPalette.cartoonBorder, width: 1.5),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -801,18 +840,18 @@ class _VenezuelaRoomsCarouselScreenState extends State<VenezuelaRoomsCarouselScr
       return Container(
         height: 44,
         decoration: BoxDecoration(
-          color: const Color(0xFF7F1D1D).withValues(alpha: 0.8),
+          color: const Color(0xFF7F1D1D).withValues(alpha: 0.85),
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: const Color(0xFFEF4444)),
+          border: Border.all(color: const Color(0xFFEF4444), width: 1.5),
         ),
-        child: const Center(
+        child: Center(
           child: Text(
-            '🪙 FICHAS INSUFICIENTES',
-            style: TextStyle(
+            '🪙 FICHAS INSUFICIENTES (Entrada: ${room.entryFee})',
+            style: const TextStyle(
               color: Colors.white,
               fontWeight: FontWeight.w900,
-              fontSize: 11.5,
-              letterSpacing: 0.5,
+              fontSize: 11,
+              letterSpacing: 0.4,
             ),
           ),
         ),

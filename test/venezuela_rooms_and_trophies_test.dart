@@ -27,8 +27,8 @@ void main() {
       expect(r1.name, equals('Chivacoa'));
       expect(r1.region, equals('Yaracuy'));
       expect(r1.subtitle, equals('Mesa del Alambique'));
-      expect(r1.entryFee, equals(50));
-      expect(r1.basePrize, equals(100));
+      expect(r1.entryFee, equals(200));
+      expect(r1.basePrize, equals(400));
       expect(r1.trophyCap, equals(15));
       expect(r1.winTrophies, equals(3));
       expect(r1.lossTrophies, equals(0));
@@ -123,12 +123,12 @@ void main() {
       final chivacoa = VenezuelaRoomCatalog.getById(1);
 
       // 1v1 Duelo
-      expect(chivacoa.getTotalPot(GameMode.duel1v1), equals(100));
-      expect(chivacoa.getPrizePerWinner(GameMode.duel1v1), equals(100));
+      expect(chivacoa.getTotalPot(GameMode.duel1v1), equals(400));
+      expect(chivacoa.getPrizePerWinner(GameMode.duel1v1), equals(400));
 
       // 2v2 Parejas
-      expect(chivacoa.getTotalPot(GameMode.teams2v2), equals(200));
-      expect(chivacoa.getPrizePerWinner(GameMode.teams2v2), equals(100));
+      expect(chivacoa.getTotalPot(GameMode.teams2v2), equals(800));
+      expect(chivacoa.getPrizePerWinner(GameMode.teams2v2), equals(400));
     });
   });
 

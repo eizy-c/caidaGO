@@ -338,6 +338,195 @@ class _MultiplayerHubScreenState extends State<MultiplayerHubScreen> {
     );
   }
 
+  // --- DIÁLOGO PARA SELECCIONAR TIPO DE SALA (PÚBLICA O PRIVADA) ---
+  void _showCreateRoomTypeDialog() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppPalette.cartoonBgDark,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(24),
+          side: const BorderSide(color: AppPalette.cartoonBorder, width: 2.2),
+        ),
+        title: const Center(
+          child: CartoonStrokeText(
+            'TIPO DE SALA',
+            fontSize: 20,
+            textColor: AppPalette.cartoonYellow,
+            strokeColor: AppPalette.cartoonCardText,
+            strokeWidth: 3,
+          ),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              '¿Cómo deseas configurar el acceso a tu partida?',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.white70, fontSize: 12.5),
+            ),
+            const SizedBox(height: 18),
+
+            // Opción 1: Sala Pública
+            TactilePressable(
+              depth: 3,
+              onTap: () {
+                Navigator.of(ctx).pop();
+                setState(() {
+                  _isPrivate = false;
+                });
+                _openCreateRoomSheet();
+              },
+              child: Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  gradient: AppGradients.cyanAccent,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: AppPalette.cartoonBorder, width: 2),
+                  boxShadow: const [
+                    BoxShadow(color: Color(0xFF1B165E), offset: Offset(0, 3)),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.25),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.public_rounded,
+                        color: Color(0xFF1E1B4B),
+                        size: 26,
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'SALA PÚBLICA',
+                            style: TextStyle(
+                              color: Color(0xFF1E1B4B),
+                              fontWeight: FontWeight.w900,
+                              fontSize: 15,
+                            ),
+                          ),
+                          SizedBox(height: 2),
+                          Text(
+                            'Sin contraseña. Visible para todos.',
+                            style: TextStyle(
+                              color: Color(0xFF1E1B4B),
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Icon(
+                      Icons.arrow_forward_ios_rounded,
+                      color: Color(0xFF1E1B4B),
+                      size: 16,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 12),
+
+            // Opción 2: Sala Privada
+            TactilePressable(
+              depth: 3,
+              onTap: () {
+                Navigator.of(ctx).pop();
+                setState(() {
+                  _isPrivate = true;
+                });
+                _openCreateRoomSheet();
+              },
+              child: Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  gradient: AppGradients.goldReward,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: AppPalette.cartoonBorder, width: 2),
+                  boxShadow: const [
+                    BoxShadow(color: Color(0xFF1B165E), offset: Offset(0, 3)),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.3),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.lock_rounded,
+                        color: AppPalette.cartoonCardText,
+                        size: 26,
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'SALA PRIVADA',
+                            style: TextStyle(
+                              color: AppPalette.cartoonCardText,
+                              fontWeight: FontWeight.w900,
+                              fontSize: 15,
+                            ),
+                          ),
+                          SizedBox(height: 2),
+                          Text(
+                            'Protegida con PIN de 4 dígitos.',
+                            style: TextStyle(
+                              color: AppPalette.cartoonCardText,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Icon(
+                      Icons.arrow_forward_ios_rounded,
+                      color: AppPalette.cartoonCardText,
+                      size: 16,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          Center(
+            child: TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: const Text(
+                'CANCELAR',
+                style: TextStyle(
+                  color: Colors.white54,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   // --- MODAL DE CONFIGURACIÓN Y CREACIÓN DE SALA ---
   void _openCreateRoomSheet() {
     showModalBottomSheet(
@@ -376,9 +565,9 @@ class _MultiplayerHubScreenState extends State<MultiplayerHubScreen> {
                   const SizedBox(height: 14),
 
                   // Título del modal
-                  const Center(
+                  Center(
                     child: CartoonStrokeText(
-                      'CREAR SALA',
+                      _isPrivate ? 'CREAR SALA PRIVADA' : 'CREAR SALA PÚBLICA',
                       fontSize: 22,
                       textColor: AppPalette.cartoonYellow,
                       strokeColor: AppPalette.cartoonCardText,
@@ -625,7 +814,7 @@ class _MultiplayerHubScreenState extends State<MultiplayerHubScreen> {
             // Header estilo cartoon: Botón <, Título SALAS, Botón 🔍
             _buildHeader(context),
 
-            // Pestañas cartoon: "TODAS" y "SIN CONTRASEÑA" con indicador turquesa
+            // Pestañas cartoon: "PÚBLICAS" y "PRIVADAS" con indicador turquesa
             _buildFilterTabs(),
 
             const SizedBox(height: 6),
@@ -701,7 +890,7 @@ class _MultiplayerHubScreenState extends State<MultiplayerHubScreen> {
                     padding: const EdgeInsets.symmetric(vertical: 8),
                     alignment: Alignment.center,
                     child: CartoonStrokeText(
-                      'TODAS',
+                      'PÚBLICAS',
                       fontSize: 15,
                       textColor: _selectedFilterIndex == 0
                           ? AppPalette.cartoonCyan
@@ -719,7 +908,7 @@ class _MultiplayerHubScreenState extends State<MultiplayerHubScreen> {
                     padding: const EdgeInsets.symmetric(vertical: 8),
                     alignment: Alignment.center,
                     child: CartoonStrokeText(
-                      'SIN CONTRASEÑA',
+                      'PRIVADAS',
                       fontSize: 15,
                       textColor: _selectedFilterIndex == 1
                           ? AppPalette.cartoonCyan
@@ -780,10 +969,10 @@ class _MultiplayerHubScreenState extends State<MultiplayerHubScreen> {
     return ValueListenableBuilder<List<MultiplayerRoomInfo>>(
       valueListenable: _beaconService.discoveredRoomsNotifier,
       builder: (context, allRooms, _) {
-        // Filtrar según la pestaña activa
+        // Filtrar según la pestaña activa (0 = Públicas, 1 = Privadas)
         final filteredRooms = _selectedFilterIndex == 1
-            ? allRooms.where((r) => !r.isPrivate).toList()
-            : allRooms;
+            ? allRooms.where((r) => r.isPrivate).toList()
+            : allRooms.where((r) => !r.isPrivate).toList();
 
         if (filteredRooms.isEmpty) {
           return Center(
@@ -924,7 +1113,7 @@ class _MultiplayerHubScreenState extends State<MultiplayerHubScreen> {
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 10, 20, 16),
       child: TactilePressable(
-        onTap: _openCreateRoomSheet,
+        onTap: _showCreateRoomTypeDialog,
         depth: 4,
         child: Container(
           height: 54,

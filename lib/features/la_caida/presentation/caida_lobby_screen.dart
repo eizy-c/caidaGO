@@ -1022,32 +1022,17 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
               children: [
                 const Icon(Icons.play_arrow_rounded, color: Colors.white, size: 36),
                 const SizedBox(width: 8),
-                Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'JUGAR',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 26,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 2.0,
-                        shadows: [
-                          Shadow(color: Colors.black38, blurRadius: 4, offset: Offset(0, 2)),
-                        ],
-                      ),
-                    ),
-                    Text(
-                      'Demuestra tu habilidad',
-                      style: TextStyle(
-                        color: const Color(0xFF78350F).withValues(alpha: 0.95),
-                        fontSize: 11,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 0.4,
-                      ),
-                    ),
-                  ],
+                const Text(
+                  'JUGAR',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 26,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 2.0,
+                    shadows: [
+                      Shadow(color: Colors.black38, blurRadius: 4, offset: Offset(0, 2)),
+                    ],
+                  ),
                 ),
               ],
             ),

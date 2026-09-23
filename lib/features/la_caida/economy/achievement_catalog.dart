@@ -360,7 +360,7 @@ class AchievementCatalog {
     AchievementItem(
       id: 'ach_games_1',
       title: 'Veterano de la Mesa',
-      description: 'Jugar 1 partida oficial de La Caída.',
+      description: 'Jugar 1 partida oficial de CaidaGO.',
       icon: Icons.play_arrow_rounded,
       iconColor: const Color(0xFF38BDF8),
       category: AchievementCategory.partidas,
