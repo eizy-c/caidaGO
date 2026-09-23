@@ -19,6 +19,7 @@ import '../../../core/services/haptic_service.dart';
 import '../../../core/services/user_profile_service.dart';
 import '../domain/caida_models.dart';
 import '../domain/caida_rules_engine.dart';
+import '../domain/caida_ai_engine.dart';
 import '../domain/models/caida_match_config.dart';
 import '../domain/models/mano_draw_session.dart';
 import '../domain/models/match_play_tracker.dart';
@@ -600,6 +601,7 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
     final customAvatars = widget.config?.playerAvatarIds;
     final customFrames = widget.config?.playerFrameIds;
     final customNames = widget.config?.playerNames;
+    final customIsBots = widget.config?.playerIsBots;
 
     final userAvatarId = (customAvatars != null && customAvatars.isNotEmpty)
         ? customAvatars[0]
@@ -649,10 +651,16 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
           ? customFrames[i]
           : botFrames[(i - 1) % botFrames.length];
 
+      final bool isBotPlayer = (customIsBots != null && i < customIsBots.length)
+          ? customIsBots[i]
+          : (rawName.contains('(Bot)') ||
+              rawName.startsWith('Bot ') ||
+              (!_isMultiplayerNetwork && customNames == null));
+
       _players.add(_PlayerState(
         id: 'player_$i',
         name: playerName,
-        isBot: !_isMultiplayerNetwork && (customNames == null),
+        isBot: isBotPlayer,
         color: botColors[(i - 1) % botColors.length],
         teamId: teams ? (i % 2 == 0 ? 1 : 2) : i,
         avatarId: rivalAvatarId,
@@ -927,7 +935,7 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
 
     if (activePlayer.isBot) {
       _botTimer?.cancel();
-      _botTimer = Timer(const Duration(milliseconds: 900), () {
+      _botTimer = Timer(const Duration(milliseconds: 650), () {
         if (mounted && !_isGameOver && _currentTurnIndex == _players.indexOf(activePlayer)) {
           _botPlay(activePlayer);
         }
@@ -1160,7 +1168,12 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
   void _onTurnTimeout() {
     final active = _players[_currentTurnIndex];
     if (active.hand.isNotEmpty) {
-      _playCard(active, active.hand.first);
+      if (active.isBot) {
+        _botPlay(active);
+      } else {
+        final chosen = _chooseBestBotCard(active);
+        _playCard(active, chosen);
+      }
     }
   }
 
@@ -1460,7 +1473,7 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
 
     if (nextPlayer.isBot) {
       _botTimer?.cancel();
-      _botTimer = Timer(const Duration(milliseconds: 900), () {
+      _botTimer = Timer(const Duration(milliseconds: 650), () {
         if (mounted && !_isGameOver && _currentTurnIndex == _players.indexOf(nextPlayer)) {
           _botPlay(nextPlayer);
         }
@@ -1468,20 +1481,27 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
     }
   }
 
+  SpanishCard _chooseBestBotCard(_PlayerState player) {
+    final previousCard = (_lastPlayedPlayerIndex != null && _lastPlayedPlayerIndex != _currentTurnIndex)
+        ? _lastPlayedCard
+        : null;
+    final previousPlayer = (_lastPlayedPlayerIndex != null && _lastPlayedPlayerIndex! >= 0 && _lastPlayedPlayerIndex! < _players.length)
+        ? _players[_lastPlayedPlayerIndex!]
+        : null;
+    final isPreviousPlayerTeammate = _isTeams && previousPlayer != null && previousPlayer.teamId == player.teamId;
+
+    return CaidaAiEngine.chooseBestCard(
+      hand: player.hand,
+      tableCards: _tableCards,
+      previousCard: previousCard,
+      isDeckEmpty: _deck.isEmpty,
+      isPreviousPlayerTeammate: isPreviousPlayerTeammate,
+    );
+  }
+
   void _botPlay(_PlayerState bot) {
     if (bot.hand.isEmpty) return;
-
-    SpanishCard chosen = bot.hand.first;
-    for (final c in bot.hand) {
-      if (_lastPlayedCard != null && c.number == _lastPlayedCard!.number) {
-        chosen = c;
-        break;
-      }
-      if (_tableCards.any((tc) => tc.number == c.number)) {
-        chosen = c;
-      }
-    }
-
+    final chosen = _chooseBestBotCard(bot);
     _playCard(bot, chosen);
   }
 

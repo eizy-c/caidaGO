@@ -20,6 +20,7 @@ class CaidaMatchConfig {
   final List<String>? playerNames;
   final List<int>? playerAvatarIds;
   final List<String>? playerFrameIds;
+  final List<bool>? playerIsBots;
 
   const CaidaMatchConfig({
     this.initialPlayers = 2,
@@ -38,6 +39,7 @@ class CaidaMatchConfig {
     this.playerNames,
     this.playerAvatarIds,
     this.playerFrameIds,
+    this.playerIsBots,
   });
 
   /// Crea una configuración para partida individual rápida
@@ -123,6 +125,10 @@ class CaidaMatchConfig {
     int? vipPrizePool,
     int? vipWinnerReward,
     bool? isMatandoCantos,
+    List<String>? playerNames,
+    List<int>? playerAvatarIds,
+    List<String>? playerFrameIds,
+    List<bool>? playerIsBots,
   }) {
     return CaidaMatchConfig(
       initialPlayers: initialPlayers ?? this.initialPlayers,
@@ -137,6 +143,10 @@ class CaidaMatchConfig {
       vipPrizePool: vipPrizePool ?? this.vipPrizePool,
       vipWinnerReward: vipWinnerReward ?? this.vipWinnerReward,
       isMatandoCantos: isMatandoCantos ?? this.isMatandoCantos,
+      playerNames: playerNames ?? this.playerNames,
+      playerAvatarIds: playerAvatarIds ?? this.playerAvatarIds,
+      playerFrameIds: playerFrameIds ?? this.playerFrameIds,
+      playerIsBots: playerIsBots ?? this.playerIsBots,
     );
   }
 }

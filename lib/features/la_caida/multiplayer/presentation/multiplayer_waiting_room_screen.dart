@@ -129,6 +129,7 @@ class _MultiplayerWaitingRoomScreenState
             playerNames: sortedSeats.map((s) => s.name).toList(),
             playerAvatarIds: sortedSeats.map((s) => s.avatarId).toList(),
             playerFrameIds: sortedSeats.map((s) => s.frameId).toList(),
+            playerIsBots: sortedSeats.map((s) => s.isBot).toList(),
           ),
         ),
       ),
@@ -243,6 +244,105 @@ class _MultiplayerWaitingRoomScreenState
               ),
             ),
 
+            // Selector de Equipos para partidas en Parejas (2 vs 2)
+            if (room.isTeams && room.targetPlayers == 4) ...[
+              Container(
+                margin: const EdgeInsets.fromLTRB(16, 10, 16, 4),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                decoration: BoxDecoration(
+                  color: AppPalette.cartoonCardDark,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: AppPalette.cartoonBorder, width: 1.8),
+                  boxShadow: const [
+                    BoxShadow(color: Color(0xFF1B165E), offset: Offset(0, 2)),
+                  ],
+                ),
+                child: Column(
+                  children: [
+                    const CartoonStrokeText(
+                      'ELIGE TU EQUIPO Y COMPAÑERO',
+                      fontSize: 13,
+                      textColor: AppPalette.cartoonYellow,
+                      strokeColor: AppPalette.cartoonCardText,
+                      strokeWidth: 2.5,
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        // Botón Unirse a Equipo A
+                        Expanded(
+                          child: TactilePressable(
+                            depth: 2.0,
+                            onTap: () => _joinTeam(0),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 8),
+                              decoration: BoxDecoration(
+                                gradient: AppGradients.cyanAccent,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: AppPalette.cartoonBorder, width: 1.5),
+                                boxShadow: const [
+                                  BoxShadow(color: Color(0xFF1B165E), offset: Offset(0, 2)),
+                                ],
+                              ),
+                              child: const Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.shield_rounded, color: Color(0xFF1E1B4B), size: 16),
+                                  SizedBox(width: 4),
+                                  Text(
+                                    'EQUIPO A',
+                                    style: TextStyle(
+                                      color: Color(0xFF1E1B4B),
+                                      fontWeight: FontWeight.w900,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        // Botón Unirse a Equipo B
+                        Expanded(
+                          child: TactilePressable(
+                            depth: 2.0,
+                            onTap: () => _joinTeam(1),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 8),
+                              decoration: BoxDecoration(
+                                gradient: AppGradients.redDanger,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: AppPalette.cartoonBorder, width: 1.5),
+                                boxShadow: const [
+                                  BoxShadow(color: Color(0xFF1B165E), offset: Offset(0, 2)),
+                                ],
+                              ),
+                              child: const Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.shield_rounded, color: Colors.white, size: 16),
+                                  SizedBox(width: 4),
+                                  Text(
+                                    'EQUIPO B',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w900,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+
             // Mesa visual de asientos
             Expanded(
               child: ValueListenableBuilder<List<RoomSeat>>(
@@ -251,9 +351,9 @@ class _MultiplayerWaitingRoomScreenState
                   return Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: GridView.builder(
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: room.targetPlayers == 2 ? 2 : 2,
-                        childAspectRatio: 0.95,
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        childAspectRatio: 0.88,
                         crossAxisSpacing: 14,
                         mainAxisSpacing: 14,
                       ),
@@ -271,7 +371,7 @@ class _MultiplayerWaitingRoomScreenState
             // Barra inferior de acciones
             Container(
               padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 color: AppPalette.cartoonBgDark,
                 border: Border(top: BorderSide(color: AppPalette.cartoonBorder, width: 2.0)),
               ),
@@ -319,135 +419,199 @@ class _MultiplayerWaitingRoomScreenState
     );
   }
 
+  void _joinTeam(int targetTeam) {
+    // Equipo A: Asientos 0 y 2
+    // Equipo B: Asientos 1 y 3
+    final candidateSeats = targetTeam == 0 ? [0, 2] : [1, 3];
+    final seats = _seatsNotifier.value;
+
+    int? freeSeat;
+    for (final s in candidateSeats) {
+      if (s < seats.length) {
+        final seat = seats[s];
+        if (!seat.isOccupied || seat.isBot) {
+          freeSeat = s;
+          break;
+        }
+      }
+    }
+
+    freeSeat ??= candidateSeats.first;
+    _switchSeat(freeSeat);
+  }
+
+  void _switchSeat(int targetSeatIndex) {
+    if (widget.isHost) {
+      widget.host?.switchPlayerSeat('host_${widget.roomInfo.hostName}', targetSeatIndex);
+    } else {
+      widget.client.requestSwitchSeat(targetSeatIndex);
+    }
+  }
+
   Widget _buildSeatCard(RoomSeat? seat, int index) {
     final isOccupied = seat?.isOccupied == true;
     final isHostSeat = seat?.isHost == true;
     final isBot = seat?.isBot == true;
     final isReady = seat?.isReady == true;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: AppPalette.cartoonCardDark,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: isOccupied
-              ? (isReady ? const Color(0xFF10B981) : const Color(0xFF22D3EE))
-              : AppPalette.cartoonBorder,
-          width: isOccupied ? 2.0 : 1.5,
+    // Equipo A: Asientos 0 y 2 (Azul) / Equipo B: Asientos 1 y 3 (Rojo)
+    final isTeamA = index % 2 == 0;
+    final isTeamsMode = widget.roomInfo.isTeams && widget.roomInfo.targetPlayers == 4;
+
+    return TactilePressable(
+      depth: 2.5,
+      onTap: () => _switchSeat(index),
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppPalette.cartoonCardDark,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(
+            color: isTeamsMode
+                ? (isTeamA ? AppPalette.cartoonCyan : AppPalette.cartoonRed)
+                : (isOccupied
+                    ? (isReady ? const Color(0xFF10B981) : const Color(0xFF22D3EE))
+                    : AppPalette.cartoonBorder),
+            width: isOccupied ? 2.2 : 1.5,
+          ),
+          boxShadow: const [
+            BoxShadow(color: Colors.black26, blurRadius: 6, offset: Offset(0, 2)),
+          ],
         ),
-        boxShadow: const [
-          BoxShadow(color: Colors.black26, blurRadius: 6, offset: Offset(0, 2)),
-        ],
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          if (isOccupied) ...[
-            Stack(
-              alignment: Alignment.topRight,
-              children: [
-                UserFrameView(
-                  avatarIndex: seat!.avatarId,
-                  frameId: seat.frameId,
-                  size: 60,
-                  showLevelBadge: false,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // Rótulo del Equipo (si es 2 vs 2)
+            if (isTeamsMode) ...[
+              Container(
+                margin: const EdgeInsets.only(bottom: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+                decoration: BoxDecoration(
+                  gradient: isTeamA ? AppGradients.cyanAccent : AppGradients.redDanger,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: AppPalette.cartoonBorder, width: 1.0),
                 ),
-                if (isHostSeat)
-                  Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: const BoxDecoration(
-                      color: Color(0xFFF59E0B),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(Icons.star_rounded, size: 12, color: Colors.black),
+                child: Text(
+                  isTeamA ? '🔵 EQUIPO A' : '🔴 EQUIPO B',
+                  style: TextStyle(
+                    color: isTeamA ? const Color(0xFF1E1B4B) : Colors.white,
+                    fontWeight: FontWeight.w900,
+                    fontSize: 9.5,
+                    letterSpacing: 0.5,
                   ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Text(
-              seat.name,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 13,
-              ),
-            ),
-            const SizedBox(height: 6),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2.5),
-              decoration: BoxDecoration(
-                color: isReady
-                    ? const Color(0xFF22C55E).withValues(alpha: 0.2)
-                    : Colors.white10,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                  color: isReady ? const Color(0xFF22C55E) : Colors.white24,
-                  width: 0.8,
-                ),
-              ),
-              child: Text(
-                isReady ? 'LISTO' : 'ESPERANDO',
-                style: TextStyle(
-                  color: isReady ? const Color(0xFF22C55E) : Colors.white60,
-                  fontSize: 10,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-            if (widget.isHost && isBot) ...[
-              const SizedBox(height: 6),
-              GestureDetector(
-                onTap: () => widget.host?.toggleBotInSeat(index),
-                child: const Text(
-                  'Quitar Bot',
-                  style: TextStyle(color: Color(0xFFEF4444), fontSize: 10.5, decoration: TextDecoration.underline),
                 ),
               ),
             ],
-          ] else ...[
-            // Asiento libre
-            Container(
-              width: 56,
-              height: 56,
-              decoration: BoxDecoration(
-                color: AppPalette.cartoonBgDark,
-                shape: BoxShape.circle,
-                border: Border.all(color: AppPalette.cartoonBorder, width: 1.5),
-              ),
-              child: const Icon(Icons.person_add_alt_1_rounded, color: Colors.white30, size: 24),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Puesto ${index + 1} Libre',
-              style: const TextStyle(color: Colors.white38, fontSize: 11.5),
-            ),
-            if (widget.isHost) ...[
-              const SizedBox(height: 8),
-              TactilePressable(
-                depth: 2.0,
-                onTap: () => widget.host?.toggleBotInSeat(index),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: AppPalette.cartoonBgDark,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: const Color(0xFF38BDF8), width: 1.0),
+
+            if (isOccupied) ...[
+              Stack(
+                alignment: Alignment.topRight,
+                children: [
+                  UserFrameView(
+                    avatarIndex: seat!.avatarId,
+                    frameId: seat.frameId,
+                    size: 54,
+                    showLevelBadge: false,
                   ),
-                  child: const Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.smart_toy_rounded, color: Color(0xFF38BDF8), size: 12),
-                      SizedBox(width: 4),
-                      Text('+ Añadir Bot', style: TextStyle(color: Color(0xFF38BDF8), fontSize: 10.5, fontWeight: FontWeight.bold)),
-                    ],
+                  if (isHostSeat)
+                    Container(
+                      padding: const EdgeInsets.all(3.5),
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFF59E0B),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.star_rounded, size: 12, color: Colors.black),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 6),
+              Text(
+                seat.name,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12.5,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: isReady
+                      ? const Color(0xFF22C55E).withValues(alpha: 0.2)
+                      : Colors.white10,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: isReady ? const Color(0xFF22C55E) : Colors.white24,
+                    width: 0.8,
+                  ),
+                ),
+                child: Text(
+                  isReady ? 'LISTO' : 'ESPERANDO',
+                  style: TextStyle(
+                    color: isReady ? const Color(0xFF22C55E) : Colors.white60,
+                    fontSize: 9.5,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
+              if (widget.isHost && isBot) ...[
+                const SizedBox(height: 4),
+                GestureDetector(
+                  onTap: () => widget.host?.toggleBotInSeat(index),
+                  child: const Text(
+                    'Quitar Bot',
+                    style: TextStyle(color: Color(0xFFEF4444), fontSize: 10, decoration: TextDecoration.underline),
+                  ),
+                ),
+              ],
+            ] else ...[
+              // Asiento libre
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: AppPalette.cartoonBgDark,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: AppPalette.cartoonBorder, width: 1.5),
+                ),
+                child: const Icon(Icons.person_add_alt_1_rounded, color: Colors.white30, size: 22),
+              ),
+              const SizedBox(height: 6),
+              const Text(
+                'Toca para sentarte',
+                style: TextStyle(color: AppPalette.cartoonCyan, fontSize: 10.5, fontWeight: FontWeight.bold),
+              ),
+              if (widget.isHost) ...[
+                const SizedBox(height: 6),
+                TactilePressable(
+                  depth: 2.0,
+                  onTap: () => widget.host?.toggleBotInSeat(index),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: AppPalette.cartoonBgDark,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: const Color(0xFF38BDF8), width: 1.0),
+                    ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.smart_toy_rounded, size: 11, color: Color(0xFF38BDF8)),
+                        SizedBox(width: 3),
+                        Text(
+                          '+ Bot',
+                          style: TextStyle(color: Color(0xFF38BDF8), fontSize: 9.5, fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ],
           ],
-        ],
+        ),
       ),
     );
   }
