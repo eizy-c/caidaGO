@@ -1,0 +1,42 @@
+<svg width="300" height="465" viewBox="0 0 300 465" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- Marco y Fondo de Carta 300x465 px con esquinas redondeadas r=18px -->
+    <rect x="1.5" y="1.5" width="297" height="462" rx="18" fill="#FFFFFF" stroke="#0F172A" stroke-width="3"/>
+    <rect x="8" y="8" width="284" height="449" rx="14" fill="#FFFDF8" stroke="#2563EB" stroke-width="1.8" stroke-dasharray="6 3"/>
+
+    <!-- Índice Esquina Superior Izquierda -->
+    <g transform="translate(18, 16)">
+        <text x="0" y="32" font-family="Impact, Arial Black, sans-serif" font-size="34" font-weight="900" fill="#2563EB">1</text>
+        <g transform="translate(2, 38) scale(0.9)">
+            <g id="espada_icon">
+            <path d="M12 2l-2 18h4l-2-18z" fill="#38BDF8"/>
+            <path d="M12 2l-1 18h2l-1-18z" fill="#F8FAFC"/>
+            <path d="M5 20h14v3H5z" fill="#F59E0B" rx="1.5"/>
+            <path d="M10.5 23h3v8h-3z" fill="#78350F"/>
+            <circle cx="12" cy="33" r="3" fill="#D97706"/>
+        </g>
+        </g>
+    </g>
+
+    <!-- Índice Esquina Inferior Derecha (Invertido 180°) -->
+    <g transform="translate(282, 449) rotate(180)">
+        <text x="0" y="32" font-family="Impact, Arial Black, sans-serif" font-size="34" font-weight="900" fill="#2563EB">1</text>
+        <g transform="translate(2, 38) scale(0.9)">
+            <g id="espada_icon">
+            <path d="M12 2l-2 18h4l-2-18z" fill="#38BDF8"/>
+            <path d="M12 2l-1 18h2l-1-18z" fill="#F8FAFC"/>
+            <path d="M5 20h14v3H5z" fill="#F59E0B" rx="1.5"/>
+            <path d="M10.5 23h3v8h-3z" fill="#78350F"/>
+            <circle cx="12" cy="33" r="3" fill="#D97706"/>
+        </g>
+        </g>
+    </g>
+
+    <!-- Símbolos e Ilustraciones Centrales -->
+    <g transform="translate(90, 150) scale(5.0)"><g id="espada_icon">
+            <path d="M12 2l-2 18h4l-2-18z" fill="#38BDF8"/>
+            <path d="M12 2l-1 18h2l-1-18z" fill="#F8FAFC"/>
+            <path d="M5 20h14v3H5z" fill="#F59E0B" rx="1.5"/>
+            <path d="M10.5 23h3v8h-3z" fill="#78350F"/>
+            <circle cx="12" cy="33" r="3" fill="#D97706"/>
+        </g></g>
+</svg>
