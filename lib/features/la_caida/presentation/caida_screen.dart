@@ -342,7 +342,14 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
     }
   }
 
-  void _initMatch(int count, bool teams, String userName, {bool? animate, bool startWithManoSelection = false}) {
+  Future<void> _initMatch(
+    int count,
+    bool teams,
+    String userName, {
+    bool? animate,
+    bool startWithManoSelection = false,
+    int? startingManoIndex,
+  }) async {
     for (final t in _pendingAsyncTimers) {
       t.cancel();
     }
@@ -372,8 +379,25 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
     if (startWithManoSelection) {
       _startManoSelection(animate: animate ?? widget.animateDealing);
     } else {
-      _manoIndex = 0;
+      final targetMano = startingManoIndex ?? 0;
+      setState(() {
+        _manoIndex = targetMano;
+      });
       final shouldAnimate = animate ?? widget.animateDealing;
+
+      if (_manoIndex == 0) {
+        // Si el usuario es la Mano, permitirle elegir cómo comenzar el conteo (1..4 o 4..1)
+        await Future<void>.delayed(const Duration(milliseconds: 150));
+        if (!mounted) return;
+        final dir = await TableCantoDialog.show(context);
+        if (dir != null && mounted) {
+          setState(() => _cantoDirection = dir);
+        }
+      } else {
+        _cantoDirection = DealDirection.ascending;
+      }
+
+      if (!mounted) return;
       _startDeal(isFirstRound: true, animate: shouldAnimate);
     }
   }
@@ -1733,7 +1757,15 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
           summary: matchSummary,
           onRematch: () {
             Navigator.pop(context);
-            _initMatch(_playerCount, _isTeams, _players[0].name);
+            final nextManoIndex = _players.isNotEmpty
+                ? (_manoIndex + 1) % _players.length
+                : 0;
+            _initMatch(
+              _playerCount,
+              _isTeams,
+              _players.isNotEmpty ? _players[0].name : (_effectiveUserName ?? 'Tú'),
+              startingManoIndex: nextManoIndex,
+            );
           },
           onBackToMenu: () {
             Navigator.pop(context);
@@ -1916,7 +1948,12 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
                 title: const Text('Reiniciar mano actual', style: TextStyle(color: Colors.white)),
                 onTap: () {
                   Navigator.pop(ctx);
-                  _initMatch(_playerCount, _isTeams, _players[0].name);
+                  _initMatch(
+                    _playerCount,
+                    _isTeams,
+                    _players.isNotEmpty ? _players[0].name : (_effectiveUserName ?? 'Tú'),
+                    startingManoIndex: _manoIndex,
+                  );
                 },
               ),
               ListTile(
@@ -2363,7 +2400,12 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
                   setState(() {
                     _hasGameStarted = true;
                   });
-                  _initMatch(_playerCount, _isTeams, 'Tú');
+                  _initMatch(
+                    _playerCount,
+                    _isTeams,
+                    _effectiveUserName ?? 'Tú',
+                    startWithManoSelection: _effectiveChooseMano,
+                  );
                 },
               ),
             ],
