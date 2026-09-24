@@ -770,6 +770,8 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
     final bool isLastHandOfDeck = _deck.remainingCount == _players.length * 3;
     if (isLastHandOfDeck) {
       AudioService().playUltimas();
+      await _safeDelay(const Duration(milliseconds: 650));
+      if (!mounted) return;
     }
 
     // 1. Repartir 1 carta a la vez en sentido horario comenzando desde el jugador que es Mano (3 vueltas)
@@ -825,6 +827,8 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
       } else {
         AudioService().playCuatro();
       }
+      await _safeDelay(const Duration(milliseconds: 450));
+      if (!mounted) return;
 
       final dealResult = CaidaRulesEngine.dealInitialTable(
         direction: _cantoDirection,
@@ -1287,7 +1291,8 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
           HapticService.instance.onCaida();
         }
         if (eval.isLimpia) {
-          _safeDelay(const Duration(milliseconds: 400)).then((_) {
+          final limpiaDelay = eval.isCaida ? 520 : 0;
+          _safeDelay(Duration(milliseconds: limpiaDelay)).then((_) {
             if (mounted) {
               AudioService().playMesaLimpia();
               HapticService.instance.onCaida();
@@ -1415,18 +1420,6 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
           type: AuditEntryType.jugada,
           description: 'Recogió ${eval.capturedCards.length} cartas con ${card.displayName}',
         );
-      }
-
-      if (eval.isCaida && eval.isLimpia) {
-        AudioService().playCaida();
-        AudioService().playMesaLimpia();
-        HapticService.instance.onCaida();
-      } else if (eval.isCaida) {
-        AudioService().playCaida();
-        HapticService.instance.onCaida();
-      } else if (eval.isLimpia) {
-        AudioService().playMesaLimpia();
-        HapticService.instance.onCaida();
       }
     }
 
