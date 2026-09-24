@@ -281,6 +281,11 @@ class _AboutSettingsScreenState extends State<AboutSettingsScreen> {
                     _buildSocialRow(),
 
                     const SizedBox(height: 24),
+
+                    // Sección: DESARROLLO Y CRÉDITOS
+                    _buildDeveloperSection(),
+
+                    const SizedBox(height: 24),
                   ],
                 ),
               ),
@@ -288,6 +293,130 @@ class _AboutSettingsScreenState extends State<AboutSettingsScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildDeveloperSection() {
+    return Column(
+      children: [
+        _buildSectionTitle(
+          icon: Icons.code_rounded,
+          title: 'CRÉDITOS A:',
+        ),
+        const SizedBox(height: 12),
+        TactilePressable(
+          depth: 3,
+          onTap: () => _launchUrl('https://github.com/eizy-c'),
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF332D8C), Color(0xFF231E6B)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: AppPalette.cartoonBorder, width: 2),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0xFF1B165E),
+                  offset: Offset(0, 3.5),
+                  blurRadius: 0,
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                // Icono / Badge de Desarrollador 3D
+                Container(
+                  width: 50,
+                  height: 50,
+                  decoration: BoxDecoration(
+                    gradient: AppGradients.goldReward,
+                    borderRadius: BorderRadius.circular(15),
+                    border: Border.all(color: AppPalette.cartoonBorder, width: 2),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Color(0xFF1B165E),
+                        offset: Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: const Icon(
+                    Icons.terminal_rounded,
+                    color: AppPalette.cartoonCardText,
+                    size: 26,
+                  ),
+                ),
+                const SizedBox(width: 14),
+
+                // Información del creador
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Row(
+                        children: [
+                          Text(
+                            'eizy-c',
+                            style: TextStyle(
+                              color: AppPalette.cartoonYellow,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 0.6,
+                            ),
+                          ),
+                          SizedBox(width: 6),
+                          Icon(
+                            Icons.verified_rounded,
+                            color: AppPalette.cartoonCyan,
+                            size: 16,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 2),
+                      const Text(
+                        'Desarrollo, Diseño y Creación',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 5),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2.5),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF1A144E),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: AppPalette.cartoonCyan.withValues(alpha: 0.4),
+                            width: 1,
+                          ),
+                        ),
+                        child: const Text(
+                          '🇻🇪 Creado con Flutter & Pasión Criolla',
+                          style: TextStyle(
+                            color: AppPalette.cartoonCyan,
+                            fontSize: 9.5,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const Icon(
+                  Icons.open_in_new_rounded,
+                  color: Colors.white54,
+                  size: 18,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -622,19 +751,12 @@ class _AboutSettingsScreenState extends State<AboutSettingsScreen> {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         _buildSocialButton(
-          icon: Icons.code_rounded,
-          label: 'GitHub',
-          handle: '@eizy-c',
-          url: 'https://github.com/eizy-c',
-        ),
-        const SizedBox(width: 14),
-        _buildSocialButton(
           icon: Icons.camera_alt_rounded,
           label: 'Instagram',
           handle: '@eizy-c',
           url: 'https://instagram.com/eizy-c',
         ),
-        const SizedBox(width: 14),
+        const SizedBox(width: 24),
         _buildSocialButton(
           icon: Icons.music_note_rounded,
           label: 'TikTok',

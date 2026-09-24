@@ -130,6 +130,14 @@ class LocalGameClient {
       case 'LOBBY_UPDATE':
         if (msg.data['seats'] != null) {
           _updateSeatsFromJson(msg.data['seats'] as List);
+          // Actualizar mi índice de asiento si cambié de lugar/equipo
+          final mySeat = seatsNotifier.value.firstWhere(
+            (s) => s.playerId == _myPlayerId,
+            orElse: () => RoomSeat(seatIndex: _mySeatIndex, name: ''),
+          );
+          if (mySeat.playerId == _myPlayerId && mySeat.seatIndex != _mySeatIndex) {
+            _mySeatIndex = mySeat.seatIndex;
+          }
         }
         break;
 
@@ -155,6 +163,14 @@ class LocalGameClient {
     sendMessage(NetworkGameMessage(
       type: 'TOGGLE_READY',
       data: {'playerId': _myPlayerId},
+    ));
+  }
+
+  /// Solicitar cambio de asiento o equipo
+  void requestSwitchSeat(int targetSeatIndex) {
+    sendMessage(NetworkGameMessage(
+      type: 'SWITCH_SEAT',
+      data: {'targetSeatIndex': targetSeatIndex, 'playerId': _myPlayerId},
     ));
   }
 

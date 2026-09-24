@@ -27,8 +27,8 @@ void main() {
       expect(r1.name, equals('Chivacoa'));
       expect(r1.region, equals('Yaracuy'));
       expect(r1.subtitle, equals('Mesa del Alambique'));
-      expect(r1.entryFee, equals(200));
-      expect(r1.basePrize, equals(400));
+      expect(r1.entryFee, equals(100));
+      expect(r1.basePrize, equals(200));
       expect(r1.trophyCap, equals(15));
       expect(r1.winTrophies, equals(3));
       expect(r1.lossTrophies, equals(0));
@@ -40,8 +40,8 @@ void main() {
       expect(r2.name, equals('Barquisimeto'));
       expect(r2.region, equals('Lara'));
       expect(r2.subtitle, equals('Mesa Crepuscular'));
-      expect(r2.entryFee, equals(100));
-      expect(r2.basePrize, equals(200));
+      expect(r2.entryFee, equals(200));
+      expect(r2.basePrize, equals(400));
       expect(r2.trophyCap, equals(30));
       expect(r2.winTrophies, equals(4));
       expect(r2.lossTrophies, equals(-2));
@@ -54,8 +54,8 @@ void main() {
       expect(r3.name, equals('Tucacas'));
       expect(r3.region, equals('Falcón'));
       expect(r3.subtitle, equals('Brisa Marina'));
-      expect(r3.entryFee, equals(500));
-      expect(r3.basePrize, equals(1000));
+      expect(r3.entryFee, equals(1000));
+      expect(r3.basePrize, equals(2000));
       expect(r3.trophyCap, equals(60));
       expect(r3.winTrophies, equals(6));
       expect(r3.lossTrophies, equals(-4));
@@ -68,8 +68,8 @@ void main() {
       expect(r4.name, equals('Maracaibo'));
       expect(r4.region, equals('Zulia'));
       expect(r4.subtitle, equals('Calor Zuliano'));
-      expect(r4.entryFee, equals(2500));
-      expect(r4.basePrize, equals(5000));
+      expect(r4.entryFee, equals(5000));
+      expect(r4.basePrize, equals(10000));
       expect(r4.trophyCap, equals(75));
       expect(r4.winTrophies, equals(8));
       expect(r4.lossTrophies, equals(-6));
@@ -82,8 +82,8 @@ void main() {
       expect(r5.name, equals('Mérida'));
       expect(r5.subtitle, equals('Páramo y Baraja Helada'));
       expect(r5.isFrozenTheme, isTrue);
-      expect(r5.entryFee, equals(10000));
-      expect(r5.basePrize, equals(20000));
+      expect(r5.entryFee, equals(20000));
+      expect(r5.basePrize, equals(40000));
       expect(r5.trophyCap, equals(100));
       expect(r5.winTrophies, equals(10));
       expect(r5.lossTrophies, equals(-8));
@@ -96,8 +96,8 @@ void main() {
       expect(r6.name, equals('Caracas'));
       expect(r6.region, equals('Distrito Capital'));
       expect(r6.subtitle, equals('La Gran Sultana'));
-      expect(r6.entryFee, equals(50000));
-      expect(r6.basePrize, equals(100000));
+      expect(r6.entryFee, equals(100000));
+      expect(r6.basePrize, equals(200000));
       expect(r6.trophyCap, equals(125));
       expect(r6.winTrophies, equals(12));
       expect(r6.lossTrophies, equals(-10));
@@ -123,12 +123,12 @@ void main() {
       final chivacoa = VenezuelaRoomCatalog.getById(1);
 
       // 1v1 Duelo
-      expect(chivacoa.getTotalPot(GameMode.duel1v1), equals(400));
-      expect(chivacoa.getPrizePerWinner(GameMode.duel1v1), equals(400));
+      expect(chivacoa.getTotalPot(GameMode.duel1v1), equals(200));
+      expect(chivacoa.getPrizePerWinner(GameMode.duel1v1), equals(200));
 
       // 2v2 Parejas
-      expect(chivacoa.getTotalPot(GameMode.teams2v2), equals(800));
-      expect(chivacoa.getPrizePerWinner(GameMode.teams2v2), equals(400));
+      expect(chivacoa.getTotalPot(GameMode.teams2v2), equals(400));
+      expect(chivacoa.getPrizePerWinner(GameMode.teams2v2), equals(200));
     });
   });
 
@@ -194,17 +194,17 @@ void main() {
       final manager = TrophySessionManager.shared;
       PlayerSession.shared.setCoins(200);
 
-      expect(manager.canAfford(200), isTrue);
+      expect(manager.canAfford(100), isTrue);
       expect(manager.canAfford(500), isFalse);
 
-      // Deducir 200 de entrada
-      final deducted = manager.deductEntryFee(200);
+      // Deducir 100 de entrada
+      final deducted = manager.deductEntryFee(100);
       expect(deducted, isTrue);
-      expect(PlayerSession.shared.coins, equals(0));
+      expect(PlayerSession.shared.coins, equals(100));
 
-      // Ganar en Sala 1 (Premio: 400)
+      // Ganar en Sala 1 (Premio: 200)
       manager.processMatchResult(roomId: 1, isWinner: true, mode: GameMode.duel1v1);
-      expect(PlayerSession.shared.coins, equals(400));
+      expect(PlayerSession.shared.coins, equals(300));
     });
   });
 
@@ -230,7 +230,7 @@ void main() {
 
       // Sala 1 (Chivacoa)
       expect(find.text('"Mesa del Alambique"'), findsOneWidget);
-      expect(find.text('JUGAR (🪙 200)'), findsOneWidget);
+      expect(find.text('JUGAR (🪙 100)'), findsOneWidget);
     });
 
     testWidgets('Alternar a modo 2v2 actualiza subtítulos y premios en vivo', (tester) async {
@@ -254,7 +254,7 @@ void main() {
 
       expect(find.text('PREMIO C/U'), findsWidgets);
       expect(find.text('POZO (4J)'), findsWidgets);
-      expect(find.text('🪙 800'), findsWidgets); // Pozo 2v2 de Chivacoa: 200 * 4 = 800
+      expect(find.text('🪙 400'), findsWidgets); // Pozo 2v2 de Chivacoa: 100 * 4 = 400
     });
 
     testWidgets('Tocar JUGAR ejecuta callback con la sala y modalidad seleccionada', (tester) async {
@@ -279,7 +279,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('JUGAR (🪙 200)'));
+      await tester.tap(find.text('JUGAR (🪙 100)'));
       await tester.pumpAndSettle();
 
       expect(selectedRoom?.id, equals(1));

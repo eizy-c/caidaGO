@@ -62,6 +62,24 @@ class VenezuelaRoomTier {
     return mode == GameMode.teams2v2 ? (entryFee * 4) ~/ 2 : entryFee * 2;
   }
 
+  /// Formateo amigable de monedas (ej. 100, 1K, 20K, 100K, 250K).
+  static String formatCoins(int value) {
+    if (value >= 1000000) {
+      final m = value / 1000000;
+      return m % 1 == 0 ? '${m.toInt()}M' : '${m.toStringAsFixed(1)}M';
+    }
+    if (value >= 1000) {
+      final k = value / 1000;
+      return k % 1 == 0 ? '${k.toInt()}K' : '${k.toStringAsFixed(1)}K';
+    }
+    return '$value';
+  }
+
+  String get entryFeeFormatted => formatCoins(entryFee);
+  String get basePrizeFormatted => formatCoins(basePrize);
+  String getTotalPotFormatted(GameMode mode) => formatCoins(getTotalPot(mode));
+  String getPrizePerWinnerFormatted(GameMode mode) => formatCoins(getPrizePerWinner(mode));
+
   /// Determina si un saldo de monedas es suficiente para pagar la tarifa de entrada.
   bool canAfford(int playerCoins) => playerCoins >= entryFee;
 
@@ -78,8 +96,8 @@ class VenezuelaRoomCatalog {
       name: 'Chivacoa',
       region: 'Yaracuy',
       subtitle: 'Mesa del Alambique',
-      entryFee: 200,
-      basePrize: 400,
+      entryFee: 100,
+      basePrize: 200,
       trophyCap: 15,
       winTrophies: 3,
       lossTrophies: 0,
@@ -97,8 +115,8 @@ class VenezuelaRoomCatalog {
       name: 'Barquisimeto',
       region: 'Lara',
       subtitle: 'Mesa Crepuscular',
-      entryFee: 100,
-      basePrize: 200,
+      entryFee: 200,
+      basePrize: 400,
       trophyCap: 30,
       winTrophies: 4,
       lossTrophies: -2,
@@ -116,8 +134,8 @@ class VenezuelaRoomCatalog {
       name: 'Tucacas',
       region: 'Falcón',
       subtitle: 'Brisa Marina',
-      entryFee: 500,
-      basePrize: 1000,
+      entryFee: 1000,
+      basePrize: 2000,
       trophyCap: 60,
       winTrophies: 6,
       lossTrophies: -4,
@@ -135,8 +153,8 @@ class VenezuelaRoomCatalog {
       name: 'Maracaibo',
       region: 'Zulia',
       subtitle: 'Calor Zuliano',
-      entryFee: 2500,
-      basePrize: 5000,
+      entryFee: 5000,
+      basePrize: 10000,
       trophyCap: 75,
       winTrophies: 8,
       lossTrophies: -6,
@@ -154,8 +172,8 @@ class VenezuelaRoomCatalog {
       name: 'Mérida',
       region: 'Páramo Andino ❄️',
       subtitle: 'Páramo y Baraja Helada',
-      entryFee: 10000,
-      basePrize: 20000,
+      entryFee: 20000,
+      basePrize: 40000,
       trophyCap: 100,
       winTrophies: 10,
       lossTrophies: -8,
@@ -174,8 +192,8 @@ class VenezuelaRoomCatalog {
       name: 'Caracas',
       region: 'Distrito Capital',
       subtitle: 'La Gran Sultana',
-      entryFee: 50000,
-      basePrize: 100000,
+      entryFee: 100000,
+      basePrize: 200000,
       trophyCap: 125,
       winTrophies: 12,
       lossTrophies: -10,

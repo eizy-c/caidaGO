@@ -115,6 +115,11 @@ class LocalGameHost {
           if (assignedPlayerId != null) {
             _togglePlayerReady(assignedPlayerId!);
           }
+        } else if (message.type == 'SWITCH_SEAT') {
+          final target = message.data['targetSeatIndex'] as int?;
+          if (assignedPlayerId != null && target != null) {
+            switchPlayerSeat(assignedPlayerId!, target);
+          }
         } else {
           // Reenviar al callback de la lógica de partida
           if (assignedPlayerId != null) {
@@ -218,6 +223,44 @@ class LocalGameHost {
       _broadcastLobbyUpdate();
       _notifySeats();
     }
+  }
+
+  /// Cambiar de asiento / equipo a un jugador
+  void switchPlayerSeat(String playerId, int targetSeatIndex) {
+    if (targetSeatIndex < 0 || targetSeatIndex >= _seats.length) return;
+    final currentIdx = _seats.indexWhere((s) => s.playerId == playerId);
+    if (currentIdx == -1 || currentIdx == targetSeatIndex) return;
+
+    final currentSeat = _seats[currentIdx];
+    final targetSeat = _seats[targetSeatIndex];
+
+    if (!targetSeat.isOccupied) {
+      // Mover al asiento vacío
+      _seats[targetSeatIndex] = currentSeat.copyWith(seatIndex: targetSeatIndex);
+      _seats[currentIdx] = RoomSeat(
+        seatIndex: currentIdx,
+        playerId: null,
+        name: 'Esperando...',
+        isBot: false,
+        isReady: false,
+        isHost: false,
+      );
+    } else if (targetSeat.isBot) {
+      // Reemplazar al Bot
+      _seats[targetSeatIndex] = currentSeat.copyWith(seatIndex: targetSeatIndex);
+      _seats[currentIdx] = targetSeat.copyWith(
+        seatIndex: currentIdx,
+        playerId: 'bot_$currentIdx',
+      );
+    } else {
+      // Intercambiar asientos entre dos jugadores humanos
+      _seats[targetSeatIndex] = currentSeat.copyWith(seatIndex: targetSeatIndex);
+      _seats[currentIdx] = targetSeat.copyWith(seatIndex: currentIdx);
+    }
+
+    _updateBroadcastRoomCount();
+    _broadcastLobbyUpdate();
+    _notifySeats();
   }
 
   /// Añadir o alternar un Bot en un asiento libre
