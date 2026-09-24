@@ -3,6 +3,36 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'debug_logger.dart';
 
+/// Modelo POO para los efectos de voz y cantos tradicionales de La Caída.
+/// Encapsula la ruta del asset y las palabras clave de detección para evitar cadenas de `if-else`.
+enum CantoSound {
+  ronda('assets/sfx/cantos/sfx_ronda.mp3', ['ronda']),
+  patrulla('assets/sfx/cantos/sfx_patrulla.mp3', ['patrulla']),
+  vigia('assets/sfx/cantos/sfx_vigia.mp3', ['vigi', 'vigí']),
+  registro('assets/sfx/cantos/sfx_registro.mp3', ['registro']),
+  mesaLimpia('assets/sfx/cantos/sfx_mesa-limpia.mp3', ['limpia']),
+  caida('assets/sfx/cantos/sfx_caida.mp3', ['caida', 'caída']),
+  ultimas('assets/sfx/cantos/Ultimas.mp3', ['ultimas', 'últimas']),
+  cuatro('assets/sfx/cantos/sfx_cuatro.mp3', ['cuatro']),
+  uno('assets/sfx/cantos/sfx_uno.mp3', ['uno']);
+
+  final String assetPath;
+  final List<String> keywords;
+
+  const CantoSound(this.assetPath, this.keywords);
+
+  /// Búsqueda declarativa del canto por nombre o término descriptivo
+  static CantoSound? fromName(String name) {
+    final lower = name.toLowerCase();
+    for (final sound in values) {
+      if (sound.keywords.any((kw) => lower.contains(kw))) {
+        return sound;
+      }
+    }
+    return null;
+  }
+}
+
 /// Servicio singleton para reproducción de efectos de sonido (SFX) y cantos tradicionales.
 /// Implementa soporte polifónico mediante pools de AudioPlayers separados para SFX (cartas, interfaz)
 /// y Cantos/Voces (Caída, Limpia, Últimas, etc.), con configuración de AudioContext sin interrupciones
@@ -89,15 +119,7 @@ class AudioService {
     if (_isPreloading) return;
     _isPreloading = true;
     final soundPaths = [
-      'assets/sfx/cantos/sfx_caida.mp3',
-      'assets/sfx/cantos/sfx_mesa-limpia.mp3',
-      'assets/sfx/cantos/sfx_patrulla.mp3',
-      'assets/sfx/cantos/sfx_registro.mp3',
-      'assets/sfx/cantos/sfx_ronda.mp3',
-      'assets/sfx/cantos/sfx_vigia.mp3',
-      'assets/sfx/cantos/sfx_uno.mp3',
-      'assets/sfx/cantos/sfx_cuatro.mp3',
-      'assets/sfx/cantos/Ultimas.mp3',
+      ...CantoSound.values.map((c) => c.assetPath),
       cardDealPath,
       cardFlipPath,
     ];
@@ -155,65 +177,46 @@ class AudioService {
     }
   }
 
-  /// Reproduce el efecto de sonido según el nombre del canto o evento de juego.
-  /// Utiliza un pool de reproductores dedicados para voces para no ser interrumpido
-  /// por efectos de cartas o clics.
-  Future<void> playCanto(String name) async {
+  /// Reproduce el efecto de sonido a partir de un enum tipado CantoSound.
+  Future<void> playCantoSound(CantoSound sound) async {
     if (_isMuted) return;
+    try {
+      final bytes = await _loadBytes(sound.assetPath);
+      if (bytes == null) return;
 
-    final lower = name.toLowerCase();
-    String? assetPath;
+      final player = _voicePlayers[_voiceIndex];
+      _voiceIndex = (_voiceIndex + 1) % _voicePlayers.length;
 
-    if (lower.contains('ronda')) {
-      assetPath = 'assets/sfx/cantos/sfx_ronda.mp3';
-    } else if (lower.contains('patrulla')) {
-      assetPath = 'assets/sfx/cantos/sfx_patrulla.mp3';
-    } else if (lower.contains('vigi') || lower.contains('vigí')) {
-      assetPath = 'assets/sfx/cantos/sfx_vigia.mp3';
-    } else if (lower.contains('registro')) {
-      assetPath = 'assets/sfx/cantos/sfx_registro.mp3';
-    } else if (lower.contains('limpia')) {
-      assetPath = 'assets/sfx/cantos/sfx_mesa-limpia.mp3';
-    } else if (lower.contains('caida') || lower.contains('caída')) {
-      assetPath = 'assets/sfx/cantos/sfx_caida.mp3';
-    } else if (lower.contains('ultimas') || lower.contains('últimas')) {
-      assetPath = 'assets/sfx/cantos/Ultimas.mp3';
-    } else if (lower == 'cuatro') {
-      assetPath = 'assets/sfx/cantos/sfx_cuatro.mp3';
-    } else if (lower == 'uno') {
-      assetPath = 'assets/sfx/cantos/sfx_uno.mp3';
-    }
-
-    if (assetPath != null) {
-      try {
-        final bytes = await _loadBytes(assetPath);
-        if (bytes == null) return;
-
-        final player = _voicePlayers[_voiceIndex];
-        _voiceIndex = (_voiceIndex + 1) % _voicePlayers.length;
-
-        await player.stop();
-        await player.play(BytesSource(bytes));
-        DebugLogger.instance.logAudio('Canto reproducido: $name');
-      } catch (e) {
-        DebugLogger.instance.log(
-          'Error al reproducir canto ($assetPath): $e',
-          category: 'Audio',
-          level: LogLevel.warning,
-        );
-      }
+      await player.stop();
+      await player.play(BytesSource(bytes));
+      DebugLogger.instance.logAudio('Canto reproducido: ${sound.name}');
+    } catch (e) {
+      DebugLogger.instance.log(
+        'Error al reproducir canto (${sound.assetPath}): $e',
+        category: 'Audio',
+        level: LogLevel.warning,
+      );
     }
   }
 
-  Future<void> playCaida() => playCanto('caida');
-  Future<void> playMesaLimpia() => playCanto('limpia');
-  Future<void> playRonda() => playCanto('ronda');
-  Future<void> playPatrulla() => playCanto('patrulla');
-  Future<void> playVigia() => playCanto('vigia');
-  Future<void> playRegistro() => playCanto('registro');
-  Future<void> playUno() => playCanto('uno');
-  Future<void> playCuatro() => playCanto('cuatro');
-  Future<void> playUltimas() => playCanto('ultimas');
+  /// Reproduce el efecto de sonido según el nombre del canto o evento de juego.
+  Future<void> playCanto(String name) async {
+    final sound = CantoSound.fromName(name);
+    if (sound != null) {
+      await playCantoSound(sound);
+    }
+  }
+
+  // Accesos directos tipados
+  Future<void> playCaida() => playCantoSound(CantoSound.caida);
+  Future<void> playMesaLimpia() => playCantoSound(CantoSound.mesaLimpia);
+  Future<void> playRonda() => playCantoSound(CantoSound.ronda);
+  Future<void> playPatrulla() => playCantoSound(CantoSound.patrulla);
+  Future<void> playVigia() => playCantoSound(CantoSound.vigia);
+  Future<void> playRegistro() => playCantoSound(CantoSound.registro);
+  Future<void> playUno() => playCantoSound(CantoSound.uno);
+  Future<void> playCuatro() => playCantoSound(CantoSound.cuatro);
+  Future<void> playUltimas() => playCantoSound(CantoSound.ultimas);
 
   /// Reproduce el efecto de sonido al repartir o colocar/jugar una carta en la mesa.
   Future<void> playCardDeal() async {
