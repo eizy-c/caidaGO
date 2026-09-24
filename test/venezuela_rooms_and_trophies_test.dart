@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:gme/features/la_caida/economy/match_history_model.dart';
 import 'package:gme/features/la_caida/presentation/widgets/match_history_modal.dart';
 import 'package:gme/features/la_caida/economy/player_session.dart';
+import 'package:gme/features/la_caida/economy/player_stats_model.dart';
 import 'package:gme/features/la_caida/economy/venezuela_room_tier.dart';
 import 'package:gme/features/la_caida/economy/trophy_session_manager.dart';
 import 'package:gme/features/la_caida/presentation/widgets/venezuela_rooms_carousel.dart';
@@ -172,22 +173,26 @@ void main() {
       expect(manager.getTrophyProgress(1), equals(1.0));
     });
 
-    test('Derrotas descuentan trofeos sin bajar de 0', () {
+    test('Derrotas descuentan trofeos del perfil global pero conservan el progreso de la sala intacto', () {
       final manager = TrophySessionManager.shared;
+      PlayerStatsModel.shared.trophies = 20;
 
       // Barquisimeto: Win +4, Loss -2
       manager.setTrophiesForTesting(2, 6);
       expect(manager.getTrophies(2), equals(6));
 
-      // 1 Derrota en Sala 2
+      // 1 Derrota en Sala 2 (Barquisimeto: -2 trofeos al jugador)
       manager.processMatchResult(roomId: 2, isWinner: false, mode: GameMode.duel1v1);
-      expect(manager.getTrophies(2), equals(4));
 
-      // 3 Derrotas más (4 - 6 = -2 -> clamp a 0)
+      // El progreso de la sala Barquisimeto se mantiene intacto en 6
+      expect(manager.getTrophies(2), equals(6));
+      // Los trofeos globales del perfil se reducen de 20 a 18
+      expect(PlayerStatsModel.shared.trophies, equals(18));
+
+      // Múltiples derrotas más no bajan el progreso de la sala
       manager.processMatchResult(roomId: 2, isWinner: false, mode: GameMode.duel1v1);
       manager.processMatchResult(roomId: 2, isWinner: false, mode: GameMode.duel1v1);
-      manager.processMatchResult(roomId: 2, isWinner: false, mode: GameMode.duel1v1);
-      expect(manager.getTrophies(2), equals(0));
+      expect(manager.getTrophies(2), equals(6));
     });
 
     test('Deducción de tarifa de entrada y premios de monedas', () {
@@ -349,7 +354,7 @@ void main() {
       expect(find.text('HISTORIAL DE PARTIDAS'), findsOneWidget);
       expect(find.text('Chivacoa (Yaracuy)'), findsOneWidget);
       expect(find.text('Multijugador Local'), findsOneWidget);
-      expect(find.text('+3 🏆'), findsOneWidget);
+      expect(find.text('+3'), findsOneWidget);
     });
   });
 }

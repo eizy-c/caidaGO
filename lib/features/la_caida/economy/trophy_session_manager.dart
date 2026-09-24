@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/services/debug_logger.dart';
 import 'player_session.dart';
+import 'player_stats_model.dart';
 import 'venezuela_room_tier.dart';
 
 /// Gestor central de estado, economía y progresión estricta por trofeos
@@ -193,8 +194,9 @@ class TrophySessionManager extends ChangeNotifier {
   }
 
   /// Procesa el resultado de una partida en una sala regional:
-  /// - Victoria: Acredita premio en monedas y suma trofeos (respetando el cap de la sala).
-  /// - Derrota: Descuenta trofeos de esa sala sin bajar de 0.
+  /// - Victoria: Acredita premio en monedas, suma trofeos a la sala (hasta el cap) y al perfil global.
+  /// - Derrota: Descuenta trofeos del perfil global del jugador (sin bajar de 0),
+  ///   pero CONSERVA INTACTO el progreso de la sala (estilo 8 Ball Pool / Anillos de Mesa).
   void processMatchResult({
     required int roomId,
     required bool isWinner,
@@ -208,6 +210,9 @@ class TrophySessionManager extends ChangeNotifier {
       final newTrophies = (currentTrophies + delta).clamp(0, room.trophyCap);
       _roomTrophies[roomId] = newTrophies;
 
+      // Sumar al perfil global de trofeos del jugador
+      PlayerStatsModel.shared.trophies += delta;
+
       final prize = room.getPrizePerWinner(mode);
       addCoins(prize);
 
@@ -217,11 +222,17 @@ class TrophySessionManager extends ChangeNotifier {
       );
     } else {
       final delta = room.lossTrophies.abs();
-      final newTrophies = (currentTrophies - delta).clamp(0, room.trophyCap);
-      _roomTrophies[roomId] = newTrophies;
 
+      // Descontar trofeos del perfil global del jugador si la sala tiene penalización
+      if (delta > 0) {
+        PlayerStatsModel.shared.trophies =
+            (PlayerStatsModel.shared.trophies - delta).clamp(0, 9999999);
+      }
+
+      // El progreso de la sala se CONSERVA intacto para no perder avances hacia completarla
+      // _roomTrophies[roomId] mantiene su valor actual
       DebugLogger.instance.log(
-        'Derrota en ${room.name}. -$delta 🏆 ($newTrophies/${room.trophyCap}).',
+        'Derrota en ${room.name}. -$delta 🏆 al jugador. Progreso de sala conservado: ($currentTrophies/${room.trophyCap}).',
         category: 'Economía VIP',
       );
     }
