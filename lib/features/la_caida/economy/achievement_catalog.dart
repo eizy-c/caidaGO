@@ -786,4 +786,83 @@ class AchievementCatalog {
       requiredAchievementId: 'ach_registro_3',
     ),
   ];
+
+  /// Agrupa todos los logros por su identificador de familia (`familyId`),
+  /// ordenando los 3 niveles secuenciales (Bronce, Plata, Oro).
+  static List<AchievementFamilyGroup> get familyGroups {
+    final Map<String, List<AchievementItem>> map = {};
+    for (final ach in allAchievements) {
+      final fId = ach.familyId ?? ach.id;
+      map.putIfAbsent(fId, () => []).add(ach);
+    }
+    return map.entries.map((e) {
+      e.value.sort((a, b) => a.level.compareTo(b.level));
+      return AchievementFamilyGroup(
+        familyId: e.key,
+        title: e.value.first.title,
+        levels: e.value,
+      );
+    }).toList();
+  }
+}
+
+/// Representa una familia temática de logros que contiene exactamente
+/// 3 niveles secuenciales (Bronce, Plata, Oro) como se muestra en la tarjeta de referencia.
+class AchievementFamilyGroup {
+  final String familyId;
+  final String title;
+  final List<AchievementItem> levels;
+
+  const AchievementFamilyGroup({
+    required this.familyId,
+    required this.title,
+    required this.levels,
+  });
+
+  /// Nivel actualmente activo para el jugador (el primer nivel no reclamado, o el último si ya se completaron todos).
+  AchievementItem activeLevel(PlayerStatsModel stats) {
+    for (final ach in levels) {
+      if (!stats.claimedAchievementIds.contains(ach.id)) {
+        return ach;
+      }
+    }
+    return levels.last;
+  }
+
+  /// Retorna el índice del nivel activo (0: Bronce, 1: Plata, 2: Oro).
+  int activeLevelIndex(PlayerStatsModel stats) {
+    for (int i = 0; i < levels.length; i++) {
+      if (!stats.claimedAchievementIds.contains(levels[i].id)) {
+        return i;
+      }
+    }
+    return levels.length - 1;
+  }
+
+  /// Cuántas medallas han sido reclamadas por el jugador (0..3).
+  int claimedMedalsCount(PlayerStatsModel stats) {
+    int count = 0;
+    for (final ach in levels) {
+      if (stats.claimedAchievementIds.contains(ach.id)) {
+        count++;
+      }
+    }
+    return count;
+  }
+
+  /// Retorna true si todos los niveles de la familia están reclamados.
+  bool isFullyClaimed(PlayerStatsModel stats) {
+    return claimedMedalsCount(stats) == levels.length;
+  }
+
+  /// Retorna true si el nivel activo ha completado su meta pero aún no ha sido reclamado.
+  bool isClaimable(PlayerStatsModel stats) {
+    for (final ach in levels) {
+      if (!stats.claimedAchievementIds.contains(ach.id)) {
+        final progress = ach.getProgress(stats);
+        return progress >= ach.targetProgress;
+      }
+    }
+    return false;
+  }
 }

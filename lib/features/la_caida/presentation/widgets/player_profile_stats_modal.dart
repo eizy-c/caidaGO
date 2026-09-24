@@ -4,15 +4,14 @@ import '../../economy/player_stats_model.dart';
 import '../../economy/user_progress.dart';
 import '../../economy/rank_system.dart';
 import '../../economy/achievement_catalog.dart';
+import 'achievement_card_widget.dart';
 import 'profile_and_level_modal.dart';
 import 'user_frame_view.dart';
 import 'rank_badge_widget.dart';
-import 'game_toast_queue.dart';
 
 /// Modal oficial "Perfil del Jugador" que unifica la vista de estadísticas de juego
 /// detalladas (Generales, Jugadas de Caída y Cantos Tradicionales) y la pestaña de Logros.
-/// Rediseñado con estética oscura, elegante y sobria con bordes neutros (#2E2E2E)
-/// a juego completo con ProfileAndLevelModal e InventoryModal.
+/// Rediseñado con estética de panel inferior deslizable (Bottom Sheet) y tarjetas estilo cartoon.
 class PlayerProfileStatsModal extends StatefulWidget {
   final PlayerSession? session;
   final PlayerStatsModel? stats;
@@ -25,17 +24,18 @@ class PlayerProfileStatsModal extends StatefulWidget {
     this.initialTabIndex = 0,
   });
 
-  /// Muestra el modal en pantalla de forma centrada.
+  /// Muestra el modal en pantalla como un bottom sheet deslizable desde abajo.
   static Future<void> show(
     BuildContext context, {
     PlayerSession? session,
     PlayerStatsModel? stats,
     int initialTabIndex = 0,
   }) {
-    return showDialog(
+    return showModalBottomSheet<void>(
       context: context,
-      barrierDismissible: true,
-      barrierColor: Colors.black87,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      enableDrag: true,
       builder: (_) => PlayerProfileStatsModal(
         session: session,
         stats: stats,
@@ -84,47 +84,58 @@ class _PlayerProfileStatsModalState extends State<PlayerProfileStatsModal> {
         final neededTierXp = progress.neededInCurrentTier;
         final progressRatio = progress.levelProgressPercentage;
 
-        return Dialog(
-          backgroundColor: Colors.transparent,
-          insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(
-              maxWidth: 680,
-              maxHeight: 580,
+        return SafeArea(
+          child: Container(
+            constraints: BoxConstraints(
+              maxWidth: 620,
+              maxHeight: MediaQuery.of(context).size.height * 0.88,
             ),
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF1E1E1E), Color(0xFF121212)],
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Color(0xFF1E1E1E), Color(0xFF121212)],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              ),
+              borderRadius: BorderRadius.vertical(top: Radius.circular(26)),
+              border: Border.all(color: Color(0xFF2E2E2E), width: 1.0),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black87,
+                  blurRadius: 24,
+                  offset: Offset(0, -4),
                 ),
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(color: const Color(0xFF2E2E2E), width: 1.2),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Colors.black87,
-                    blurRadius: 24,
-                    offset: Offset(0, 10),
+              ],
+            ),
+            child: Column(
+              children: [
+                // Drag handle superior para deslizar hacia abajo
+                Center(
+                  child: Container(
+                    width: 44,
+                    height: 5,
+                    margin: const EdgeInsets.only(top: 10, bottom: 6),
+                    decoration: BoxDecoration(
+                      color: Colors.white24,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                   ),
-                ],
-              ),
-              child: Column(
-                children: [
-                  // 1. Cabecera integrada moderna con botón de cerrar
-                  _buildHeader(),
+                ),
 
-                  // 2. Barra de Pestañas (Perfil | Logros)
-                  _buildTabsRow(),
+                // 1. Cabecera estilo cartoon con cápsula naranja y botón (X)
+                _buildHeader(),
 
-                  // 3. Contenido interior de las pestañas
-                  Expanded(
-                    child: _selectedTabIndex == 0
-                        ? _buildProfileTab(progress, level, currentTierXp, neededTierXp, progressRatio)
-                        : _buildAchievementsTab(),
-                  ),
-                ],
-              ),
+                // 2. Barra de Pestañas (Perfil | Logros)
+                _buildTabsRow(),
+
+                const SizedBox(height: 6),
+
+                // 3. Contenido interior de las pestañas
+                Expanded(
+                  child: _selectedTabIndex == 0
+                      ? _buildProfileTab(progress, level, currentTierXp, neededTierXp, progressRatio)
+                      : _buildAchievementsTab(),
+                ),
+              ],
             ),
           ),
         );
@@ -135,27 +146,47 @@ class _PlayerProfileStatsModalState extends State<PlayerProfileStatsModal> {
   /// Cabecera moderna integrada en la ventana modal
   Widget _buildHeader() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(18, 14, 12, 10),
+      padding: const EdgeInsets.fromLTRB(16, 4, 12, 10),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const Row(
-            children: [
-              Icon(Icons.query_stats_rounded, color: Colors.white70, size: 22),
-              SizedBox(width: 10),
-              Text(
-                'Perfil del jugador',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 0.5,
-                ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFFFF7A3D), Color(0xFFF95B16)],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
               ),
-            ],
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFFEA580C), width: 1.2),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFFEA580C).withValues(alpha: 0.35),
+                  blurRadius: 6,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: const Text(
+              'Perfil del jugador',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 0.4,
+              ),
+            ),
           ),
           IconButton(
-            icon: const Icon(Icons.close_rounded, color: Colors.white70),
+            icon: Container(
+              padding: const EdgeInsets.all(4),
+              decoration: const BoxDecoration(
+                color: Color(0xFFEF4444),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.close_rounded, color: Colors.white, size: 16),
+            ),
             onPressed: () => Navigator.of(context).pop(),
             visualDensity: VisualDensity.compact,
           ),
@@ -686,317 +717,21 @@ class _PlayerProfileStatsModalState extends State<PlayerProfileStatsModal> {
 
   /// Pestaña 2: Logros y Misiones de La Caída (Categorías y niveles progresivos)
   Widget _buildAchievementsTab() {
-    final achievements = AchievementCatalog.allAchievements;
+    final families = AchievementCatalog.familyGroups;
 
-    return ListView.separated(
+    return ListView.builder(
       physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-      itemCount: achievements.length,
-      separatorBuilder: (_, _) => const SizedBox(height: 8),
+      padding: const EdgeInsets.fromLTRB(16, 10, 16, 20),
+      itemCount: families.length,
       itemBuilder: (context, index) {
-        final ach = achievements[index];
-        final currentProgress = ach.getProgress(_stats);
-        final isClaimed = _stats.claimedAchievementIds.contains(ach.id);
-        final isUnlocked = AchievementCatalog.isUnlocked(ach, _stats);
-        final reqItem = AchievementCatalog.getRequirement(ach);
-        final isCompleted = isUnlocked && currentProgress >= ach.targetProgress;
-        final progressRatio = isUnlocked
-            ? (currentProgress / ach.targetProgress).clamp(0.0, 1.0)
-            : 0.0;
-
-        return Container(
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: const Color(0xFF181818),
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(
-              color: const Color(0xFF2E2E2E),
-              width: 1.0,
-            ),
-          ),
-          child: Row(
-            children: [
-              // Icono con indicador de candado si está bloqueado por nivel
-              Stack(
-                children: [
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: isUnlocked
-                          ? Colors.white.withValues(alpha: 0.06)
-                          : const Color(0xFF242424),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      ach.icon,
-                      color: isUnlocked ? Colors.white70 : Colors.white30,
-                      size: 22,
-                    ),
-                  ),
-                  if (!isUnlocked)
-                    Positioned(
-                      bottom: 0,
-                      right: 0,
-                      child: Container(
-                        padding: const EdgeInsets.all(2),
-                        decoration: const BoxDecoration(
-                          color: Color(0xFF333333),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.lock_rounded,
-                          color: Colors.white70,
-                          size: 10,
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-
-              const SizedBox(width: 10),
-
-              // Información del logro y progreso
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Row(
-                          children: [
-                            Text(
-                              ach.title,
-                              style: TextStyle(
-                                color: isClaimed || !isUnlocked
-                                    ? Colors.white54
-                                    : Colors.white,
-                                fontSize: 12.5,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(width: 6),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 6.5, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: ach.levelBgColor,
-                                borderRadius: BorderRadius.circular(6),
-                                border: Border.all(
-                                  color: ach.levelColor.withValues(alpha: isUnlocked ? 0.9 : 0.4),
-                                  width: 0.9,
-                                ),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    ach.level == 3
-                                        ? Icons.workspace_premium_rounded
-                                        : (ach.level == 2
-                                            ? Icons.military_tech_rounded
-                                            : Icons.shield_rounded),
-                                    size: 10,
-                                    color: isUnlocked ? ach.levelTextColor : Colors.white38,
-                                  ),
-                                  const SizedBox(width: 3),
-                                  Text(
-                                    ach.levelBadge,
-                                    style: TextStyle(
-                                      color: isUnlocked ? ach.levelTextColor : Colors.white54,
-                                      fontSize: 9.5,
-                                      fontWeight: FontWeight.bold,
-                                      letterSpacing: 0.2,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(Icons.monetization_on_rounded, size: 12, color: Color(0xFFF59E0B)),
-                            const SizedBox(width: 3),
-                            Text(
-                              '+${ach.coinReward}',
-                              style: const TextStyle(
-                                color: Color(0xFFF59E0B),
-                                fontSize: 11,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      ach.description,
-                      style: const TextStyle(
-                        color: Colors.white60,
-                        fontSize: 10.5,
-                      ),
-                    ),
-                    if (!isUnlocked && reqItem != null) ...[
-                      const SizedBox(height: 3),
-                      Row(
-                        children: [
-                          const Icon(Icons.lock_outline_rounded, size: 11, color: Colors.white38),
-                          const SizedBox(width: 3),
-                          Expanded(
-                            child: Text(
-                              'Requiere completar nivel ${reqItem.levelBadge}',
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                color: Colors.white38,
-                                fontSize: 9.5,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                    const SizedBox(height: 4),
-                    // Barra de progreso
-                    Row(
-                      children: [
-                        Expanded(
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(6),
-                            child: LinearProgressIndicator(
-                              value: progressRatio,
-                              backgroundColor: const Color(0xFF262626),
-                              valueColor: AlwaysStoppedAnimation(
-                                !isUnlocked
-                                    ? Colors.white24
-                                    : (isCompleted
-                                        ? const Color(0xFF10B981)
-                                        : Colors.white70),
-                              ),
-                              minHeight: 6,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          isUnlocked
-                              ? '${currentProgress.clamp(0, ach.targetProgress)} / ${ach.targetProgress}'
-                              : '0 / ${ach.targetProgress}',
-                          style: TextStyle(
-                            color: isUnlocked ? Colors.white70 : Colors.white38,
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(width: 10),
-
-              // Botón o Etiqueta de Estado
-              if (isClaimed)
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF262626),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: const Color(0xFF333333)),
-                  ),
-                  child: const Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.check_circle_rounded, color: Color(0xFF10B981), size: 12),
-                      SizedBox(width: 3),
-                      Text(
-                        'Reclamado',
-                        style: TextStyle(
-                          color: Colors.white60,
-                          fontSize: 9.5,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                )
-              else if (!isUnlocked)
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF242424),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: const Color(0xFF333333)),
-                  ),
-                  child: const Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.lock_rounded, size: 11, color: Colors.white38),
-                      SizedBox(width: 3),
-                      Text(
-                        'Bloqueado',
-                        style: TextStyle(
-                          color: Colors.white38,
-                          fontSize: 9.5,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                )
-              else if (isCompleted)
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF10B981),
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    minimumSize: const Size(60, 28),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                  ),
-                  onPressed: () {
-                    _stats.claimAchievement(ach.id);
-                    _session.addCoins(ach.coinReward);
-                    _session.addXp(ach.xpReward);
-                    GameToastQueue.showAchievement(
-                      context,
-                      title: ach.title,
-                      description: ach.description,
-                      icon: ach.icon,
-                      iconColor: ach.iconColor,
-                      coinReward: ach.coinReward,
-                      xpReward: ach.xpReward,
-                    );
-                    setState(() {});
-                  },
-                  child: const Text(
-                    'Reclamar',
-                    style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900),
-                  ),
-                )
-              else
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF242424),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: const Color(0xFF333333)),
-                  ),
-                  child: const Text(
-                    'En curso',
-                    style: TextStyle(
-                      color: Colors.white38,
-                      fontSize: 9.5,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-            ],
-          ),
+        final family = families[index];
+        return AchievementCardWidget(
+          family: family,
+          stats: _stats,
+          session: _session,
+          onClaimed: () {
+            if (mounted) setState(() {});
+          },
         );
       },
     );
