@@ -66,6 +66,11 @@ class PrivacyPolicyDialog extends StatelessWidget {
                 content:
                     'Esta política cumple con los estándares del Programa para Desarrolladores de Google Play y las directrices de privacidad infantil y familiar.',
               ),
+              _buildSection(
+                title: '6. Contacto y Eliminación de Datos',
+                content:
+                    'Para consultas sobre privacidad o solicitar la eliminación total de sus datos, puede escribir directamente a: yoangeleizaga@gmail.com',
+              ),
               const SizedBox(height: 8),
               const Divider(color: Colors.white12),
               const SizedBox(height: 8),

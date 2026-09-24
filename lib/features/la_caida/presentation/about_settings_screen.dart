@@ -120,7 +120,7 @@ class _AboutSettingsScreenState extends State<AboutSettingsScreen> {
                   Icon(Icons.email_rounded, color: AppPalette.cartoonCyan, size: 18),
                   SizedBox(width: 8),
                   Text(
-                    'soporte@caidago.com',
+                    'yoangeleizaga@gmail.com',
                     style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
                   ),
                 ],
