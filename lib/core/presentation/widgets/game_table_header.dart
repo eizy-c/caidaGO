@@ -89,31 +89,60 @@ class GameTableHeader extends StatelessWidget implements PreferredSizeWidget {
             ),
 
             // Indicador de Latencia / Ping (solo en partidas online o red local)
-            if (showPing)
-              Container(
-                margin: const EdgeInsets.only(right: 8),
-                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3.5),
-                decoration: BoxDecoration(
-                  color: AppPalette.cartoonCardDark,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: AppPalette.cartoonBorder, width: 1.5),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      '${pingMs}ms',
-                      style: const TextStyle(
-                        color: Color(0xFF4ADE80),
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
+            if (showPing) ...[
+              Builder(
+                builder: (context) {
+                  final Color pingColor;
+                  final IconData pingIcon;
+                  final String pingQuality;
+
+                  if (pingMs <= 80) {
+                    pingColor = const Color(0xFF4ADE80);
+                    pingIcon = Icons.signal_cellular_alt_rounded;
+                    pingQuality = 'Excelente';
+                  } else if (pingMs <= 160) {
+                    pingColor = const Color(0xFFFACC15);
+                    pingIcon = Icons.signal_cellular_alt_2_bar_rounded;
+                    pingQuality = 'Buena';
+                  } else {
+                    pingColor = const Color(0xFFEF4444);
+                    pingIcon = Icons.signal_cellular_alt_1_bar_rounded;
+                    pingQuality = 'Inestable';
+                  }
+
+                  return Tooltip(
+                    message: 'Red: $pingQuality ($pingMs ms)',
+                    child: Container(
+                      margin: const EdgeInsets.only(right: 8),
+                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3.5),
+                      decoration: BoxDecoration(
+                        color: AppPalette.cartoonCardDark,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: pingColor.withValues(alpha: 0.7),
+                          width: 1.5,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            '${pingMs}ms',
+                            style: TextStyle(
+                              color: pingColor,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(width: 3),
+                          Icon(pingIcon, color: pingColor, size: 13),
+                        ],
                       ),
                     ),
-                    const SizedBox(width: 3),
-                    const Icon(Icons.signal_cellular_alt_rounded, color: Color(0xFF4ADE80), size: 13),
-                  ],
-                ),
+                  );
+                },
               ),
+            ],
 
             // Indicador de Nivel del Jugador (si está presente)
             if (playerLevel != null) ...[

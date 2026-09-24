@@ -16,6 +16,7 @@ class LocalGameHost {
   final ValueNotifier<List<RoomSeat>> seatsNotifier =
       ValueNotifier<List<RoomSeat>>([]);
   final ValueNotifier<bool> isRunningNotifier = ValueNotifier<bool>(false);
+  final ValueNotifier<int> pingMsNotifier = ValueNotifier<int>(5);
 
   // Callbacks para eventos del juego
   void Function(NetworkGameMessage msg, String fromPlayerId)? onClientMessageReceived;
@@ -109,7 +110,18 @@ class LocalGameHost {
         );
         if (message == null) return;
 
-        if (message.type == 'JOIN_ROOM') {
+        if (message.type == 'PING') {
+          _sendMessageToSocket(
+            socket,
+            NetworkGameMessage(
+              type: 'PONG',
+              data: {
+                'clientTime': message.data['clientTime'],
+                'serverTime': DateTime.now().millisecondsSinceEpoch,
+              },
+            ),
+          );
+        } else if (message.type == 'JOIN_ROOM') {
           assignedPlayerId = _processJoinRequest(socket, message.data);
         } else if (message.type == 'TOGGLE_READY') {
           if (assignedPlayerId != null) {

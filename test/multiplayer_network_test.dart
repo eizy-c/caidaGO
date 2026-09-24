@@ -135,6 +135,35 @@ void main() {
       await Future.delayed(const Duration(milliseconds: 150));
       expect(host.seatsNotifier.value[1].isReady, isTrue);
 
+      // 3. Prueba de medición de latencia Ping / Pong
+      goodClient.sendMessage(NetworkGameMessage(
+        type: 'PING',
+        data: {'clientTime': DateTime.now().millisecondsSinceEpoch - 15},
+      ));
+      await Future.delayed(const Duration(milliseconds: 150));
+      expect(goodClient.pingMsNotifier.value, greaterThan(0));
+
+      // 4. Prueba de transmisión de mensaje de Chat y Voz
+      NetworkGameMessage? receivedChatOnHost;
+      host.onClientMessageReceived = (msg, fromId) {
+        if (msg.type == 'CHAT_MESSAGE') {
+          receivedChatOnHost = msg;
+        }
+      };
+
+      goodClient.sendMessage(const NetworkGameMessage(
+        type: 'CHAT_MESSAGE',
+        data: {
+          'seatIndex': 1,
+          'message': '¡Buena partida!',
+          'voiceSoundKey': 'ronda',
+        },
+      ));
+      await Future.delayed(const Duration(milliseconds: 150));
+      expect(receivedChatOnHost, isNotNull);
+      expect(receivedChatOnHost!.data['message'], '¡Buena partida!');
+      expect(receivedChatOnHost!.data['voiceSoundKey'], 'ronda');
+
       await goodClient.disconnect();
       await host.stopServer();
     });

@@ -26,6 +26,10 @@ class LocalGameClient {
   final ValueNotifier<List<RoomSeat>> seatsNotifier =
       ValueNotifier<List<RoomSeat>>([]);
   final ValueNotifier<String?> errorMessageNotifier = ValueNotifier<String?>(null);
+  final ValueNotifier<int> pingMsNotifier = ValueNotifier<int>(25);
+
+  Timer? _pingTimer;
+  int _smoothedPing = 25;
 
   // Callbacks para la partida
   void Function(NetworkGameMessage msg)? onMessageReceived;
@@ -118,6 +122,17 @@ class LocalGameClient {
         if (msg.data['seats'] != null) {
           _updateSeatsFromJson(msg.data['seats'] as List);
         }
+        _startPingLoop();
+        break;
+
+      case 'PONG':
+        final clientTime = msg.data['clientTime'] as int?;
+        if (clientTime != null) {
+          final now = DateTime.now().millisecondsSinceEpoch;
+          final rtt = (now - clientTime).clamp(2, 999);
+          _smoothedPing = (_smoothedPing * 0.65 + rtt * 0.35).round().clamp(2, 999);
+          pingMsNotifier.value = _smoothedPing;
+        }
         break;
 
       case 'JOIN_REJECTED':
@@ -187,6 +202,18 @@ class LocalGameClient {
 
 
 
+  void _startPingLoop() {
+    _pingTimer?.cancel();
+    _pingTimer = Timer.periodic(const Duration(milliseconds: 2200), (_) {
+      if (isConnected) {
+        sendMessage(NetworkGameMessage(
+          type: 'PING',
+          data: {'clientTime': DateTime.now().millisecondsSinceEpoch},
+        ));
+      }
+    });
+  }
+
   void _handleConnectionClosed() {
     debugPrint('[LocalGameClient] Conexión cerrada por el Host');
     if (_status == ClientConnectionStatus.connected) {
@@ -202,6 +229,8 @@ class LocalGameClient {
   }
 
   Future<void> disconnect() async {
+    _pingTimer?.cancel();
+    _pingTimer = null;
     if (_socket != null) {
       try {
         await _socket!.close();
@@ -217,6 +246,7 @@ class LocalGameClient {
 
   void dispose() {
     disconnect();
+    pingMsNotifier.dispose();
     statusNotifier.dispose();
     seatsNotifier.dispose();
     errorMessageNotifier.dispose();

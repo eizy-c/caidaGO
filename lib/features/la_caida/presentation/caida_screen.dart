@@ -256,10 +256,11 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
   final List<Timer> _cantoAudioTimers = [];
   final List<Timer> _pendingAsyncTimers = [];
 
-  // Chat lateral deslizable (exclusivo para Multijugador)
+  // Chat lateral deslizable (Multijugador y partidas)
   bool _isChatDrawerOpen = false;
   late AnimationController _chatSlideController;
   late Animation<Offset> _chatSlideAnimation;
+  int _currentPingMs = 28;
 
   Future<void> _safeDelay(Duration duration) {
     if (!mounted) return Future.value();
@@ -364,6 +365,9 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
 
   void _setupMultiplayerNetwork() {
     if (_isHostDevice) {
+      _currentPingMs = _host!.pingMsNotifier.value;
+      _host!.pingMsNotifier.addListener(_onPingUpdated);
+
       _host!.onClientMessageReceived = (msg, playerId) {
         _handleHostClientMessage(msg, playerId);
       };
@@ -378,6 +382,9 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
         }
       };
     } else if (_isClientDevice) {
+      _currentPingMs = _client!.pingMsNotifier.value;
+      _client!.pingMsNotifier.addListener(_onPingUpdated);
+
       _client!.onMessageReceived = (msg) {
         _handleClientMessage(msg);
       };
@@ -394,6 +401,18 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
     }
   }
 
+  void _onPingUpdated() {
+    if (!mounted) return;
+    final newPing = _isHostDevice
+        ? _host?.pingMsNotifier.value ?? 5
+        : (_client?.pingMsNotifier.value ?? 30);
+    if (_currentPingMs != newPing) {
+      setState(() {
+        _currentPingMs = newPing;
+      });
+    }
+  }
+
   void _handleHostClientMessage(NetworkGameMessage msg, String playerId) {
     if (msg.type == 'PLAY_CARD_REQUEST') {
       final seatIndex = msg.data['seatIndex'] as int?;
@@ -405,6 +424,14 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
         if (matchingCard != null) {
           _playCard(player, matchingCard);
         }
+      }
+    } else if (msg.type == 'CHAT_MESSAGE') {
+      final seatIndex = msg.data['seatIndex'] as int?;
+      final chatMsg = msg.data['message'] as String?;
+      final voiceKey = msg.data['voiceSoundKey'] as String?;
+      if (seatIndex != null && chatMsg != null) {
+        _showPlayerChatCallout(seatIndex, chatMsg, voiceSoundKey: voiceKey, broadcast: false);
+        _host?.broadcastMessage(msg);
       }
     }
   }
@@ -459,6 +486,13 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
       final cantoText = msg.data['canto'] as String?;
       if (seatIndex != null && cantoText != null && seatIndex < _players.length) {
         _triggerCallout(_players[seatIndex], cantoText);
+      }
+    } else if (msg.type == 'CHAT_MESSAGE') {
+      final seatIndex = msg.data['seatIndex'] as int?;
+      final chatMsg = msg.data['message'] as String?;
+      final voiceKey = msg.data['voiceSoundKey'] as String?;
+      if (seatIndex != null && chatMsg != null) {
+        _showPlayerChatCallout(seatIndex, chatMsg, voiceSoundKey: voiceKey, broadcast: false);
       }
     }
   }
@@ -2534,7 +2568,7 @@ child: Icon(icon, color: iconColor, size: 20),
           playerLevel: null,
           // Los ms SOLO se muestran en partidas por internet o red local
           showPing: _isMultiplayerNetwork,
-          pingMs: 55,
+          pingMs: _currentPingMs,
         ),
         body: WoodTableBackground(
           child: SafeArea(
@@ -3108,17 +3142,15 @@ child: Icon(icon, color: iconColor, size: 20),
                   ),
                 ),
 
-                // 8. Botón flotante discreto de Chat (solo en modo multijugador)
-                if (widget.config?.isMultiplayer == true) ...[
-                  Positioned(
-                    right: 0,
-                    top: (screenHeight * 0.44).clamp(90.0, 260.0),
-                    child: _buildDiscreetChatToggleButton(),
-                  ),
-                ],
+                // 8. Botón flotante discreto de Chat (disponible durante la partida)
+                Positioned(
+                  right: 0,
+                  top: (screenHeight * 0.44).clamp(90.0, 260.0),
+                  child: _buildDiscreetChatToggleButton(),
+                ),
 
-                // 9. Drawer lateral deslizable de Chat y Frases Criollas
-                if (widget.config?.isMultiplayer == true && _isChatDrawerOpen) ...[
+                // 9. Drawer lateral deslizable de Chat, Emojis y Voces Criollas
+                if (_isChatDrawerOpen) ...[
                   // Fondo oscuro que detecta toques para cerrar
                   Positioned.fill(
                     child: GestureDetector(
@@ -3136,8 +3168,13 @@ child: Icon(icon, color: iconColor, size: 20),
                     child: SlideTransition(
                       position: _chatSlideAnimation,
                       child: MultiplayerChatDrawer(
-                        onSendMessage: (msg) {
-                          _showPlayerChatCallout(0, msg);
+                        onSendMessage: (msg, {voiceSoundKey}) {
+                          _showPlayerChatCallout(
+                            _myLocalSeatIndex,
+                            msg,
+                            voiceSoundKey: voiceSoundKey,
+                            broadcast: true,
+                          );
                         },
                         onClose: () => _toggleChatDrawer(false),
                       ),
@@ -3163,20 +3200,51 @@ child: Icon(icon, color: iconColor, size: 20),
     }
   }
 
-  void _showPlayerChatCallout(int playerIndex, String message) {
+  void _showPlayerChatCallout(
+    int playerIndex,
+    String message, {
+    String? voiceSoundKey,
+    bool broadcast = true,
+  }) {
     if (playerIndex < 0 || playerIndex >= _players.length) return;
     final player = _players[playerIndex];
     player.currentCallout = message;
     player.calloutTimer?.cancel();
-    player.calloutTimer = Timer(const Duration(milliseconds: 3500), () {
+    player.calloutTimer = Timer(const Duration(milliseconds: 3800), () {
       if (mounted) {
         setState(() {
           player.currentCallout = null;
         });
       }
     });
-    AudioService().playCardSlide();
+
+    if (voiceSoundKey != null) {
+      AudioService().playCanto(voiceSoundKey);
+    } else {
+      AudioService().playCardSlide();
+    }
     HapticService.instance.onSelection();
+
+    // Reenviar a la red si estamos en partida multijugador
+    if (broadcast && _isMultiplayerNetwork) {
+      final netData = <String, dynamic>{
+        'seatIndex': playerIndex,
+        'message': message,
+      };
+      if (voiceSoundKey != null) {
+        netData['voiceSoundKey'] = voiceSoundKey;
+      }
+      final netMsg = NetworkGameMessage(
+        type: 'CHAT_MESSAGE',
+        data: netData,
+      );
+      if (_isHostDevice) {
+        _host?.broadcastMessage(netMsg);
+      } else if (_isClientDevice) {
+        _client?.sendMessage(netMsg);
+      }
+    }
+
     setState(() {});
   }
 
