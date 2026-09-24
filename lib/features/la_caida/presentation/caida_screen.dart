@@ -916,34 +916,57 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
         dealerId: _players[_manoIndex].id,
       );
 
-      for (final p in _players) {
-        p.cardsWon = res.totalCardsWon[p.id] ?? p.cardsWon;
-        p.score = res.updatedScores[p.id] ?? p.score;
-        final vol = res.volumeBonusPoints[p.id] ?? 0;
-        if (vol > 0) {
-          _triggerCallout(p, 'Volumen (+$vol pts)');
-          final isUserTeam = p.id == 'user' || (_isTeams && p.teamId == _players[0].teamId);
-          _addAuditLog(
-            playerName: p.name,
-            type: AuditEntryType.puntos,
-            description: 'Excedente de cartas al contar a 20: ${p.cardsWon} cartas recogidas (+$vol pts)',
-            points: vol,
-            isUserTeam: isUserTeam,
-          );
-        }
-      }
-
       if (_isTeams) {
-        // Asegurar que los puntos y cartas recogidas sean exactamente iguales para ambos miembros del equipo
+        // En parejas, el conteo de cartas y el excedente a 20 se calcula y audita POR EQUIPO (no por jugador individual)
         for (int team = 1; team <= 2; team++) {
           final teamPlayers = _players.where((pl) => pl.teamId == team).toList();
           if (teamPlayers.isNotEmpty) {
-            final maxScore = teamPlayers.map((pl) => pl.score).reduce(math.max);
-            final maxCards = teamPlayers.map((pl) => pl.cardsWon).reduce(math.max);
+            final representative = teamPlayers.first;
+            final maxCards = teamPlayers
+                .map((pl) => res.totalCardsWon[pl.id] ?? pl.cardsWon)
+                .reduce(math.max);
+            final updatedScore = teamPlayers
+                .map((pl) => res.updatedScores[pl.id] ?? pl.score)
+                .reduce(math.max);
+            final vol = res.volumeBonusPoints[representative.id] ?? 0;
+
             for (final pl in teamPlayers) {
-              pl.score = maxScore;
+              pl.score = updatedScore;
               pl.cardsWon = maxCards;
             }
+
+            if (vol > 0) {
+              final isUserTeam = team == _players[0].teamId;
+              final teamLabel = isUserTeam ? 'Tu Equipo' : 'Equipo Rival';
+              // Callout visual una sola vez por equipo para no duplicar puntos
+              _triggerCallout(isUserTeam ? _players[0] : representative, 'Volumen (+$vol pts)');
+              // Registro de auditoría único por equipo
+              _addAuditLog(
+                playerName: teamLabel,
+                type: AuditEntryType.puntos,
+                description: 'Excedente de cartas al contar a 20: $maxCards cartas del equipo (+$vol pts)',
+                points: vol,
+                isUserTeam: isUserTeam,
+              );
+            }
+          }
+        }
+      } else {
+        // Modo individual (1 vs 1)
+        for (final p in _players) {
+          p.cardsWon = res.totalCardsWon[p.id] ?? p.cardsWon;
+          p.score = res.updatedScores[p.id] ?? p.score;
+          final vol = res.volumeBonusPoints[p.id] ?? 0;
+          if (vol > 0) {
+            _triggerCallout(p, 'Volumen (+$vol pts)');
+            final isUserTeam = p.id == 'user';
+            _addAuditLog(
+              playerName: p.name,
+              type: AuditEntryType.puntos,
+              description: 'Excedente de cartas al contar a 20: ${p.cardsWon} cartas recogidas (+$vol pts)',
+              points: vol,
+              isUserTeam: isUserTeam,
+            );
           }
         }
       }
