@@ -97,13 +97,18 @@ class TablePlayerBadge extends StatelessWidget {
                         height: avatarSize + 6,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
+                          border: Border.all(
+                            color: effectiveGlowColor,
+                            width: isCurrentTurn ? 2.8 : 1.8,
+                          ),
                           boxShadow: [
-                            if (isCurrentTurn)
-                              BoxShadow(
-                                color: effectiveGlowColor.withValues(alpha: 0.70),
-                                blurRadius: 16,
-                                spreadRadius: 3.5,
+                            BoxShadow(
+                              color: effectiveGlowColor.withValues(
+                                alpha: isCurrentTurn ? 0.85 : 0.35,
                               ),
+                              blurRadius: isCurrentTurn ? 18 : 6,
+                              spreadRadius: isCurrentTurn ? 4.0 : 1.0,
+                            ),
                           ],
                         ),
                         child: UserFrameView(
@@ -122,24 +127,17 @@ class TablePlayerBadge extends StatelessWidget {
                           color: AppPalette.cartoonCardDark,
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
-                            color: isCurrentTurn
-                                ? effectiveGlowColor
-                                : const Color(0xFF4C3E9E),
-                            width: isCurrentTurn ? 2.5 : 1.5,
+                            color: effectiveGlowColor,
+                            width: isCurrentTurn ? 2.8 : 1.8,
                           ),
                           boxShadow: [
-                            if (isCurrentTurn)
-                              BoxShadow(
-                                color: effectiveGlowColor.withValues(alpha: 0.55),
-                                blurRadius: 12,
-                                spreadRadius: 2,
-                              )
-                            else
-                              const BoxShadow(
-                                color: Color(0x35000000),
-                                blurRadius: 6,
-                                offset: Offset(0, 2),
+                            BoxShadow(
+                              color: effectiveGlowColor.withValues(
+                                alpha: isCurrentTurn ? 0.70 : 0.30,
                               ),
+                              blurRadius: isCurrentTurn ? 14 : 6,
+                              spreadRadius: isCurrentTurn ? 2.5 : 1.0,
+                            ),
                           ],
                         ),
                         padding: const EdgeInsets.all(2),
@@ -240,27 +238,38 @@ class TablePlayerBadge extends StatelessWidget {
                   border: Border.all(
                     color: isCurrentTurn
                         ? effectiveGlowColor
-                        : AppPalette.cartoonBorder,
-                    width: 1.5,
+                        : effectiveGlowColor.withValues(alpha: 0.65),
+                    width: isCurrentTurn ? 2.0 : 1.3,
                   ),
                   boxShadow: [
-                    if (isCurrentTurn)
-                      BoxShadow(
-                        color: effectiveGlowColor.withValues(alpha: 0.45),
-                        blurRadius: 8,
-                        spreadRadius: 1.5,
-                      )
-                    else
-                      const BoxShadow(
-                        color: Color(0x35000000),
-                        blurRadius: 4,
-                        offset: Offset(0, 1),
+                    BoxShadow(
+                      color: effectiveGlowColor.withValues(
+                        alpha: isCurrentTurn ? 0.55 : 0.20,
                       ),
+                      blurRadius: isCurrentTurn ? 10 : 4,
+                      spreadRadius: isCurrentTurn ? 1.5 : 0,
+                    ),
                   ],
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    // Dot indicador del color temático del jugador
+                    Container(
+                      width: 6,
+                      height: 6,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: effectiveGlowColor,
+                        boxShadow: [
+                          BoxShadow(
+                            color: effectiveGlowColor.withValues(alpha: 0.8),
+                            blurRadius: 3,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 4),
                     if (isBot) ...[
                       const Icon(Icons.smart_toy_rounded, size: 11, color: Colors.white70),
                       const SizedBox(width: 3),

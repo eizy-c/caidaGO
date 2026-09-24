@@ -2579,7 +2579,7 @@ child: Icon(icon, color: iconColor, size: 20),
       child: Scaffold(
         appBar: GameTableHeader(
           title: 'CaidaGO',
-          titleWidget: (_vipTier != null)
+          titleWidget: (_venezuelaRoom != null)
               ? FittedBox(
                   fit: BoxFit.scaleDown,
                   alignment: Alignment.centerLeft,
@@ -2590,7 +2590,7 @@ child: Icon(icon, color: iconColor, size: 20),
                         'CaidaGO',
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: 16,
+                          fontSize: 15,
                           fontWeight: FontWeight.bold,
                           letterSpacing: 0.5,
                         ),
@@ -2600,13 +2600,16 @@ child: Icon(icon, color: iconColor, size: 20),
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
-                            colors: [_vipTier!.accentColor, const Color(0xFF0F172A)],
+                            colors: [
+                              _venezuelaRoom!.primaryColor.withValues(alpha: 0.85),
+                              _venezuelaRoom!.gradientColors.first,
+                            ],
                           ),
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: _vipTier!.accentColor, width: 1.1),
+                          border: Border.all(color: _venezuelaRoom!.accentColor, width: 1.2),
                           boxShadow: [
                             BoxShadow(
-                              color: _vipTier!.accentColor.withValues(alpha: 0.35),
+                              color: _venezuelaRoom!.primaryColor.withValues(alpha: 0.45),
                               blurRadius: 6,
                             ),
                           ],
@@ -2614,10 +2617,13 @@ child: Icon(icon, color: iconColor, size: 20),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(Icons.workspace_premium_rounded, color: Color(0xFFFDE047), size: 13),
+                            Text(
+                              _venezuelaRoom!.isFrozenTheme ? '❄️' : '🇻🇪',
+                              style: const TextStyle(fontSize: 11),
+                            ),
                             const SizedBox(width: 4),
                             Text(
-                              'Mesa ${_vipTier!.name} • Pozo: ${_vipPrizePool ?? _vipTier!.calculatePrizePool(isTeams: _isTeams)}',
+                              '${_venezuelaRoom!.name} • Pozo: ${_vipPrizePool ?? _venezuelaRoom!.getTotalPot(_isTeams ? GameMode.teams2v2 : GameMode.duel1v1)} 🪙',
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: const TextStyle(
@@ -2626,15 +2632,68 @@ child: Icon(icon, color: iconColor, size: 20),
                                 fontWeight: FontWeight.w900,
                               ),
                             ),
-                            const SizedBox(width: 3),
-                            const Icon(Icons.monetization_on_rounded, color: Color(0xFFFBBF24), size: 11),
                           ],
                         ),
                       ),
                     ],
                   ),
                 )
-              : null,
+              : ((_vipTier != null)
+                  ? FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerLeft,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Text(
+                            'CaidaGO',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [_vipTier!.accentColor, const Color(0xFF0F172A)],
+                              ),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: _vipTier!.accentColor, width: 1.1),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: _vipTier!.accentColor.withValues(alpha: 0.35),
+                                  blurRadius: 6,
+                                ),
+                              ],
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Icons.workspace_premium_rounded, color: Color(0xFFFDE047), size: 13),
+                                const SizedBox(width: 4),
+                                Text(
+                                  'Mesa ${_vipTier!.name} • Pozo: ${_vipPrizePool ?? _vipTier!.calculatePrizePool(isTeams: _isTeams)}',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 10.5,
+                                    fontWeight: FontWeight.w900,
+                                  ),
+                                ),
+                                const SizedBox(width: 3),
+                                const Icon(Icons.monetization_on_rounded, color: Color(0xFFFBBF24), size: 11),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  : null),
           onBack: _confirmAbandonMatch,
           onSettings: _openMatchSettings,
           showTrophies: false,
