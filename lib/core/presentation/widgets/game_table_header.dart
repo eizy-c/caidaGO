@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../theme/app_palette.dart';
+import 'cartoon_widgets.dart';
 
 /// Barra superior de navegación para mesas de juegos tradicionales.
 /// Incluye degradado púrpura oscuro, botón de regreso, menú de reglas, trofeos/monedas y latencia.
@@ -40,20 +42,16 @@ class GameTableHeader extends StatelessWidget implements PreferredSizeWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF381F78), Color(0xFF231252)],
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-        ),
-        boxShadow: [
+        color: AppPalette.cartoonSurface,
+        boxShadow: const [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.5),
+            color: Color(0x35000000),
             blurRadius: 8,
-            offset: const Offset(0, 2),
+            offset: Offset(0, 2),
           ),
         ],
         border: const Border(
-          bottom: BorderSide(color: Color(0xFF2E2E2E), width: 1.0),
+          bottom: BorderSide(color: AppPalette.cartoonBorder, width: 2.0),
         ),
       ),
       child: SafeArea(
@@ -61,14 +59,18 @@ class GameTableHeader extends StatelessWidget implements PreferredSizeWidget {
         child: Row(
           children: [
             // Botón Atrás a la izquierda
-            IconButton(
-              icon: const Icon(Icons.arrow_back_rounded, color: Colors.white, size: 24),
-              tooltip: 'Salir al menú',
+            CartoonRoundButton(
+              width: 36,
+              height: 36,
+              borderRadius: 12,
+              depth: 2.5,
+              backgroundColor: const Color(0xFF352B6E),
+              borderColor: AppPalette.cartoonBorder,
+              shadowColor: const Color(0xFF151035),
               onPressed: onBack,
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+              child: const Icon(Icons.arrow_back_rounded, color: Colors.white, size: 20),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: 10),
 
             // Título central
             Expanded(
@@ -80,7 +82,7 @@ class GameTableHeader extends StatelessWidget implements PreferredSizeWidget {
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 16,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w900,
                       letterSpacing: 0.5,
                     ),
                   ),
@@ -90,10 +92,11 @@ class GameTableHeader extends StatelessWidget implements PreferredSizeWidget {
             if (showPing)
               Container(
                 margin: const EdgeInsets.only(right: 8),
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3.5),
                 decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.3),
+                  color: AppPalette.cartoonCardDark,
                   borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: AppPalette.cartoonBorder, width: 1.5),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -118,14 +121,12 @@ class GameTableHeader extends StatelessWidget implements PreferredSizeWidget {
                 margin: const EdgeInsets.only(right: 6),
                 padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3.5),
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF0D9488), Color(0xFF0F766E)],
-                  ),
+                  color: AppPalette.cartoonCardDark,
                   borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: const Color(0xFF2DD4BF), width: 1.2),
-                  boxShadow: [
+                  border: Border.all(color: AppPalette.cartoonCyan, width: 1.5),
+                  boxShadow: const [
                     BoxShadow(
-                      color: const Color(0xFF0D9488).withValues(alpha: 0.4),
+                      color: Color(0x35000000),
                       blurRadius: 4,
                     ),
                   ],
@@ -151,15 +152,16 @@ class GameTableHeader extends StatelessWidget implements PreferredSizeWidget {
             // Píldora de Trofeos / Puntos (solo si showTrophies es true)
             if (showTrophies) ...[
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF261358),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: const Color(0xFF7C4DFF), width: 1.2),
-                  boxShadow: [
+                  color: AppPalette.cartoonCardDark,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: AppPalette.cartoonBorder, width: 1.5),
+                  boxShadow: const [
                     BoxShadow(
-                      color: const Color(0xFF7C4DFF).withValues(alpha: 0.3),
+                      color: Color(0x30000000),
                       blurRadius: 4,
+                      offset: Offset(0, 2),
                     ),
                   ],
                 ),
@@ -179,17 +181,21 @@ class GameTableHeader extends StatelessWidget implements PreferredSizeWidget {
                   ],
                 ),
               ),
-              const SizedBox(width: 4),
+              const SizedBox(width: 8),
             ],
 
             // Botón Ajustes a la derecha
             if (onSettings != null)
-              IconButton(
-                icon: const Icon(Icons.settings_rounded, color: Colors.white, size: 22),
-                tooltip: 'Ajustes',
+              CartoonRoundButton(
+                width: 36,
+                height: 36,
+                borderRadius: 12,
+                depth: 2.5,
+                backgroundColor: const Color(0xFF352B6E),
+                borderColor: AppPalette.cartoonBorder,
+                shadowColor: const Color(0xFF151035),
                 onPressed: onSettings,
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                child: const Icon(Icons.settings_rounded, color: Colors.white, size: 20),
               ),
           ],
         ),

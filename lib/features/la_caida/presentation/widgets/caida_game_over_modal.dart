@@ -3,7 +3,9 @@ import '../../../../core/presentation/widgets/app_3d_button.dart';
 import '../../economy/player_session.dart';
 import '../../economy/user_progress.dart';
 import '../../economy/rank_system.dart';
+import '../../economy/player_stats_model.dart';
 import '../../economy/booster_model.dart';
+import 'rank_badge_widget.dart';
 import 'rank_up_modal.dart';
 
 /// Datos estadísticos de la partida jugada para el resumen final.
@@ -571,26 +573,51 @@ class _CaidaGameOverModalState extends State<CaidaGameOverModal>
           ),
           const SizedBox(height: 12),
           
-          // Trofeos ganados/perdidos
+          // Trofeos ganados/perdidos y barra de progreso de rango
           if (summary.trophyDelta != 0) ...[
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  summary.trophyDelta > 0
-                      ? '+${summary.trophyDelta} 🏆'
-                      : '${summary.trophyDelta} 🏆',
-                  style: TextStyle(
-                    color: summary.trophyDelta > 0
-                        ? const Color(0xFF22C55E)
-                        : const Color(0xFFEF4444),
-                    fontSize: 16,
-                    fontWeight: FontWeight.w900,
+            Container(
+              padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
+              margin: const EdgeInsets.only(bottom: 12),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.04),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: const Color(0xFF2E2E2E)),
+              ),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.emoji_events_rounded,
+                        size: 16,
+                        color: summary.trophyDelta > 0
+                            ? const Color(0xFF22C55E)
+                            : const Color(0xFFEF4444),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        summary.trophyDelta > 0
+                            ? '+${summary.trophyDelta}'
+                            : '${summary.trophyDelta}',
+                        style: TextStyle(
+                          color: summary.trophyDelta > 0
+                              ? const Color(0xFF22C55E)
+                              : const Color(0xFFEF4444),
+                          fontSize: 16,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-              ],
+                  const SizedBox(height: 8),
+                  RankProgressBar(
+                    trophies: PlayerStatsModel.shared.trophies,
+                    height: 10,
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(height: 12),
           ],
 
           // Potenciadores aplicados en la partida

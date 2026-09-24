@@ -92,6 +92,8 @@ class MultiplayerRoomInfo {
   final bool isTeams; // Por parejas (solo válido para 4 jugadores)
   final bool fillWithBots;
   final MultiplayerNetworkMode networkMode;
+  final int? regionalRoomId; // ID 1..7 de Sala de Venezuela (o null para Libre)
+  final int entryFee; // Apuesta por jugador (0 para mesa libre)
 
   const MultiplayerRoomInfo({
     required this.roomId,
@@ -108,9 +110,14 @@ class MultiplayerRoomInfo {
     this.isTeams = false,
     this.fillWithBots = true,
     this.networkMode = MultiplayerNetworkMode.localWifi,
+    this.regionalRoomId,
+    this.entryFee = 0,
   });
 
   bool get isFull => currentPlayers >= targetPlayers;
+
+  int get totalPot => isTeams && targetPlayers == 4 ? entryFee * 4 : entryFee * targetPlayers;
+  int get prizePerWinner => isTeams && targetPlayers == 4 ? (entryFee * 4) ~/ 2 : entryFee * targetPlayers;
 
   Map<String, dynamic> toJson() => {
         'roomId': roomId,
@@ -127,6 +134,8 @@ class MultiplayerRoomInfo {
         'isTeams': isTeams,
         'fillWithBots': fillWithBots,
         'networkMode': networkMode.name,
+        'regionalRoomId': regionalRoomId,
+        'entryFee': entryFee,
       };
 
   factory MultiplayerRoomInfo.fromJson(Map<String, dynamic> json) =>
@@ -147,6 +156,8 @@ class MultiplayerRoomInfo {
         networkMode: json['networkMode'] == 'online'
             ? MultiplayerNetworkMode.online
             : MultiplayerNetworkMode.localWifi,
+        regionalRoomId: json['regionalRoomId'] as int?,
+        entryFee: json['entryFee'] as int? ?? 0,
       );
 
   String toBeaconPayload() => jsonEncode({

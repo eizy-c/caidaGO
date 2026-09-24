@@ -182,7 +182,7 @@ class _ToastBannerWidgetState extends State<_ToastBannerWidget>
     final req = widget.request;
     final isChallenge = req.type == GameToastType.dailyChallenge;
     final borderColor = isChallenge ? const Color(0xFF84CC16) : req.iconColor;
-    final headerLabel = isChallenge ? '📅 RETO DIARIO COMPLETADO' : '🏅 ¡LOGRO DESBLOQUEADO!';
+    final headerLabel = isChallenge ? 'RETO DIARIO COMPLETADO' : '¡LOGRO DESBLOQUEADO!';
 
     return Positioned(
       top: MediaQuery.of(context).padding.top + 10,
@@ -230,14 +230,25 @@ class _ToastBannerWidgetState extends State<_ToastBannerWidget>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Text(
-                            headerLabel,
-                            style: TextStyle(
-                              color: borderColor,
-                              fontSize: 10,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: 1.0,
-                            ),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                isChallenge ? Icons.calendar_today_rounded : Icons.military_tech_rounded,
+                                size: 11,
+                                color: borderColor,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                headerLabel,
+                                style: TextStyle(
+                                  color: borderColor,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: 1.0,
+                                ),
+                              ),
+                            ],
                           ),
                           const SizedBox(height: 2),
                           Text(

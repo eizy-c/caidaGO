@@ -1,6 +1,6 @@
 /// Identificadores de los modos o juegos disponibles.
 enum GameType {
-  laCaida('La Caída');
+  laCaida('CaidaGO');
 
   final String title;
   const GameType(this.title);

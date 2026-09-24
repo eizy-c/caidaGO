@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'player_stats_model.dart';
+import 'trophy_session_manager.dart';
 
 enum AchievementCategory {
   partidas,
@@ -360,7 +361,7 @@ class AchievementCatalog {
     AchievementItem(
       id: 'ach_games_1',
       title: 'Veterano de la Mesa',
-      description: 'Jugar 1 partida oficial de La Caída.',
+      description: 'Jugar 1 partida oficial de CaidaGO.',
       icon: Icons.play_arrow_rounded,
       iconColor: const Color(0xFF38BDF8),
       category: AchievementCategory.partidas,
@@ -785,5 +786,186 @@ class AchievementCatalog {
       familyId: 'registros',
       requiredAchievementId: 'ach_registro_3',
     ),
+
+    // =========================================================================
+    // SERIE 15: CONQUISTADORES REGIONALES DE VENEZUELA (7 SALAS INDIVIDUALES)
+    // =========================================================================
+    AchievementItem(
+      id: 'ach_room_chivacoa',
+      title: 'Conquistador de Chivacoa',
+      description: 'Alcanzar el tope de 15 trofeos en la Sala Chivacoa (Yaracuy).',
+      icon: Icons.terrain_rounded,
+      iconColor: const Color(0xFF10B981),
+      category: AchievementCategory.partidas,
+      level: 1,
+      targetProgress: 15,
+      coinReward: 500,
+      xpReward: 100,
+      getProgress: (s) => TrophySessionManager.shared.getTrophies(1),
+      familyId: 'room_chivacoa',
+    ),
+    AchievementItem(
+      id: 'ach_room_barquisimeto',
+      title: 'Conquistador de Barquisimeto',
+      description: 'Alcanzar el tope de 30 trofeos en la Sala Barquisimeto (Lara).',
+      icon: Icons.wb_twilight_rounded,
+      iconColor: const Color(0xFFF59E0B),
+      category: AchievementCategory.partidas,
+      level: 1,
+      targetProgress: 30,
+      coinReward: 1000,
+      xpReward: 200,
+      getProgress: (s) => TrophySessionManager.shared.getTrophies(2),
+      familyId: 'room_barquisimeto',
+    ),
+    AchievementItem(
+      id: 'ach_room_tucacas',
+      title: 'Conquistador de Tucacas',
+      description: 'Alcanzar el tope de 60 trofeos en la Sala Tucacas (Falcón).',
+      icon: Icons.waves_rounded,
+      iconColor: const Color(0xFF06B6D4),
+      category: AchievementCategory.partidas,
+      level: 2,
+      targetProgress: 60,
+      coinReward: 2500,
+      xpReward: 400,
+      getProgress: (s) => TrophySessionManager.shared.getTrophies(3),
+      familyId: 'room_tucacas',
+    ),
+    AchievementItem(
+      id: 'ach_room_maracaibo',
+      title: 'Conquistador de Maracaibo',
+      description: 'Alcanzar el tope de 75 trofeos en la Sala Maracaibo (Zulia).',
+      icon: Icons.flash_on_rounded,
+      iconColor: const Color(0xFFEF4444),
+      category: AchievementCategory.partidas,
+      level: 2,
+      targetProgress: 75,
+      coinReward: 5000,
+      xpReward: 800,
+      getProgress: (s) => TrophySessionManager.shared.getTrophies(4),
+      familyId: 'room_maracaibo',
+    ),
+    AchievementItem(
+      id: 'ach_room_merida',
+      title: 'Conquistador de Mérida',
+      description: 'Alcanzar el tope de 100 trofeos en la Sala Mérida (Páramo Andino ❄️).',
+      icon: Icons.ac_unit_rounded,
+      iconColor: const Color(0xFF38BDF8),
+      category: AchievementCategory.partidas,
+      level: 2,
+      targetProgress: 100,
+      coinReward: 15000,
+      xpReward: 1500,
+      getProgress: (s) => TrophySessionManager.shared.getTrophies(5),
+      familyId: 'room_merida',
+    ),
+    AchievementItem(
+      id: 'ach_room_caracas',
+      title: 'Conquistador de Caracas',
+      description: 'Alcanzar el tope de 125 trofeos en la Sala Caracas (Distrito Capital).',
+      icon: Icons.location_city_rounded,
+      iconColor: const Color(0xFFA855F7),
+      category: AchievementCategory.partidas,
+      level: 3,
+      targetProgress: 125,
+      coinReward: 50000,
+      xpReward: 3000,
+      getProgress: (s) => TrophySessionManager.shared.getTrophies(6),
+      familyId: 'room_caracas',
+    ),
+    AchievementItem(
+      id: 'ach_room_margarita',
+      title: 'Rey de Margarita VIP',
+      description: 'Alcanzar el tope de 250 trofeos en la Sala Margarita VIP (Casino del Caribe).',
+      icon: Icons.casino_rounded,
+      iconColor: const Color(0xFFEAB308),
+      category: AchievementCategory.partidas,
+      level: 3,
+      targetProgress: 250,
+      coinReward: 150000,
+      xpReward: 10000,
+      getProgress: (s) => TrophySessionManager.shared.getTrophies(7),
+      familyId: 'room_margarita',
+    ),
   ];
+
+  /// Agrupa todos los logros por su identificador de familia (`familyId`),
+  /// ordenando los 3 niveles secuenciales (Bronce, Plata, Oro).
+  static List<AchievementFamilyGroup> get familyGroups {
+    final Map<String, List<AchievementItem>> map = {};
+    for (final ach in allAchievements) {
+      final fId = ach.familyId ?? ach.id;
+      map.putIfAbsent(fId, () => []).add(ach);
+    }
+    return map.entries.map((e) {
+      e.value.sort((a, b) => a.level.compareTo(b.level));
+      return AchievementFamilyGroup(
+        familyId: e.key,
+        title: e.value.first.title,
+        levels: e.value,
+      );
+    }).toList();
+  }
+}
+
+/// Representa una familia temática de logros que contiene exactamente
+/// 3 niveles secuenciales (Bronce, Plata, Oro) como se muestra en la tarjeta de referencia.
+class AchievementFamilyGroup {
+  final String familyId;
+  final String title;
+  final List<AchievementItem> levels;
+
+  const AchievementFamilyGroup({
+    required this.familyId,
+    required this.title,
+    required this.levels,
+  });
+
+  /// Nivel actualmente activo para el jugador (el primer nivel no reclamado, o el último si ya se completaron todos).
+  AchievementItem activeLevel(PlayerStatsModel stats) {
+    for (final ach in levels) {
+      if (!stats.claimedAchievementIds.contains(ach.id)) {
+        return ach;
+      }
+    }
+    return levels.last;
+  }
+
+  /// Retorna el índice del nivel activo (0: Bronce, 1: Plata, 2: Oro).
+  int activeLevelIndex(PlayerStatsModel stats) {
+    for (int i = 0; i < levels.length; i++) {
+      if (!stats.claimedAchievementIds.contains(levels[i].id)) {
+        return i;
+      }
+    }
+    return levels.length - 1;
+  }
+
+  /// Cuántas medallas han sido reclamadas por el jugador (0..3).
+  int claimedMedalsCount(PlayerStatsModel stats) {
+    int count = 0;
+    for (final ach in levels) {
+      if (stats.claimedAchievementIds.contains(ach.id)) {
+        count++;
+      }
+    }
+    return count;
+  }
+
+  /// Retorna true si todos los niveles de la familia están reclamados.
+  bool isFullyClaimed(PlayerStatsModel stats) {
+    return claimedMedalsCount(stats) == levels.length;
+  }
+
+  /// Retorna true si el nivel activo ha completado su meta pero aún no ha sido reclamado.
+  bool isClaimable(PlayerStatsModel stats) {
+    for (final ach in levels) {
+      if (!stats.claimedAchievementIds.contains(ach.id)) {
+        final progress = ach.getProgress(stats);
+        return progress >= ach.targetProgress;
+      }
+    }
+    return false;
+  }
 }

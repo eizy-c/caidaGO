@@ -3,6 +3,8 @@ import '../../economy/booster_model.dart';
 import '../../economy/player_session.dart';
 import '../../economy/player_stats_model.dart';
 import '../../../../core/presentation/widgets/app_3d_button.dart';
+import '../../../../core/presentation/widgets/cartoon_widgets.dart';
+import '../../../../core/theme/app_palette.dart';
 import '../../../../core/services/haptic_service.dart';
 import 'chest_slots_view.dart';
 import 'user_frame_view.dart';
@@ -57,19 +59,15 @@ class _InventoryModalState extends State<InventoryModal>
             constraints: const BoxConstraints(
               maxWidth: 520,
             ),
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                colors: [Color(0xFF1E1E1E), Color(0xFF121212)],
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF2E267D), Color(0xFF26206D)],
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
               ),
-              borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-              border: Border(
-                top: BorderSide(color: Color(0xFF2E2E2E), width: 1.2),
-                left: BorderSide(color: Color(0xFF2E2E2E), width: 1),
-                right: BorderSide(color: Color(0xFF2E2E2E), width: 1),
-              ),
-              boxShadow: [
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+              border: Border.all(color: AppPalette.cartoonBorder, width: 2.2),
+              boxShadow: const [
                 BoxShadow(
                   color: Colors.black87,
                   blurRadius: 24,
@@ -103,15 +101,16 @@ class _InventoryModalState extends State<InventoryModal>
                           Container(
                             padding: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF242424),
+                              color: AppPalette.cartoonCardDark,
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(
-                                color: const Color(0xFF2E2E2E),
+                                color: AppPalette.cartoonBorder,
+                                width: 1.5,
                               ),
                             ),
                             child: const Icon(
                               Icons.backpack_rounded,
-                              color: Colors.white70,
+                              color: Colors.white,
                               size: 22,
                             ),
                           ),
@@ -141,11 +140,19 @@ class _InventoryModalState extends State<InventoryModal>
                             iconColor: const Color(0xFF38BDF8),
                             text: '${session.tickets}/${session.maxTickets}',
                           ),
-                          const SizedBox(width: 6),
-                          IconButton(
-                            icon: const Icon(Icons.close_rounded, color: Colors.white70),
-                            onPressed: () => Navigator.of(context).pop(),
-                            visualDensity: VisualDensity.compact,
+                          const SizedBox(width: 8),
+                          TactilePressable(
+                            depth: 2.0,
+                            onTap: () => Navigator.of(context).pop(),
+                            child: Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: BoxDecoration(
+                                gradient: AppGradients.redDanger,
+                                shape: BoxShape.circle,
+                                border: Border.all(color: AppPalette.cartoonBorder, width: 1.2),
+                              ),
+                              child: const Icon(Icons.close_rounded, color: Colors.white, size: 18),
+                            ),
                           ),
                         ],
                       ),
@@ -159,20 +166,20 @@ class _InventoryModalState extends State<InventoryModal>
                 Container(
                   margin: const EdgeInsets.symmetric(horizontal: 16),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF181818),
+                    color: AppPalette.cartoonBgDark,
                     borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: const Color(0xFF2E2E2E)),
+                    border: Border.all(color: AppPalette.cartoonBorder, width: 1.5),
                   ),
                   child: TabBar(
                     controller: _tabController,
                     indicator: BoxDecoration(
-                      color: const Color(0xFF2E2E2E),
+                      gradient: AppGradients.cyanAccent,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     indicatorSize: TabBarIndicatorSize.tab,
                     labelColor: Colors.white,
                     unselectedLabelColor: Colors.white60,
-                    labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                    labelStyle: const TextStyle(fontWeight: FontWeight.w900, fontSize: 13),
                     tabs: const [
                       Tab(
                         icon: Icon(Icons.bolt_rounded, size: 18),
@@ -219,9 +226,9 @@ class _InventoryModalState extends State<InventoryModal>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: const Color(0xFF181818),
+        color: AppPalette.cartoonCardDark,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0xFF2E2E2E)),
+        border: Border.all(color: AppPalette.cartoonBorder, width: 1.2),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -254,9 +261,9 @@ class _InventoryModalState extends State<InventoryModal>
             padding: const EdgeInsets.all(12),
             margin: const EdgeInsets.only(bottom: 12),
             decoration: BoxDecoration(
-              color: const Color(0xFF181818),
+              color: AppPalette.cartoonCardDark,
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: const Color(0xFF2E2E2E)),
+              border: Border.all(color: AppPalette.cartoonBorder, width: 1.5),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -282,8 +289,8 @@ class _InventoryModalState extends State<InventoryModal>
                   children: active.map((type) {
                     final def = BoosterDefinition.getByType(type);
                     return Chip(
-                      backgroundColor: const Color(0xFF141414),
-                      side: const BorderSide(color: Color(0xFF2E2E2E)),
+                      backgroundColor: AppPalette.cartoonBgDark,
+                      side: BorderSide(color: AppPalette.cartoonBorder),
                       avatar: Icon(def.icon, color: def.color, size: 16),
                       label: Text(
                         def.name,
@@ -309,11 +316,11 @@ class _InventoryModalState extends State<InventoryModal>
             margin: const EdgeInsets.only(bottom: 10),
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: const Color(0xFF181818),
+              color: AppPalette.cartoonCardDark,
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
-                color: const Color(0xFF2E2E2E),
-                width: 1,
+                color: AppPalette.cartoonBorder,
+                width: 1.5,
               ),
             ),
             child: Row(
@@ -322,9 +329,9 @@ class _InventoryModalState extends State<InventoryModal>
                   width: 44,
                   height: 44,
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.05),
+                    color: Colors.white.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: const Color(0xFF2E2E2E)),
+                    border: Border.all(color: AppPalette.cartoonBorder, width: 1.2),
                   ),
                   child: Icon(def.icon, color: def.color, size: 24),
                 ),
@@ -376,7 +383,8 @@ class _InventoryModalState extends State<InventoryModal>
                 if (isActive)
                   App3dButton(
                     label: 'Activo',
-                    backgroundColor: const Color(0xFF10B981),
+                    variant: App3dButtonVariant.emerald,
+                    depth: 3.5,
                     onPressed: () {
                       HapticService.instance.onSelection();
                       session.deactivateBooster(def.type);
@@ -387,7 +395,8 @@ class _InventoryModalState extends State<InventoryModal>
                 else if (count > 0)
                   App3dButton(
                     label: 'Activar',
-                    backgroundColor: const Color(0xFF0284C7),
+                    variant: App3dButtonVariant.cyan,
+                    depth: 3.5,
                     onPressed: () {
                       HapticService.instance.onSelection();
                       final ok = session.activateBooster(def.type);
@@ -406,7 +415,8 @@ class _InventoryModalState extends State<InventoryModal>
                 else
                   App3dButton(
                     label: '${def.coinCost}',
-                    backgroundColor: const Color(0xFFF59E0B),
+                    variant: App3dButtonVariant.gold,
+                    depth: 3.5,
                     onPressed: () {
                       HapticService.instance.onSelection();
                       if (session.coins >= def.coinCost) {
@@ -452,11 +462,11 @@ class _InventoryModalState extends State<InventoryModal>
 
         return Container(
           decoration: BoxDecoration(
-            color: const Color(0xFF181818),
+            color: AppPalette.cartoonCardDark,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: const Color(0xFF2E2E2E),
-              width: 1,
+              color: isEquipped ? const Color(0xFFFDE047) : AppPalette.cartoonBorder,
+              width: isEquipped ? 2.2 : 1.5,
             ),
           ),
           padding: const EdgeInsets.all(10),
@@ -487,7 +497,11 @@ class _InventoryModalState extends State<InventoryModal>
               ),
               const SizedBox(height: 2),
               Text(
-                isUnlocked ? 'Desbloqueado' : '${frame.minTrophies} trofeos',
+                isUnlocked
+                    ? 'Desbloqueado'
+                    : (frame.requiredRoomId != null
+                        ? 'Completar ${frame.name}'
+                        : '${frame.minTrophies} trofeos'),
                 style: TextStyle(
                   color: isUnlocked ? Colors.white70 : Colors.white38,
                   fontSize: 10,
@@ -499,14 +513,14 @@ class _InventoryModalState extends State<InventoryModal>
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.1),
+                    color: Colors.white.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: const Color(0xFF2E2E2E)),
+                    border: Border.all(color: AppPalette.cartoonBorder),
                   ),
                   child: const Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.check_rounded, color: Colors.white70, size: 12),
+                      Icon(Icons.check_rounded, color: Color(0xFFFDE047), size: 12),
                       SizedBox(width: 4),
                       Text(
                         'Equipado',
@@ -522,7 +536,8 @@ class _InventoryModalState extends State<InventoryModal>
               else if (isUnlocked)
                 App3dButton(
                   label: 'Equipar',
-                  backgroundColor: const Color(0xFF2E2E2E),
+                  variant: App3dButtonVariant.gold,
+                  depth: 3.0,
                   onPressed: () {
                     HapticService.instance.onSelection();
                     session.updateCustomization(frameId: frame.id);
@@ -558,9 +573,9 @@ class _InventoryModalState extends State<InventoryModal>
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: const Color(0xFF181818),
+              color: AppPalette.cartoonCardDark,
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: const Color(0xFF2E2E2E)),
+              border: Border.all(color: AppPalette.cartoonBorder, width: 1.5),
             ),
             child: const Row(
               children: [

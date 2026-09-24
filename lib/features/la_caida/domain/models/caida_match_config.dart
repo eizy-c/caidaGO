@@ -1,4 +1,8 @@
+import '../../economy/venezuela_room_tier.dart';
 import '../../economy/vip_tier.dart';
+import '../../multiplayer/domain/multiplayer_models.dart';
+import '../../multiplayer/network/local_game_client.dart';
+import '../../multiplayer/network/local_game_host.dart';
 
 /// Configuración inmutable para inicializar y parametrizar una partida de La Caída.
 /// Reemplaza la proliferación de parámetros individuales dispersos en constructores.
@@ -11,9 +15,19 @@ class CaidaMatchConfig {
   final String? userName;
   final List<String> botNames;
   final VipTierOffer? vipTier;
+  final VenezuelaRoomTier? venezuelaRoom;
   final int? vipPrizePool;
   final int? vipWinnerReward;
   final bool isMatandoCantos;
+  final bool isMultiplayer;
+  final List<String>? playerNames;
+  final List<int>? playerAvatarIds;
+  final List<String>? playerFrameIds;
+  final List<bool>? playerIsBots;
+  final LocalGameHost? host;
+  final LocalGameClient? client;
+  final int localSeatIndex;
+  final MultiplayerRoomInfo? multiplayerRoom;
 
   const CaidaMatchConfig({
     this.initialPlayers = 2,
@@ -24,9 +38,19 @@ class CaidaMatchConfig {
     this.userName,
     this.botNames = const ['Alejandro', 'Carl', 'Jhonny'],
     this.vipTier,
+    this.venezuelaRoom,
     this.vipPrizePool,
     this.vipWinnerReward,
     this.isMatandoCantos = true,
+    this.isMultiplayer = false,
+    this.playerNames,
+    this.playerAvatarIds,
+    this.playerFrameIds,
+    this.playerIsBots,
+    this.host,
+    this.client,
+    this.localSeatIndex = 0,
+    this.multiplayerRoom,
   });
 
   /// Crea una configuración para partida individual rápida
@@ -73,8 +97,31 @@ class CaidaMatchConfig {
     );
   }
 
+  /// Crea una configuración para sala VIP Regional de Venezuela
+  factory CaidaMatchConfig.venezuelaRoomMatch({
+    required String userName,
+    required VenezuelaRoomTier room,
+    required GameMode mode,
+    List<String> botNames = const ['Alejandro', 'Carl', 'Jhonny'],
+    bool isMatandoCantos = true,
+  }) {
+    final isTeams = mode == GameMode.teams2v2;
+    return CaidaMatchConfig(
+      initialPlayers: isTeams ? 4 : 2,
+      initialTeams: isTeams,
+      autoStart: true,
+      chooseMano: true,
+      userName: userName,
+      botNames: botNames,
+      venezuelaRoom: room,
+      vipPrizePool: room.getTotalPot(mode),
+      vipWinnerReward: room.getPrizePerWinner(mode),
+      isMatandoCantos: isMatandoCantos,
+    );
+  }
+
   int get botCount => (initialPlayers - 1).clamp(1, 3);
-  bool get isVip => vipTier != null;
+  bool get isVip => vipTier != null || venezuelaRoom != null;
 
   CaidaMatchConfig copyWith({
     int? initialPlayers,
@@ -85,9 +132,18 @@ class CaidaMatchConfig {
     String? userName,
     List<String>? botNames,
     VipTierOffer? vipTier,
+    VenezuelaRoomTier? venezuelaRoom,
     int? vipPrizePool,
     int? vipWinnerReward,
     bool? isMatandoCantos,
+    List<String>? playerNames,
+    List<int>? playerAvatarIds,
+    List<String>? playerFrameIds,
+    List<bool>? playerIsBots,
+    LocalGameHost? host,
+    LocalGameClient? client,
+    int? localSeatIndex,
+    MultiplayerRoomInfo? multiplayerRoom,
   }) {
     return CaidaMatchConfig(
       initialPlayers: initialPlayers ?? this.initialPlayers,
@@ -98,9 +154,18 @@ class CaidaMatchConfig {
       userName: userName ?? this.userName,
       botNames: botNames ?? this.botNames,
       vipTier: vipTier ?? this.vipTier,
+      venezuelaRoom: venezuelaRoom ?? this.venezuelaRoom,
       vipPrizePool: vipPrizePool ?? this.vipPrizePool,
       vipWinnerReward: vipWinnerReward ?? this.vipWinnerReward,
       isMatandoCantos: isMatandoCantos ?? this.isMatandoCantos,
+      playerNames: playerNames ?? this.playerNames,
+      playerAvatarIds: playerAvatarIds ?? this.playerAvatarIds,
+      playerFrameIds: playerFrameIds ?? this.playerFrameIds,
+      playerIsBots: playerIsBots ?? this.playerIsBots,
+      host: host ?? this.host,
+      client: client ?? this.client,
+      localSeatIndex: localSeatIndex ?? this.localSeatIndex,
+      multiplayerRoom: multiplayerRoom ?? this.multiplayerRoom,
     );
   }
 }

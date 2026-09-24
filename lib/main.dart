@@ -34,7 +34,7 @@ class CaidaGoApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       navigatorKey: navigatorKey,
-      title: 'CaidaGO - La Caída Tradicional',
+      title: 'CaidaGO',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,

@@ -70,6 +70,10 @@ class MatchHistoryEntry {
   final int caidasCount;
   final int limpiasCount;
   final int cantosCount;
+  final String? roomName;
+  final String? roomRegion;
+  final String? roomCategory;
+  final bool isMultiplayer;
   final List<MatchAuditItem> auditLogs;
 
   const MatchHistoryEntry({
@@ -85,6 +89,10 @@ class MatchHistoryEntry {
     this.caidasCount = 0,
     this.limpiasCount = 0,
     this.cantosCount = 0,
+    this.roomName,
+    this.roomRegion,
+    this.roomCategory,
+    this.isMultiplayer = false,
     this.auditLogs = const [],
   });
 
@@ -101,6 +109,10 @@ class MatchHistoryEntry {
     'caidasCount': caidasCount,
     'limpiasCount': limpiasCount,
     'cantosCount': cantosCount,
+    'roomName': roomName,
+    'roomRegion': roomRegion,
+    'roomCategory': roomCategory,
+    'isMultiplayer': isMultiplayer,
     'auditLogs': auditLogs.map((e) => e.toJson()).toList(),
   };
 
@@ -127,6 +139,10 @@ class MatchHistoryEntry {
       caidasCount: json['caidasCount'] as int? ?? 0,
       limpiasCount: json['limpiasCount'] as int? ?? 0,
       cantosCount: json['cantosCount'] as int? ?? 0,
+      roomName: json['roomName'] as String?,
+      roomRegion: json['roomRegion'] as String?,
+      roomCategory: json['roomCategory'] as String?,
+      isMultiplayer: json['isMultiplayer'] as bool? ?? false,
       auditLogs: logs,
     );
   }

@@ -347,13 +347,16 @@ class _BoosterManagementSheet extends StatelessWidget {
 
                 const SizedBox(height: 10),
 
-                App3dButton(
+                App3dButton.icon(
                   onPressed: onOpenShop,
                   height: 44,
                   depth: 4,
                   borderRadius: 14,
                   variant: App3dButtonVariant.gold,
-                  label: '🛒 TIENDA DE POTENCIADORES',
+                  icon: Icons.storefront_rounded,
+                  iconColor: Colors.white,
+                  iconSize: 18,
+                  label: 'TIENDA DE POTENCIADORES',
                   textStyle: const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.w900,

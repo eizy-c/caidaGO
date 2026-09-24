@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../economy/rank_system.dart';
 import '../../../../core/presentation/widgets/app_3d_button.dart';
+import '../../../../core/theme/app_palette.dart';
 
 /// Modal animado que aparece cuando el jugador sube o baja de rango.
 class RankUpModal extends StatefulWidget {
@@ -89,9 +90,9 @@ class _RankUpModalState extends State<RankUpModal>
           child: Container(
             constraints: const BoxConstraints(maxWidth: 340),
             decoration: BoxDecoration(
-              color: const Color(0xFF1E1E1E),
+              color: AppPalette.cartoonBgDark,
               borderRadius: BorderRadius.circular(24),
-              border: Border.all(color: const Color(0xFF2E2E2E), width: 1.2),
+              border: Border.all(color: AppPalette.cartoonBorder, width: 2.2),
               boxShadow: const [
                 BoxShadow(
                   color: Colors.black54,
@@ -142,15 +143,22 @@ class _RankUpModalState extends State<RankUpModal>
                       color: accentColor.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: Text(
-                      widget.trophyDelta >= 0
-                          ? '+${widget.trophyDelta} 🏆'
-                          : '${widget.trophyDelta} 🏆',
-                      style: TextStyle(
-                        color: accentColor,
-                        fontSize: 22,
-                        fontWeight: FontWeight.w900,
-                      ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.emoji_events_rounded, color: accentColor, size: 22),
+                        const SizedBox(width: 6),
+                        Text(
+                          widget.trophyDelta >= 0
+                              ? '+${widget.trophyDelta}'
+                              : '${widget.trophyDelta}',
+                          style: TextStyle(
+                            color: accentColor,
+                            fontSize: 22,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
 
@@ -173,9 +181,16 @@ class _RankUpModalState extends State<RankUpModal>
                       ],
                     ),
                     const SizedBox(height: 4),
-                    const Text(
-                      'Marco desbloqueado ✔',
-                      style: TextStyle(color: Color(0xFF22C55E), fontSize: 13, fontWeight: FontWeight.w700),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: const [
+                        Icon(Icons.check_circle_rounded, color: Color(0xFF22C55E), size: 16),
+                        SizedBox(width: 5),
+                        Text(
+                          'Marco desbloqueado',
+                          style: TextStyle(color: Color(0xFF22C55E), fontSize: 13, fontWeight: FontWeight.w700),
+                        ),
+                      ],
                     ),
                   ],
 

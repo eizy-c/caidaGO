@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 
-/// Paleta de colores oficial de CaidaGO y GME basada en la especificación de diseño:
-/// - Cyan / Turquesa: #8BDCD7 (Acción principal, destacados vivos)
-/// - Olive / Verde Salvia: #999966 (Acciones secundarias, tutoriales, equilibrio)
-/// - Dark Slate / Charcoal: #232323 (Fondo profundo, contraste de texto oscuro, bases 3D)
-/// - Sand / Pergamino Claro: #D5D4BC (Fondos claros, superficies neutras, textos contrastados)
+/// Paleta de colores oficial unificada de CaidaGO y GME:
+/// Unificada bajo la atmósfera cartoon azul índigo / violeta vibrante.
 class AppPalette {
   AppPalette._();
 
@@ -28,17 +25,26 @@ class AppPalette {
   static const Color crimson = Color(0xFFEF4444);
   static const Color crimsonDark = Color(0xFFB91C1C);
 
-  // Nueva paleta Cartoon Azul/Púrpura (Multijugador, Ajustes, etc.)
-  static const Color cartoonBg = Color(0xFF3F38A8);
-  static const Color cartoonBgDark = Color(0xFF302B82);
-  static const Color cartoonSurface = Color(0xFF4D47B8);
-  static const Color cartoonCard = Color(0xFFE8ECFF);
-  static const Color cartoonCardText = Color(0xFF1E1B4B);
-  static const Color cartoonBorder = Color(0xFF27227D);
+  // Paleta Cartoon Azul Índigo / Púrpura Unificada (Toda la App)
+  static const Color cartoonBg = Color(0xFF3B32B0);
+  static const Color cartoonBgDark = Color(0xFF26206D);
+  static const Color cartoonSurface = Color(0xFF332A88);
+  static const Color cartoonCard = Color(0xFFDCE2FD);
+  static const Color cartoonCardDark = Color(0xFF2E267D);
+  static const Color cartoonCardText = Color(0xFF1E1763);
+  static const Color cartoonBorder = Color(0xFF1E1763);
   static const Color cartoonCyan = Color(0xFF22D3EE);
-  static const Color cartoonYellow = Color(0xFFFACC15);
-  static const Color cartoonYellowDark = Color(0xFFCA8A04);
-  static const Color cartoonRed = Color(0xFFE11D48);
+  static const Color cartoonYellow = Color(0xFFFBBF24);
+  static const Color cartoonYellowDark = Color(0xFFD97706);
+  static const Color cartoonRed = Color(0xFFEF4444);
+  static const Color cartoonGreen = Color(0xFF10B981);
+
+  /// Gradiente de fondo principal que unifica todas las vistas
+  static const LinearGradient mainBackground = LinearGradient(
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+    colors: [Color(0xFF3B32B0), Color(0xFF251E75)],
+  );
 
   /// Genera una tonalidad más oscura para la base extruida 3D (:before en CSS).
   static Color get3dEdgeColor(Color baseColor, [double factor = 0.28]) {
@@ -54,4 +60,3 @@ class AppPalette {
     return hsl.withLightness(lighterLightness).toColor();
   }
 }
-

@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'avatar_view.dart';
 import '../../economy/user_progress.dart';
+import '../../economy/trophy_session_manager.dart';
 
 /// Definición de un marco cosmético para el avatar del usuario.
 class UserFrameItem {
   final String id;
   final String name;
   final int minTrophies;
+  final int? requiredRoomId;
   final List<Color> borderGradient;
   final Color shadowColor;
   final double borderWidth;
@@ -18,6 +20,7 @@ class UserFrameItem {
     required this.id,
     required this.name,
     required this.minTrophies,
+    this.requiredRoomId,
     required this.borderGradient,
     required this.shadowColor,
     this.borderWidth = 3.5,
@@ -26,7 +29,12 @@ class UserFrameItem {
     this.imagePath,
   });
 
-  bool isUnlockedByTrophies(int trophies) => trophies >= minTrophies;
+  bool isUnlockedByTrophies(int trophies) {
+    if (requiredRoomId != null) {
+      return TrophySessionManager.shared.isRoomCompleted(requiredRoomId!);
+    }
+    return trophies >= minTrophies;
+  }
 
   static const List<UserFrameItem> allFrames = [
     UserFrameItem(
@@ -135,6 +143,94 @@ class UserFrameItem {
       crownIcon: Icons.star_rounded,
       description: 'Marco de rango Leyenda. 4500+ trofeos.',
       imagePath: 'assets/player/marcos/LEYENDA-MARCOS.png',
+    ),
+
+    // =========================================================================
+    // MARCOS REGIONALES DE VENEZUELA (DESBLOQUEADOS AL CONQUISTAR CADA SALA)
+    // =========================================================================
+    UserFrameItem(
+      id: 'frame_room_1',
+      name: 'Sala Chivacoa',
+      minTrophies: 15,
+      requiredRoomId: 1,
+      borderGradient: [Color(0xFF10B981), Color(0xFF059669), Color(0xFF047857)],
+      shadowColor: Color(0xFF064E3B),
+      borderWidth: 4.0,
+      crownIcon: Icons.terrain_rounded,
+      description: 'Desbloqueado al conquistar los 15 trofeos de Chivacoa.',
+      imagePath: 'assets/Tiers/box/1-SALAS.png',
+    ),
+    UserFrameItem(
+      id: 'frame_room_2',
+      name: 'Sala Barquisimeto',
+      minTrophies: 30,
+      requiredRoomId: 2,
+      borderGradient: [Color(0xFFF59E0B), Color(0xFFD97706), Color(0xFFB45309)],
+      shadowColor: Color(0xFF78350F),
+      borderWidth: 4.0,
+      crownIcon: Icons.wb_twilight_rounded,
+      description: 'Desbloqueado al conquistar los 30 trofeos de Barquisimeto.',
+      imagePath: 'assets/Tiers/box/2-SALAS.png',
+    ),
+    UserFrameItem(
+      id: 'frame_room_3',
+      name: 'Sala Tucacas',
+      minTrophies: 60,
+      requiredRoomId: 3,
+      borderGradient: [Color(0xFF06B6D4), Color(0xFF0891B2), Color(0xFF0E7490)],
+      shadowColor: Color(0xFF164E63),
+      borderWidth: 4.2,
+      crownIcon: Icons.waves_rounded,
+      description: 'Desbloqueado al conquistar los 60 trofeos de Tucacas.',
+      imagePath: 'assets/Tiers/box/3-SALAS.png',
+    ),
+    UserFrameItem(
+      id: 'frame_room_4',
+      name: 'Sala Maracaibo',
+      minTrophies: 75,
+      requiredRoomId: 4,
+      borderGradient: [Color(0xFFEF4444), Color(0xFFDC2626), Color(0xFFB91C1C)],
+      shadowColor: Color(0xFF7F1D1D),
+      borderWidth: 4.5,
+      crownIcon: Icons.flash_on_rounded,
+      description: 'Desbloqueado al conquistar los 75 trofeos de Maracaibo.',
+      imagePath: 'assets/Tiers/box/4-SALAS.png',
+    ),
+    UserFrameItem(
+      id: 'frame_room_5',
+      name: 'Sala Mérida',
+      minTrophies: 100,
+      requiredRoomId: 5,
+      borderGradient: [Color(0xFF38BDF8), Color(0xFF0284C7), Color(0xFF0369A1)],
+      shadowColor: Color(0xFF0C4A6E),
+      borderWidth: 4.5,
+      crownIcon: Icons.ac_unit_rounded,
+      description: 'Desbloqueado al conquistar los 100 trofeos de Mérida Páramo.',
+      imagePath: 'assets/Tiers/box/5-SALAS.png',
+    ),
+    UserFrameItem(
+      id: 'frame_room_6',
+      name: 'Sala Caracas',
+      minTrophies: 125,
+      requiredRoomId: 6,
+      borderGradient: [Color(0xFFA855F7), Color(0xFF9333EA), Color(0xFF7E22CE)],
+      shadowColor: Color(0xFF581C87),
+      borderWidth: 5.0,
+      crownIcon: Icons.location_city_rounded,
+      description: 'Desbloqueado al conquistar los 125 trofeos de Caracas.',
+      imagePath: 'assets/Tiers/box/6-SALAS.png',
+    ),
+    UserFrameItem(
+      id: 'frame_room_7',
+      name: 'Margarita VIP',
+      minTrophies: 250,
+      requiredRoomId: 7,
+      borderGradient: [Color(0xFFEAB308), Color(0xFFCA8A04), Color(0xFFA16207)],
+      shadowColor: Color(0xFF713F12),
+      borderWidth: 5.5,
+      crownIcon: Icons.casino_rounded,
+      description: 'Desbloqueado al conquistar los 250 trofeos de Margarita VIP.',
+      imagePath: 'assets/Tiers/box/7-SALAS.png',
     ),
   ];
 

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../economy/match_history_model.dart';
+import '../../../../core/presentation/widgets/cartoon_widgets.dart';
+import '../../../../core/theme/app_palette.dart';
 import 'table_auditor_panel.dart';
 
 /// Modal para consultar el historial de las últimas partidas jugadas
@@ -32,12 +34,12 @@ class MatchHistoryModal extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                colors: [Color(0xFF1E1E1E), Color(0xFF121212)],
+                colors: [Color(0xFF2E267D), Color(0xFF26206D)],
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
               ),
               borderRadius: const BorderRadius.vertical(top: Radius.circular(26)),
-              border: Border.all(color: const Color(0xFF2E2E2E), width: 1.0),
+              border: Border.all(color: AppPalette.cartoonBorder, width: 2.2),
               boxShadow: const [
                 BoxShadow(color: Colors.black87, blurRadius: 20, offset: Offset(0, -4)),
               ],
@@ -73,9 +75,18 @@ class MatchHistoryModal extends StatelessWidget {
                         ),
                       ],
                     ),
-                    IconButton(
-                      icon: const Icon(Icons.close_rounded, color: Colors.white70),
-                      onPressed: () => Navigator.of(context).pop(),
+                    TactilePressable(
+                      depth: 2.0,
+                      onTap: () => Navigator.of(context).pop(),
+                      child: Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          gradient: AppGradients.redDanger,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: AppPalette.cartoonBorder, width: 1.2),
+                        ),
+                        child: const Icon(Icons.close_rounded, color: Colors.white, size: 18),
+                      ),
                     ),
                   ],
                 ),
@@ -108,17 +119,17 @@ class MatchHistoryModal extends StatelessWidget {
                             return Container(
                               padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
-                                color: const Color(0xFF1E1E1E),
+                                color: AppPalette.cartoonCardDark,
                                 borderRadius: BorderRadius.circular(14),
                                 border: Border.all(
-                                  color: const Color(0xFF2E2E2E),
-                                  width: 1.0,
+                                  color: AppPalette.cartoonBorder,
+                                  width: 1.5,
                                 ),
                               ),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  // Fila superior: Victoria/Derrota, Modo y Fecha
+                                  // Fila superior: Victoria/Derrota, Modo, Sala/Multijugador y Fecha
                                   Row(
                                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                     children: [
@@ -158,7 +169,47 @@ class MatchHistoryModal extends StatelessWidget {
                                       ),
                                     ],
                                   ),
-                                  const SizedBox(height: 8),
+                                  const SizedBox(height: 6),
+
+                                  // Badge de Sala / Multijugador
+                                  if (m.roomName != null || m.isMultiplayer)
+                                    Padding(
+                                      padding: const EdgeInsets.only(bottom: 6),
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2.5),
+                                        decoration: BoxDecoration(
+                                          color: m.isMultiplayer
+                                              ? const Color(0xFF0284C7).withValues(alpha: 0.25)
+                                              : const Color(0xFFD97706).withValues(alpha: 0.25),
+                                          borderRadius: BorderRadius.circular(6),
+                                          border: Border.all(
+                                            color: m.isMultiplayer
+                                                ? const Color(0xFF38BDF8).withValues(alpha: 0.5)
+                                                : const Color(0xFFFDE047).withValues(alpha: 0.5),
+                                            width: 1,
+                                          ),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Text(
+                                              m.isMultiplayer ? '📶 ' : '🏛️ ',
+                                              style: const TextStyle(fontSize: 10),
+                                            ),
+                                            Text(
+                                              m.roomRegion != null
+                                                  ? '${m.roomName} (${m.roomRegion})'
+                                                  : (m.roomName ?? (m.isMultiplayer ? 'Multijugador Local' : 'Sala VIP')),
+                                              style: TextStyle(
+                                                color: m.isMultiplayer ? const Color(0xFF7DD3FC) : const Color(0xFFFDE047),
+                                                fontSize: 10,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
 
                                   // Marcador y Recompensas
                                   Row(
@@ -184,13 +235,24 @@ class MatchHistoryModal extends StatelessWidget {
                                             const SizedBox(width: 8),
                                           ],
                                           if (m.trophyDelta != 0) ...[
-                                            Text(
-                                              m.trophyDelta > 0 ? '+${m.trophyDelta} 🏆' : '${m.trophyDelta} 🏆',
-                                              style: TextStyle(
-                                                color: m.trophyDelta > 0 ? const Color(0xFF22C55E) : const Color(0xFFEF4444),
-                                                fontSize: 11,
-                                                fontWeight: FontWeight.w900,
-                                              ),
+                                            Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Icon(
+                                                  Icons.emoji_events_rounded,
+                                                  size: 11,
+                                                  color: m.trophyDelta > 0 ? const Color(0xFF22C55E) : const Color(0xFFEF4444),
+                                                ),
+                                                const SizedBox(width: 2),
+                                                Text(
+                                                  m.trophyDelta > 0 ? '+${m.trophyDelta}' : '${m.trophyDelta}',
+                                                  style: TextStyle(
+                                                    color: m.trophyDelta > 0 ? const Color(0xFF22C55E) : const Color(0xFFEF4444),
+                                                    fontSize: 11,
+                                                    fontWeight: FontWeight.w900,
+                                                  ),
+                                                ),
+                                              ],
                                             ),
                                           ],
                                         ],
@@ -203,20 +265,26 @@ class MatchHistoryModal extends StatelessWidget {
                                   Row(
                                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                     children: [
-                                      Text(
-                                        '${m.caidasCount} Caídas • ${m.limpiasCount} Limpias • ${m.cantosCount} Cantos',
-                                        style: const TextStyle(color: Colors.white54, fontSize: 10.5),
+                                      Expanded(
+                                        child: Text(
+                                          '${m.caidasCount} Caídas • ${m.limpiasCount} Limpias • ${m.cantosCount} Cantos',
+                                          style: const TextStyle(color: Colors.white54, fontSize: 10.5),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
                                       ),
-                                      GestureDetector(
+                                      const SizedBox(width: 8),
+                                      TactilePressable(
+                                        depth: 2.0,
                                         onTap: () {
                                           TableAuditorPanel.show(context, auditLogs: m.auditLogs);
                                         },
                                         child: Container(
                                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                           decoration: BoxDecoration(
-                                            color: const Color(0xFF242424),
+                                            color: AppPalette.cartoonBgDark,
                                             borderRadius: BorderRadius.circular(8),
-                                            border: Border.all(color: const Color(0xFF2E2E2E), width: 1),
+                                            border: Border.all(color: AppPalette.cartoonBorder, width: 1.2),
                                           ),
                                           child: const Row(
                                             mainAxisSize: MainAxisSize.min,

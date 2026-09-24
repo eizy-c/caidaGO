@@ -94,13 +94,7 @@ class SpanishCardView extends StatelessWidget {
       CardSuit.copas => 'C',
       CardSuit.espadas => 'E',
     };
-    final rankChar = switch (card.number) {
-      10 => 'S',
-      11 => 'C',
-      12 => 'R',
-      _ => '${card.number}',
-    };
-    return 'assets/cards/$folderName/$suitPrefix-$rankChar-CARD.png';
+    return 'assets/cards/$folderName/$suitPrefix-${card.number}-CARD.png';
   }
 
   /// Precarga todos los 40 naipes de la baraja y el reverso en la memoria GPU (ImageCache de Flutter).

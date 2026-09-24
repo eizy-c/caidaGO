@@ -2,6 +2,8 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../../core/presentation/widgets/app_3d_button.dart';
+import '../../../../core/presentation/widgets/cartoon_widgets.dart';
+import '../../../../core/theme/app_palette.dart';
 import '../../economy/player_session.dart';
 
 /// Modal para personalizar los nombres de los 3 bots (IA) rivales y compañeros en La Caída.
@@ -188,16 +190,16 @@ class _BotCustomizationModalState extends State<BotCustomizationModal> {
           decoration: BoxDecoration(
             gradient: const LinearGradient(
               colors: [
-                Color(0xFF1E1E1E),
-                Color(0xFF121212),
+                Color(0xFF2E267D),
+                Color(0xFF26206D),
               ],
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
             ),
             borderRadius: BorderRadius.circular(24),
             border: Border.all(
-              color: const Color(0xFF2E2E2E),
-              width: 1.0,
+              color: AppPalette.cartoonBorder,
+              width: 2.2,
             ),
             boxShadow: const [
               BoxShadow(
@@ -256,7 +258,7 @@ class _BotCustomizationModalState extends State<BotCustomizationModal> {
                         icon: Icons.casino_rounded,
                         iconColor: const Color(0xFFFDE68A),
                         iconSize: 18,
-                        label: '🎲 Aleatorio Criollo',
+                        label: 'Aleatorio Criollo',
                         variant: App3dButtonVariant.dark,
                         depth: 4,
                         borderRadius: 12,
@@ -325,10 +327,18 @@ class _BotCustomizationModalState extends State<BotCustomizationModal> {
               ],
             ),
           ),
-          IconButton(
-            onPressed: () => Navigator.of(context).pop(),
-            icon: const Icon(Icons.close_rounded, color: Colors.white70, size: 22),
-            tooltip: 'Cerrar',
+          TactilePressable(
+            depth: 2.0,
+            onTap: () => Navigator.of(context).pop(),
+            child: Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                gradient: AppGradients.redDanger,
+                shape: BoxShape.circle,
+                border: Border.all(color: AppPalette.cartoonBorder, width: 1.2),
+              ),
+              child: const Icon(Icons.close_rounded, color: Colors.white, size: 18),
+            ),
           ),
         ],
       ),
@@ -348,9 +358,9 @@ class _BotCustomizationModalState extends State<BotCustomizationModal> {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: const Color(0xFF222222),
+        color: AppPalette.cartoonCardDark,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFF2E2E2E), width: 1.0),
+        border: Border.all(color: AppPalette.cartoonBorder, width: 1.5),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

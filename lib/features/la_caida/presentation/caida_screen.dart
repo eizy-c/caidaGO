@@ -10,6 +10,8 @@ import '../../../core/presentation/widgets/spanish_card_view.dart';
 import '../../../core/presentation/widgets/table_player_badge.dart';
 import '../../../core/presentation/widgets/wood_table_background.dart';
 import '../../../core/presentation/widgets/app_3d_button.dart';
+import '../../../core/presentation/widgets/cartoon_widgets.dart';
+import '../../../core/theme/app_palette.dart';
 import '../../../core/services/audio_service.dart';
 import '../../../core/services/debug_logger.dart';
 import '../../../core/services/feedback_service.dart';
@@ -17,6 +19,7 @@ import '../../../core/services/haptic_service.dart';
 import '../../../core/services/user_profile_service.dart';
 import '../domain/caida_models.dart';
 import '../domain/caida_rules_engine.dart';
+import '../domain/caida_ai_engine.dart';
 import '../domain/models/caida_match_config.dart';
 import '../domain/models/mano_draw_session.dart';
 import '../domain/models/match_play_tracker.dart';
@@ -31,6 +34,8 @@ import '../economy/booster_model.dart';
 import '../economy/daily_challenge_system.dart';
 import '../economy/achievement_catalog.dart';
 import '../economy/vip_tier.dart';
+import '../economy/venezuela_room_tier.dart';
+import '../economy/trophy_session_manager.dart';
 import '../economy/match_history_model.dart';
 import 'widgets/game_toast_queue.dart';
 import 'widgets/table_auditor_panel.dart';
@@ -40,7 +45,11 @@ import 'widgets/card_flight_overlay.dart';
 import 'widgets/deck_stack_view.dart';
 import 'widgets/table_canto_dialog.dart';
 import 'widgets/privacy_policy_dialog.dart';
+import 'widgets/multiplayer_chat_drawer.dart';
 import 'caida_lobby_screen.dart';
+import '../multiplayer/domain/multiplayer_models.dart';
+import '../multiplayer/network/local_game_client.dart';
+import '../multiplayer/network/local_game_host.dart';
 
 class _PlayerState {
   final String id;
@@ -136,7 +145,7 @@ class CaidaScreen extends StatefulWidget {
   State<CaidaScreen> createState() => _CaidaScreenState();
 }
 
-class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin {
+class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin, WidgetsBindingObserver {
   late SpanishDeck _deck;
   late List<_PlayerState> _players;
   final List<SpanishCard> _tableCards = [];
@@ -153,10 +162,18 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
   bool _isTeams = false;
   int _currentTurnIndex = 0;
   bool _isGameOver = false;
+  bool _isAppInBackground = false;
 
   // Mano actual y ronda
   int _manoIndex = 0; // Índice del jugador que es Mano (juega primero)
   int _roundNumber = 1; // Contador de rondas de la partida
+
+  // Helpers de Red Multijugador
+  int get _myLocalSeatIndex => widget.config?.localSeatIndex ?? 0;
+  LocalGameHost? get _host => widget.config?.host;
+  LocalGameClient? get _client => widget.config?.client;
+  bool get _isHostDevice => _host != null;
+  bool get _isClientDevice => _client != null && _host == null;
 
   // Sistema de Nivel
   int _userLevel = 1;
@@ -239,6 +256,11 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
   final List<Timer> _cantoAudioTimers = [];
   final List<Timer> _pendingAsyncTimers = [];
 
+  // Chat lateral deslizable (exclusivo para Multijugador)
+  bool _isChatDrawerOpen = false;
+  late AnimationController _chatSlideController;
+  late Animation<Offset> _chatSlideAnimation;
+
   Future<void> _safeDelay(Duration duration) {
     if (!mounted) return Future.value();
     final completer = Completer<void>();
@@ -260,20 +282,27 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
   List<String>? get _effectiveBotNames =>
       widget.config?.botNames ?? widget.botNames ?? PlayerSession.shared.botNames;
   VipTierOffer? get _vipTier => widget.config?.vipTier ?? widget.vipTier;
+  VenezuelaRoomTier? get _venezuelaRoom => widget.config?.venezuelaRoom;
   int? get _vipPrizePool => widget.config?.vipPrizePool ?? widget.vipPrizePool;
   int? get _vipWinnerReward => widget.config?.vipWinnerReward ?? widget.vipWinnerReward;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _playerCount = _effectivePlayers.clamp(2, 4);
     _botCount = (_playerCount - 1).clamp(1, 3);
     _hasGameStarted = _effectiveAutoStart;
     _isTeams = _effectiveTeams;
 
+    if (widget.config?.isMultiplayer == true || _host != null || _client != null) {
+      _isMultiplayerNetwork = true;
+      _setupMultiplayerNetwork();
+    }
+
     _timerController = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 12),
+      duration: const Duration(seconds: 15),
     )..addStatusListener((status) {
         if (status == AnimationStatus.completed) {
           _onTurnTimeout();
@@ -291,6 +320,19 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
         }
       });
 
+    _chatSlideController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 260),
+    );
+    _chatSlideAnimation = Tween<Offset>(
+      begin: const Offset(1.0, 0.0),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(
+      parent: _chatSlideController,
+      curve: Curves.easeOutCubic,
+      reverseCurve: Curves.easeInCubic,
+    ));
+
     // Inicializar jugadores mínimos para evitar excepciones de índice antes de iniciar
     final initialUserName = _effectiveUserName ?? 'Tú';
     _setupPlayers(
@@ -305,8 +347,119 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
         _isTeams,
         initialUserName,
         animate: _effectiveAnimateDealing,
-        startWithManoSelection: _effectiveChooseMano,
+        startWithManoSelection: _effectiveChooseMano && !_isClientDevice,
       );
+    }
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive) {
+      _isAppInBackground = true;
+    } else if (state == AppLifecycleState.resumed) {
+      _isAppInBackground = false;
+      if (mounted) setState(() {});
+    }
+  }
+
+  void _setupMultiplayerNetwork() {
+    if (_isHostDevice) {
+      _host!.onClientMessageReceived = (msg, playerId) {
+        _handleHostClientMessage(msg, playerId);
+      };
+      _host!.onPlayerDisconnected = (playerId) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Un rival se desconectó de la mesa.'),
+              backgroundColor: Color(0xFFF59E0B),
+            ),
+          );
+        }
+      };
+    } else if (_isClientDevice) {
+      _client!.onMessageReceived = (msg) {
+        _handleClientMessage(msg);
+      };
+      _client!.onDisconnected = () {
+        if (mounted && !_isGameOver) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Conexión con el anfitrión cerrada.'),
+              backgroundColor: Color(0xFFEF4444),
+            ),
+          );
+        }
+      };
+    }
+  }
+
+  void _handleHostClientMessage(NetworkGameMessage msg, String playerId) {
+    if (msg.type == 'PLAY_CARD_REQUEST') {
+      final seatIndex = msg.data['seatIndex'] as int?;
+      final cardMap = msg.data['card'] as Map<String, dynamic>?;
+      if (seatIndex != null && cardMap != null && seatIndex == _currentTurnIndex) {
+        final card = SpanishCard.fromJson(cardMap);
+        final player = _players[seatIndex];
+        final matchingCard = player.hand.where((c) => c.shortCode == card.shortCode).firstOrNull;
+        if (matchingCard != null) {
+          _playCard(player, matchingCard);
+        }
+      }
+    }
+  }
+
+  void _handleClientMessage(NetworkGameMessage msg) {
+    if (msg.type == 'DEAL_CARDS') {
+      final handsMap = msg.data['hands'] as Map<String, dynamic>?;
+      final tableList = msg.data['tableCards'] as List?;
+      final mano = msg.data['manoIndex'] as int? ?? 0;
+      final dirName = msg.data['cantoDirection'] as String? ?? 'ascending';
+
+      _manoIndex = mano;
+      _cantoDirection = dirName == 'descending' ? DealDirection.descending : DealDirection.ascending;
+
+      if (handsMap != null) {
+        for (int i = 0; i < _players.length; i++) {
+          final rawCards = handsMap[i.toString()] as List?;
+          if (rawCards != null) {
+            _players[i].hand = rawCards
+                .map((c) => SpanishCard.fromJson(c as Map<String, dynamic>))
+                .toList();
+          }
+        }
+      }
+
+      if (tableList != null) {
+        _tableCards.clear();
+        _placedTableCards.clear();
+        for (final raw in tableList) {
+          final card = SpanishCard.fromJson(raw as Map<String, dynamic>);
+          _tableCards.add(card);
+          _placedTableCards.add(_computePlacementForCard(card));
+        }
+      }
+
+      _onDealingCompleted();
+      if (mounted) setState(() {});
+    } else if (msg.type == 'CARD_PLAYED') {
+      final seatIndex = msg.data['seatIndex'] as int?;
+      final cardMap = msg.data['card'] as Map<String, dynamic>?;
+      if (seatIndex != null && cardMap != null && seatIndex < _players.length) {
+        final card = SpanishCard.fromJson(cardMap);
+        final player = _players[seatIndex];
+        final matchingCard = player.hand.where((c) => c.shortCode == card.shortCode).firstOrNull ?? card;
+        if (!player.hand.contains(matchingCard)) {
+          player.hand.add(matchingCard);
+        }
+        _playCard(player, matchingCard);
+      }
+    } else if (msg.type == 'CANTO_DECLARED') {
+      final seatIndex = msg.data['seatIndex'] as int?;
+      final cantoText = msg.data['canto'] as String?;
+      if (seatIndex != null && cantoText != null && seatIndex < _players.length) {
+        _triggerCallout(_players[seatIndex], cantoText);
+      }
     }
   }
 
@@ -318,12 +471,19 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    if (_isHostDevice) {
+      _host?.stopServer();
+    } else if (_isClientDevice) {
+      _client?.disconnect();
+    }
     for (final t in _pendingAsyncTimers) {
       t.cancel();
     }
     _pendingAsyncTimers.clear();
     _timerController.dispose();
     _dealingController.dispose();
+    _chatSlideController.dispose();
     _botTimer?.cancel();
     _finishTimer?.cancel();
     for (final t in _cantoAudioTimers) {
@@ -342,7 +502,14 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
     }
   }
 
-  void _initMatch(int count, bool teams, String userName, {bool? animate, bool startWithManoSelection = false}) {
+  Future<void> _initMatch(
+    int count,
+    bool teams,
+    String userName, {
+    bool? animate,
+    bool startWithManoSelection = false,
+    int? startingManoIndex,
+  }) async {
     for (final t in _pendingAsyncTimers) {
       t.cancel();
     }
@@ -372,8 +539,25 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
     if (startWithManoSelection) {
       _startManoSelection(animate: animate ?? widget.animateDealing);
     } else {
-      _manoIndex = 0;
+      final targetMano = startingManoIndex ?? 0;
+      setState(() {
+        _manoIndex = targetMano;
+      });
       final shouldAnimate = animate ?? widget.animateDealing;
+
+      if (_manoIndex == 0) {
+        // Si el usuario es la Mano, permitirle elegir cómo comenzar el conteo (1..4 o 4..1)
+        await Future<void>.delayed(const Duration(milliseconds: 150));
+        if (!mounted) return;
+        final dir = await TableCantoDialog.show(context);
+        if (dir != null && mounted) {
+          setState(() => _cantoDirection = dir);
+        }
+      } else {
+        _cantoDirection = DealDirection.ascending;
+      }
+
+      if (!mounted) return;
       _startDeal(isFirstRound: true, animate: shouldAnimate);
     }
   }
@@ -572,14 +756,26 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
             : (userName.isNotEmpty ? userName : profileService.name));
 
     // 1. Asiento 0: Jugador local (abajo en pantalla con avatar y marco personalizado)
+    final customAvatars = widget.config?.playerAvatarIds;
+    final customFrames = widget.config?.playerFrameIds;
+    final customNames = widget.config?.playerNames;
+    final customIsBots = widget.config?.playerIsBots;
+
+    final userAvatarId = (customAvatars != null && customAvatars.isNotEmpty)
+        ? customAvatars[0]
+        : session.avatarIndex;
+    final userFrameId = (customFrames != null && customFrames.isNotEmpty)
+        ? customFrames[0]
+        : session.selectedFrameId;
+
     _players.add(_PlayerState(
       id: 'user',
       name: effectiveUserName,
       isBot: false,
       color: const Color(0xFF38BDF8),
       teamId: teams ? 1 : 0,
-      avatarId: session.avatarIndex,
-      frameId: session.selectedFrameId,
+      avatarId: userAvatarId,
+      frameId: userFrameId,
       level: _userLevel,
     ));
 
@@ -600,17 +796,33 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
 
     for (int i = 1; i <= rivalCount; i++) {
       final isTeammate = (totalPlayers == 4 && teams && i == 2);
-      final rawName = effectiveBotNames[(i - 1) % effectiveBotNames.length];
+      final rawName = (customNames != null && i < customNames.length)
+          ? customNames[i]
+          : effectiveBotNames[(i - 1) % effectiveBotNames.length];
       final playerName = isTeammate ? '$rawName (Compañero)' : rawName;
+
+      final rivalAvatarId = (customAvatars != null && i < customAvatars.length)
+          ? customAvatars[i]
+          : botAvatars[(i - 1) % botAvatars.length];
+
+      final rivalFrameId = (customFrames != null && i < customFrames.length)
+          ? customFrames[i]
+          : botFrames[(i - 1) % botFrames.length];
+
+      final bool isBotPlayer = (customIsBots != null && i < customIsBots.length)
+          ? customIsBots[i]
+          : (rawName.contains('(Bot)') ||
+              rawName.startsWith('Bot ') ||
+              (!_isMultiplayerNetwork && customNames == null));
 
       _players.add(_PlayerState(
         id: 'player_$i',
         name: playerName,
-        isBot: !_isMultiplayerNetwork,
+        isBot: isBotPlayer,
         color: botColors[(i - 1) % botColors.length],
         teamId: teams ? (i % 2 == 0 ? 1 : 2) : i,
-        avatarId: botAvatars[(i - 1) % botAvatars.length],
-        frameId: botFrames[(i - 1) % botFrames.length],
+        avatarId: rivalAvatarId,
+        frameId: rivalFrameId,
         level: (session.level - 1 + i).clamp(1, 10),
       ));
     }
@@ -746,6 +958,8 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
     final bool isLastHandOfDeck = _deck.remainingCount == _players.length * 3;
     if (isLastHandOfDeck) {
       AudioService().playUltimas();
+      await _safeDelay(const Duration(milliseconds: 650));
+      if (!mounted) return;
     }
 
     // 1. Repartir 1 carta a la vez en sentido horario comenzando desde el jugador que es Mano (3 vueltas)
@@ -801,6 +1015,8 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
       } else {
         AudioService().playCuatro();
       }
+      await _safeDelay(const Duration(milliseconds: 450));
+      if (!mounted) return;
 
       final dealResult = CaidaRulesEngine.dealInitialTable(
         direction: _cantoDirection,
@@ -859,6 +1075,22 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
       if (_checkGameOver()) return;
     }
 
+    if (_isHostDevice) {
+      _host?.broadcastMessage(NetworkGameMessage(
+        type: 'DEAL_CARDS',
+        data: {
+          'round': _roundNumber,
+          'hands': {
+            for (int i = 0; i < _players.length; i++)
+              i.toString(): _players[i].hand.map((c) => c.toJson()).toList(),
+          },
+          'tableCards': _tableCards.map((c) => c.toJson()).toList(),
+          'manoIndex': _manoIndex,
+          'cantoDirection': _cantoDirection.name,
+        },
+      ));
+    }
+
     _isDealing = false;
     _onDealingCompleted();
   }
@@ -881,7 +1113,7 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
 
     if (activePlayer.isBot) {
       _botTimer?.cancel();
-      _botTimer = Timer(const Duration(milliseconds: 900), () {
+      _botTimer = Timer(const Duration(milliseconds: 650), () {
         if (mounted && !_isGameOver && _currentTurnIndex == _players.indexOf(activePlayer)) {
           _botPlay(activePlayer);
         }
@@ -916,34 +1148,57 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
         dealerId: _players[_manoIndex].id,
       );
 
-      for (final p in _players) {
-        p.cardsWon = res.totalCardsWon[p.id] ?? p.cardsWon;
-        p.score = res.updatedScores[p.id] ?? p.score;
-        final vol = res.volumeBonusPoints[p.id] ?? 0;
-        if (vol > 0) {
-          _triggerCallout(p, 'Volumen (+$vol pts)');
-          final isUserTeam = p.id == 'user' || (_isTeams && p.teamId == _players[0].teamId);
-          _addAuditLog(
-            playerName: p.name,
-            type: AuditEntryType.puntos,
-            description: 'Excedente de cartas al contar a 20: ${p.cardsWon} cartas recogidas (+$vol pts)',
-            points: vol,
-            isUserTeam: isUserTeam,
-          );
-        }
-      }
-
       if (_isTeams) {
-        // Asegurar que los puntos y cartas recogidas sean exactamente iguales para ambos miembros del equipo
+        // En parejas, el conteo de cartas y el excedente a 20 se calcula y audita POR EQUIPO (no por jugador individual)
         for (int team = 1; team <= 2; team++) {
           final teamPlayers = _players.where((pl) => pl.teamId == team).toList();
           if (teamPlayers.isNotEmpty) {
-            final maxScore = teamPlayers.map((pl) => pl.score).reduce(math.max);
-            final maxCards = teamPlayers.map((pl) => pl.cardsWon).reduce(math.max);
+            final representative = teamPlayers.first;
+            final maxCards = teamPlayers
+                .map((pl) => res.totalCardsWon[pl.id] ?? pl.cardsWon)
+                .reduce(math.max);
+            final updatedScore = teamPlayers
+                .map((pl) => res.updatedScores[pl.id] ?? pl.score)
+                .reduce(math.max);
+            final vol = res.volumeBonusPoints[representative.id] ?? 0;
+
             for (final pl in teamPlayers) {
-              pl.score = maxScore;
+              pl.score = updatedScore;
               pl.cardsWon = maxCards;
             }
+
+            if (vol > 0) {
+              final isUserTeam = team == _players[0].teamId;
+              final teamLabel = isUserTeam ? 'Tu Equipo' : 'Equipo Rival';
+              // Callout visual una sola vez por equipo para no duplicar puntos
+              _triggerCallout(isUserTeam ? _players[0] : representative, 'Volumen (+$vol pts)');
+              // Registro de auditoría único por equipo
+              _addAuditLog(
+                playerName: teamLabel,
+                type: AuditEntryType.puntos,
+                description: 'Excedente de cartas al contar a 20: $maxCards cartas del equipo (+$vol pts)',
+                points: vol,
+                isUserTeam: isUserTeam,
+              );
+            }
+          }
+        }
+      } else {
+        // Modo individual (1 vs 1)
+        for (final p in _players) {
+          p.cardsWon = res.totalCardsWon[p.id] ?? p.cardsWon;
+          p.score = res.updatedScores[p.id] ?? p.score;
+          final vol = res.volumeBonusPoints[p.id] ?? 0;
+          if (vol > 0) {
+            _triggerCallout(p, 'Volumen (+$vol pts)');
+            final isUserTeam = p.id == 'user';
+            _addAuditLog(
+              playerName: p.name,
+              type: AuditEntryType.puntos,
+              description: 'Excedente de cartas al contar a 20: ${p.cardsWon} cartas recogidas (+$vol pts)',
+              points: vol,
+              isUserTeam: isUserTeam,
+            );
           }
         }
       }
@@ -1109,12 +1364,48 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
   void _resetTurnTimer() {
     _timerController.reset();
     _timerController.forward();
+
+    // Si la app está minimizada en segundo plano cuando le toca el turno al usuario local,
+    // programar auto-jugada para no congelar la partida a los rivales
+    final isMyTurn = _isMultiplayerNetwork
+        ? _currentTurnIndex == _myLocalSeatIndex
+        : _currentTurnIndex == 0;
+    if (_isAppInBackground && isMyTurn) {
+      Timer(const Duration(seconds: 3), () {
+        if (mounted && _isAppInBackground && !_isGameOver && !_isProcessingPlay) {
+          final currentIsMyTurn = _isMultiplayerNetwork
+              ? _currentTurnIndex == _myLocalSeatIndex
+              : _currentTurnIndex == 0;
+          if (currentIsMyTurn) {
+            _onTurnTimeout();
+          }
+        }
+      });
+    }
   }
 
   void _onTurnTimeout() {
     final active = _players[_currentTurnIndex];
     if (active.hand.isNotEmpty) {
-      _playCard(active, active.hand.first);
+      if (active.isBot) {
+        _botPlay(active);
+      } else {
+        final chosen = _chooseBestBotCard(active);
+        if (_isClientDevice) {
+          _client?.sendMessage(NetworkGameMessage(
+            type: 'PLAY_CARD_REQUEST',
+            data: {
+              'seatIndex': _currentTurnIndex,
+              'card': chosen.toJson(),
+            },
+          ));
+        } else {
+          _playCard(active, chosen);
+        }
+        if (mounted) {
+          _triggerCallout(active, '⏰ Auto (${chosen.displayName})');
+        }
+      }
     }
   }
 
@@ -1122,12 +1413,29 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
   /// 1. Si no estaba seleccionada: la selecciona individualmente.
   /// 2. Si ya estaba seleccionada: confirma y la juega a la mesa.
   void _onUserCardTap(SpanishCard card) {
-    if (_currentTurnIndex != 0 || _isGameOver || _isDealing || _isChoosingMano || _isProcessingPlay) return;
+    if (_isGameOver || _isDealing || _isChoosingMano || _isProcessingPlay) return;
+    final isMyTurn = _isMultiplayerNetwork
+        ? _currentTurnIndex == _myLocalSeatIndex
+        : _currentTurnIndex == 0;
+    if (!isMyTurn) return;
 
     if (_selectedCard == card) {
       // Segundo toque en la misma carta -> Jugar
       HapticService.instance.onCardPlay();
-      _playCard(_players[0], card);
+      if (_isClientDevice) {
+        _client?.sendMessage(NetworkGameMessage(
+          type: 'PLAY_CARD_REQUEST',
+          data: {
+            'seatIndex': _myLocalSeatIndex,
+            'card': card.toJson(),
+          },
+        ));
+        setState(() {
+          _selectedCard = null;
+        });
+      } else {
+        _playCard(_players[_myLocalSeatIndex], card);
+      }
     } else {
       // Primer toque -> Seleccionar únicamente esta carta
       HapticService.instance.onSelection();
@@ -1145,6 +1453,19 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
     _botTimer?.cancel();
     _timerController.stop();
 
+    final playerIdx = _players.indexOf(player);
+
+    // Si somos el Host, difundir la jugada a todos los clientes de la sala
+    if (_isHostDevice) {
+      _host?.broadcastMessage(NetworkGameMessage(
+        type: 'CARD_PLAYED',
+        data: {
+          'seatIndex': playerIdx,
+          'card': card.toJson(),
+        },
+      ));
+    }
+
     final previousCard = (_lastPlayedPlayerIndex != null && _lastPlayedPlayerIndex != _currentTurnIndex)
         ? _lastPlayedCard
         : null;
@@ -1156,7 +1477,6 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
       isDeckEmpty: _deck.isEmpty,
     );
 
-    final playerIdx = _players.indexOf(player);
     final isUser = playerIdx == 0;
     final handIndex = player.hand.indexOf(card);
 
@@ -1240,7 +1560,8 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
           HapticService.instance.onCaida();
         }
         if (eval.isLimpia) {
-          _safeDelay(const Duration(milliseconds: 400)).then((_) {
+          final limpiaDelay = eval.isCaida ? 520 : 0;
+          _safeDelay(Duration(milliseconds: limpiaDelay)).then((_) {
             if (mounted) {
               AudioService().playMesaLimpia();
               HapticService.instance.onCaida();
@@ -1369,18 +1690,6 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
           description: 'Recogió ${eval.capturedCards.length} cartas con ${card.displayName}',
         );
       }
-
-      if (eval.isCaida && eval.isLimpia) {
-        AudioService().playCaida();
-        AudioService().playMesaLimpia();
-        HapticService.instance.onCaida();
-      } else if (eval.isCaida) {
-        AudioService().playCaida();
-        HapticService.instance.onCaida();
-      } else if (eval.isLimpia) {
-        AudioService().playMesaLimpia();
-        HapticService.instance.onCaida();
-      }
     }
 
     _lastPlayedCard = card;
@@ -1414,7 +1723,7 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
 
     if (nextPlayer.isBot) {
       _botTimer?.cancel();
-      _botTimer = Timer(const Duration(milliseconds: 900), () {
+      _botTimer = Timer(const Duration(milliseconds: 650), () {
         if (mounted && !_isGameOver && _currentTurnIndex == _players.indexOf(nextPlayer)) {
           _botPlay(nextPlayer);
         }
@@ -1422,20 +1731,27 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
     }
   }
 
+  SpanishCard _chooseBestBotCard(_PlayerState player) {
+    final previousCard = (_lastPlayedPlayerIndex != null && _lastPlayedPlayerIndex != _currentTurnIndex)
+        ? _lastPlayedCard
+        : null;
+    final previousPlayer = (_lastPlayedPlayerIndex != null && _lastPlayedPlayerIndex! >= 0 && _lastPlayedPlayerIndex! < _players.length)
+        ? _players[_lastPlayedPlayerIndex!]
+        : null;
+    final isPreviousPlayerTeammate = _isTeams && previousPlayer != null && previousPlayer.teamId == player.teamId;
+
+    return CaidaAiEngine.chooseBestCard(
+      hand: player.hand,
+      tableCards: _tableCards,
+      previousCard: previousCard,
+      isDeckEmpty: _deck.isEmpty,
+      isPreviousPlayerTeammate: isPreviousPlayerTeammate,
+    );
+  }
+
   void _botPlay(_PlayerState bot) {
     if (bot.hand.isEmpty) return;
-
-    SpanishCard chosen = bot.hand.first;
-    for (final c in bot.hand) {
-      if (_lastPlayedCard != null && c.number == _lastPlayedCard!.number) {
-        chosen = c;
-        break;
-      }
-      if (_tableCards.any((tc) => tc.number == c.number)) {
-        chosen = c;
-      }
-    }
-
+    final chosen = _chooseBestBotCard(bot);
     _playCard(bot, chosen);
   }
 
@@ -1513,8 +1829,28 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
     int vipCoinsWon = 0;
     bool chestAwarded = false;
     int? chestSlotIndex;
-
-    if (_vipTier != null) {
+    if (_venezuelaRoom != null) {
+      TrophySessionManager.shared.processMatchResult(
+        roomId: _venezuelaRoom!.id,
+        isWinner: userWon,
+        mode: _isTeams ? GameMode.teams2v2 : GameMode.duel1v1,
+      );
+      if (userWon) {
+        int baseWinCoins = _vipWinnerReward ?? _venezuelaRoom!.getPrizePerWinner(_isTeams ? GameMode.teams2v2 : GameMode.duel1v1);
+        if (hasCoinsBooster) {
+          baseWinCoins = (baseWinCoins * 1.5).round(); // Lluvia de Monedas: +50%
+        }
+        vipCoinsWon = baseWinCoins;
+        session.rewardCoins(vipCoinsWon, xpGain: xpGained);
+        chestAwarded = session.addChestOnWin();
+        if (chestAwarded) {
+          chestSlotIndex = session.chests.indexWhere((c) => c.getState() == ChestState.unlocking);
+          if (chestSlotIndex == -1) chestSlotIndex = 0;
+        }
+      } else {
+        session.addXp(xpGained);
+      }
+    } else if (_vipTier != null) {
       if (userWon) {
         int baseWinCoins = _vipWinnerReward ?? _vipTier!.calculateNetPrizePerWinner(isTeams: _isTeams);
         if (hasCoinsBooster) {
@@ -1647,6 +1983,27 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
     final userTeamCards = userTeamPlayers.isNotEmpty ? userTeamPlayers.map((p) => p.totalMatchCardsWon).reduce(math.max) : _players[0].totalMatchCardsWon;
     final oppTeamCards = oppTeamPlayers.isNotEmpty ? oppTeamPlayers.map((p) => p.totalMatchCardsWon).reduce(math.max) : (sorted.length > 1 ? sorted[1].totalMatchCardsWon : 0);
 
+    int roomTrophyDelta = trophyDelta;
+    String? currentRoomName;
+    String? currentRoomRegion;
+    String? currentCategory;
+    final isMultiplayerMatch = widget.config?.isMultiplayer ?? false;
+
+    if (_venezuelaRoom != null) {
+      currentRoomName = _venezuelaRoom!.name;
+      currentRoomRegion = _venezuelaRoom!.region;
+      currentCategory = 'Sala VIP';
+      roomTrophyDelta = userWon ? _venezuelaRoom!.winTrophies : -(_venezuelaRoom!.lossTrophies.abs());
+    } else if (isMultiplayerMatch) {
+      currentRoomName = 'Multijugador Local';
+      currentCategory = 'Multijugador';
+    } else if (_vipTier != null) {
+      currentRoomName = _vipTier!.name;
+      currentCategory = 'Mesa VIP';
+    } else {
+      currentCategory = 'Casual';
+    }
+
     // Guardar partida en el historial persistente
     MatchHistoryStorage.instance.saveMatch(
       MatchHistoryEntry(
@@ -1658,10 +2015,14 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
         opponentScore: oppTeamScore,
         coinsEarned: userWon ? vipCoinsWon : 0,
         xpEarned: xpGained,
-        trophyDelta: trophyDelta,
+        trophyDelta: roomTrophyDelta,
         caidasCount: _matchUserCaidas,
         limpiasCount: _matchUserLimpias,
         cantosCount: _matchUserCantos,
+        roomName: currentRoomName,
+        roomRegion: currentRoomRegion,
+        roomCategory: currentCategory,
+        isMultiplayer: isMultiplayerMatch,
         auditLogs: List.from(_matchAuditLogs),
       ),
     );
@@ -1672,10 +2033,19 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
     _finishTimer = Timer(const Duration(milliseconds: 600), () {
       if (mounted) {
         String? customSubtitle;
-        if (_vipTier != null) {
+        if (_venezuelaRoom != null) {
+          final trophyText = userWon ? '+${_venezuelaRoom!.winTrophies} 🏆' : '${_venezuelaRoom!.lossTrophies} 🏆';
+          customSubtitle = userWon
+              ? '¡VICTORIA EN ${_venezuelaRoom!.name.toUpperCase()}!\nPremio: +$vipCoinsWon monedas ($trophyText • +$xpGained XP)'
+              : '${_venezuelaRoom!.name}: Ganó ${winner.name} con ${winner.score} pts ($trophyText • +$xpGained XP)';
+        } else if (_vipTier != null) {
           customSubtitle = userWon
               ? '¡VICTORIA VIP EN MESA ${_vipTier!.name.toUpperCase()}!\nPremio obtenido: +$vipCoinsWon monedas (+$xpGained XP)'
               : 'Mesa ${_vipTier!.name}: Ganó ${winner.name} con ${winner.score} pts (+$xpGained XP)';
+        } else if (isMultiplayerMatch) {
+          customSubtitle = userWon
+              ? '¡VICTORIA EN MULTIJUGADOR!\nGanaste la partida contra otros jugadores (+$xpGained XP)'
+              : 'Partida Multijugador finalizada (+$xpGained XP)';
         }
 
         final matchSummary = CaidaMatchSummary(
@@ -1710,7 +2080,15 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
           summary: matchSummary,
           onRematch: () {
             Navigator.pop(context);
-            _initMatch(_playerCount, _isTeams, _players[0].name);
+            final nextManoIndex = _players.isNotEmpty
+                ? (_manoIndex + 1) % _players.length
+                : 0;
+            _initMatch(
+              _playerCount,
+              _isTeams,
+              _players.isNotEmpty ? _players[0].name : (_effectiveUserName ?? 'Tú'),
+              startingManoIndex: nextManoIndex,
+            );
           },
           onBackToMenu: () {
             Navigator.pop(context);
@@ -1746,10 +2124,10 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
       barrierDismissible: true,
       barrierColor: Colors.black87,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF161616),
+        backgroundColor: AppPalette.cartoonBgDark,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
-          side: const BorderSide(color: Color(0xFF2E2E2E), width: 1.0),
+          side: const BorderSide(color: AppPalette.cartoonBorder, width: 2.0),
         ),
         title: const Row(
           children: [
@@ -1791,7 +2169,7 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
             label: 'Abandonar',
             variant: App3dButtonVariant.crimson,
             depth: 3.5,
-            borderRadius: 10,
+            borderRadius: 12,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             textStyle: const TextStyle(
               color: Colors.white,
@@ -1816,170 +2194,269 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
     }
   }
 
-  void _openMatchSettings() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: const Color(0xFF161616),
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-        side: BorderSide(color: Color(0xFF2E2E2E), width: 1),
-      ),
-      builder: (ctx) => SafeArea(
+  Widget _buildSettingsOptionCard({
+    required IconData icon,
+    required Color iconColor,
+    required String title,
+    String? subtitle,
+    Widget? trailing,
+    VoidCallback? onTap,
+    bool isDanger = false,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      child: TactilePressable(
+        onTap: onTap,
+        depth: onTap != null ? 2.0 : 0.0,
         child: Container(
-          constraints: BoxConstraints(
-            maxHeight: MediaQuery.of(ctx).size.height * 0.85,
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          decoration: BoxDecoration(
+            color: isDanger
+                ? const Color(0xFF450A0A).withValues(alpha: 0.6)
+                : AppPalette.cartoonCardDark,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: isDanger
+                  ? const Color(0xFFEF4444).withValues(alpha: 0.8)
+                  : AppPalette.cartoonBorder,
+              width: 1.5,
+            ),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x25000000),
+                blurRadius: 4,
+                offset: Offset(0, 2),
+              ),
+            ],
           ),
-          child: SingleChildScrollView(
-            physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 40,
-                  height: 4,
-                  margin: const EdgeInsets.only(bottom: 16),
-                  decoration: BoxDecoration(
-                    color: Colors.white24,
-                    borderRadius: BorderRadius.circular(2),
+          child: Row(
+            children: [
+              Container(
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(
+                  color: iconColor.withValues(alpha: 0.18),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: iconColor.withValues(alpha: 0.4),
+                    width: 1.2,
                   ),
                 ),
-                const Text(
-                  'OPCIONES DE PARTIDA',
-                  style: TextStyle(
-                    color: Color(0xFFF59E0B),
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 1,
-                  ),
-                ),
-                const SizedBox(height: 16),
-              ListTile(
-                leading: Icon(
-                  AudioService().isMuted ? Icons.volume_off_rounded : Icons.volume_up_rounded,
-                  color: AudioService().isMuted ? const Color(0xFFEF4444) : const Color(0xFF38BDF8),
-                ),
-                title: Text(
-                  AudioService().isMuted ? 'Efectos de sonido (Silenciado)' : 'Efectos de sonido (Activado)',
-                  style: const TextStyle(color: Colors.white),
-                ),
-                trailing: Switch(
-                  value: !AudioService().isMuted,
-                  activeThumbColor: const Color(0xFF38BDF8),
-                  onChanged: (val) {
-                    setState(() {
-                      AudioService().toggleMute();
-                    });
-                    Navigator.pop(ctx);
-                    _openMatchSettings();
-                  },
-                ),
+child: Icon(icon, color: iconColor, size: 20),
               ),
-              ListTile(
-                leading: const Icon(Icons.record_voice_over_rounded, color: Color(0xFF38BDF8)),
-                title: Text('Canto de Mesa: ${_cantoDirection == DealDirection.ascending ? "Ascendente (1..4)" : "Descendente (4..1)"}', style: const TextStyle(color: Colors.white)),
-                subtitle: const Text('Cambiar dirección del conteo inicial del repartidor', style: TextStyle(color: Colors.white54, fontSize: 11)),
-                onTap: () async {
-                  Navigator.pop(ctx);
-                  final dir = await TableCantoDialog.show(context);
-                  if (dir != null) {
-                    setState(() => _cantoDirection = dir);
-                  }
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.refresh_rounded, color: Color(0xFF38BDF8)),
-                title: const Text('Reiniciar mano actual', style: TextStyle(color: Colors.white)),
-                onTap: () {
-                  Navigator.pop(ctx);
-                  _initMatch(_playerCount, _isTeams, _players[0].name);
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.exit_to_app_rounded, color: Color(0xFFEF4444)),
-                title: const Text('Abandonar partida', style: TextStyle(color: Color(0xFFEF4444), fontWeight: FontWeight.bold)),
-                subtitle: const Text('Salir sin registrar victoria ni derrota en estadísticas', style: TextStyle(color: Colors.white54, fontSize: 11)),
-                onTap: () {
-                  Navigator.pop(ctx);
-                  _confirmAbandonMatch();
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.smart_toy_rounded, color: Color(0xFF60A5FA)),
-                title: const Text('Personalizar Bots (IA)', style: TextStyle(color: Colors.white)),
-                subtitle: const Text('Configurar nombres de rivales y compañeros', style: TextStyle(color: Colors.white54, fontSize: 11)),
-                onTap: () {
-                  Navigator.pop(ctx);
-                  BotCustomizationModal.show(
-                    context,
-                    session: PlayerSession.shared,
-                    onSaved: (_) {
-                      setState(() {});
-                    },
-                  );
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.feedback_rounded, color: Color(0xFFF59E0B)),
-                title: const Text('Buzón de Sugerencias', style: TextStyle(color: Colors.white)),
-                subtitle: const Text('Comparte tus ideas o reportes con el equipo', style: TextStyle(color: Colors.white54, fontSize: 11)),
-                trailing: const Icon(Icons.open_in_new_rounded, color: Colors.white54, size: 16),
-                onTap: () {
-                  Navigator.pop(ctx);
-                  FeedbackService.openFeedbackForm(context: context);
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.help_outline_rounded, color: Color(0xFFFBBF24)),
-                title: const Text('Reglas de CaidaGO', style: TextStyle(color: Colors.white)),
-                onTap: () {
-                  Navigator.pop(ctx);
-                  GameRulesDialog.show(context, 'la_caida');
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.privacy_tip_rounded, color: Color(0xFF38BDF8)),
-                title: const Text('Política de Privacidad', style: TextStyle(color: Colors.white)),
-                onTap: () {
-                  Navigator.pop(ctx);
-                  PrivacyPolicyDialog.show(context);
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.verified_user_rounded, color: Color(0xFF34D399)),
-                title: const Text('Licencias y Software Libre', style: TextStyle(color: Colors.white)),
-                onTap: () {
-                  Navigator.pop(ctx);
-                  showLicensePage(
-                    context: context,
-                    applicationName: 'CaidaGO',
-                    applicationVersion: '1.0.0',
-                    applicationLegalese: '© 2026 CaidaGO • Desarrollado por Eizy Systems\nTodos los derechos reservados.',
-                  );
-                },
-              ),
-              const Divider(color: Colors.white12),
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 4),
-                child: Text(
-                  'CaidaGO v1.0.0\nDesarrollado por Eizy Systems • 2026\n© 2026 CaidaGO. Todos los derechos reservados.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: Colors.white38,
-                    fontSize: 11,
-                    height: 1.35,
-                    fontWeight: FontWeight.w500,
-                  ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      title,
+                      style: TextStyle(
+                        color: isDanger ? const Color(0xFFFCA5A5) : Colors.white,
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    if (subtitle != null) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        subtitle,
+                        style: TextStyle(
+                          color: isDanger
+                              ? const Color(0xFFFCA5A5).withValues(alpha: 0.7)
+                              : Colors.white60,
+                          fontSize: 11,
+                        ),
+                      ),
+                    ],
+                  ],
+
                 ),
               ),
+              ?trailing,
             ],
           ),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
+
+  void _openMatchSettings() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        decoration: const BoxDecoration(
+          color: AppPalette.cartoonBgDark,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          border: Border(
+            top: BorderSide(color: AppPalette.cartoonBorder, width: 2.0),
+            left: BorderSide(color: AppPalette.cartoonBorder, width: 2.0),
+            right: BorderSide(color: AppPalette.cartoonBorder, width: 2.0),
+          ),
+        ),
+        child: SafeArea(
+          child: Container(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(ctx).size.height * 0.85,
+            ),
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 44,
+                    height: 5,
+                    margin: const EdgeInsets.only(bottom: 14),
+                    decoration: BoxDecoration(
+                      color: Colors.white24,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  const CartoonStrokeText(
+                    'OPCIONES DE PARTIDA',
+                    fontSize: 16,
+                    textColor: AppPalette.cartoonYellow,
+                  ),
+                  const SizedBox(height: 16),
+                  _buildSettingsOptionCard(
+                    icon: AudioService().isMuted ? Icons.volume_off_rounded : Icons.volume_up_rounded,
+                    iconColor: AudioService().isMuted ? AppPalette.cartoonRed : AppPalette.cartoonCyan,
+                    title: AudioService().isMuted ? 'Efectos de sonido: Silenciado' : 'Efectos de sonido: Activado',
+                    trailing: CartoonSwitch(
+                      value: !AudioService().isMuted,
+                      onChanged: (val) {
+                        setState(() {
+                          AudioService().toggleMute();
+                        });
+                        Navigator.pop(ctx);
+                        _openMatchSettings();
+                      },
+                    ),
+                  ),
+                  _buildSettingsOptionCard(
+                    icon: Icons.record_voice_over_rounded,
+                    iconColor: AppPalette.cartoonCyan,
+                    title: 'Canto de Mesa: ${_cantoDirection == DealDirection.ascending ? "Ascendente (1..4)" : "Descendente (4..1)"}',
+                    subtitle: 'Cambiar dirección del conteo inicial del repartidor',
+                    trailing: const Icon(Icons.chevron_right_rounded, color: Colors.white54, size: 20),
+                    onTap: () async {
+                      Navigator.pop(ctx);
+                      final dir = await TableCantoDialog.show(context);
+                      if (dir != null) {
+                        setState(() => _cantoDirection = dir);
+                      }
+                    },
+                  ),
+                  _buildSettingsOptionCard(
+                    icon: Icons.refresh_rounded,
+                    iconColor: AppPalette.cartoonCyan,
+                    title: 'Reiniciar mano actual',
+                    subtitle: 'Vuelve a repartir las cartas de la ronda',
+                    trailing: const Icon(Icons.chevron_right_rounded, color: Colors.white54, size: 20),
+                    onTap: () {
+                      Navigator.pop(ctx);
+                      _initMatch(_playerCount, _isTeams, _players[0].name);
+                    },
+                  ),
+                  _buildSettingsOptionCard(
+                    icon: Icons.exit_to_app_rounded,
+                    iconColor: const Color(0xFFEF4444),
+                    title: 'Abandonar partida',
+                    subtitle: 'Salir sin registrar victoria ni derrota en estadísticas',
+                    isDanger: true,
+                    trailing: const Icon(Icons.warning_amber_rounded, color: Color(0xFFEF4444), size: 20),
+                    onTap: () {
+                      Navigator.pop(ctx);
+                      _confirmAbandonMatch();
+                    },
+                  ),
+                  _buildSettingsOptionCard(
+                    icon: Icons.smart_toy_rounded,
+                    iconColor: const Color(0xFF818CF8),
+                    title: 'Personalizar Bots (IA)',
+                    subtitle: 'Configurar nombres de rivales y compañeros',
+                    trailing: const Icon(Icons.chevron_right_rounded, color: Colors.white54, size: 20),
+                    onTap: () {
+                      Navigator.pop(ctx);
+                      BotCustomizationModal.show(
+                        context,
+                        session: PlayerSession.shared,
+                        onSaved: (_) {
+                          setState(() {});
+                        },
+                      );
+                    },
+                  ),
+                  _buildSettingsOptionCard(
+                    icon: Icons.feedback_rounded,
+                    iconColor: const Color(0xFFF59E0B),
+                    title: 'Buzón de Sugerencias',
+                    subtitle: 'Comparte tus ideas o reportes con el equipo',
+                    trailing: const Icon(Icons.open_in_new_rounded, color: Colors.white54, size: 18),
+                    onTap: () {
+                      Navigator.pop(ctx);
+                      FeedbackService.openFeedbackForm(context: context);
+                    },
+                  ),
+                  _buildSettingsOptionCard(
+                    icon: Icons.help_outline_rounded,
+                    iconColor: AppPalette.cartoonYellow,
+                    title: 'Reglas de CaidaGO',
+                    trailing: const Icon(Icons.chevron_right_rounded, color: Colors.white54, size: 20),
+                    onTap: () {
+                      Navigator.pop(ctx);
+                      GameRulesDialog.show(context, 'la_caida');
+                    },
+                  ),
+                  _buildSettingsOptionCard(
+                    icon: Icons.privacy_tip_rounded,
+                    iconColor: const Color(0xFF38BDF8),
+                    title: 'Política de Privacidad',
+                    trailing: const Icon(Icons.chevron_right_rounded, color: Colors.white54, size: 20),
+                    onTap: () {
+                      Navigator.pop(ctx);
+                      PrivacyPolicyDialog.show(context);
+                    },
+                  ),
+                  _buildSettingsOptionCard(
+                    icon: Icons.verified_user_rounded,
+                    iconColor: const Color(0xFF34D399),
+                    title: 'Licencias y Software Libre',
+                    trailing: const Icon(Icons.chevron_right_rounded, color: Colors.white54, size: 20),
+                    onTap: () {
+                      Navigator.pop(ctx);
+                      showLicensePage(
+                        context: context,
+                        applicationName: 'CaidaGO',
+                        applicationVersion: '1.0.0',
+                        applicationLegalese: '© 2026 CaidaGO • Desarrollado por Eizy Systems\nTodos los derechos reservados.',
+                      );
+                    },
+                  ),
+                  const Divider(color: Colors.white12, height: 24),
+                  const Text(
+                    'CaidaGO v1.0.0\nDesarrollado por Eizy Systems • 2026\n© 2026 CaidaGO. Todos los derechos reservados.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.white38,
+                      fontSize: 11,
+                      height: 1.35,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -2340,7 +2817,12 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
                   setState(() {
                     _hasGameStarted = true;
                   });
-                  _initMatch(_playerCount, _isTeams, 'Tú');
+                  _initMatch(
+                    _playerCount,
+                    _isTeams,
+                    _effectiveUserName ?? 'Tú',
+                    startWithManoSelection: _effectiveChooseMano,
+                  );
                 },
               ),
             ],
@@ -2534,26 +3016,34 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      GestureDetector(
+                      TactilePressable(
                         onTap: () => TableAuditorPanel.show(context, auditLogs: _matchAuditLogs),
+                        depth: 2.0,
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
+                          padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4.5),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF181818).withValues(alpha: 0.9),
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(color: const Color(0xFF2E2E2E), width: 1.0),
+                            color: AppPalette.cartoonCardDark,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: AppPalette.cartoonBorder, width: 1.5),
+                            boxShadow: const [
+                              BoxShadow(
+                                color: Color(0x35000000),
+                                blurRadius: 4,
+                                offset: Offset(0, 1.5),
+                              ),
+                            ],
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Icon(Icons.assignment_rounded, color: Colors.white70, size: 13),
+                              const Icon(Icons.assignment_rounded, color: AppPalette.cartoonYellow, size: 14),
                               const SizedBox(width: 4),
                               Text(
                                 'Auditor (${_matchAuditLogs.length})',
                                 style: const TextStyle(
                                   color: Colors.white,
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
+                                  fontSize: 10.5,
+                                  fontWeight: FontWeight.w900,
                                 ),
                               ),
                             ],
@@ -2562,40 +3052,47 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
                       ),
                       const SizedBox(width: 6),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4.5),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF1E1B4B).withValues(alpha: 0.65),
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: Colors.white24, width: 0.8),
-                        ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          '$_playerCount Jug.',
-                          style: const TextStyle(
-                            color: Colors.white70,
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        if (_roundNumber > 1) ...[
-                          const SizedBox(width: 4),
-                          Text(
-                            '• R$_roundNumber',
-                            style: const TextStyle(
-                              color: Color(0xFFFDE047),
-                              fontSize: 9,
-                              fontWeight: FontWeight.bold,
+                          color: AppPalette.cartoonCardDark,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: AppPalette.cartoonBorder, width: 1.5),
+                          boxShadow: const [
+                            BoxShadow(
+                              color: Color(0x35000000),
+                              blurRadius: 4,
+                              offset: Offset(0, 1.5),
                             ),
-                          ),
-                        ],
-                      ],
-                    ),
+                          ],
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              '$_playerCount Jug.',
+                              style: const TextStyle(
+                                color: Colors.white70,
+                                fontSize: 10,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                            if (_roundNumber > 1) ...[
+                              const SizedBox(width: 4),
+                              Text(
+                                '• R$_roundNumber',
+                                style: const TextStyle(
+                                  color: Color(0xFFFDE047),
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-            ),
+                ),
 
                 // 7. Capa superior de naipes en vuelo y efectos de impacto
                 Positioned.fill(
@@ -2610,11 +3107,114 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
                     },
                   ),
                 ),
+
+                // 8. Botón flotante discreto de Chat (solo en modo multijugador)
+                if (widget.config?.isMultiplayer == true) ...[
+                  Positioned(
+                    right: 0,
+                    top: (screenHeight * 0.44).clamp(90.0, 260.0),
+                    child: _buildDiscreetChatToggleButton(),
+                  ),
+                ],
+
+                // 9. Drawer lateral deslizable de Chat y Frases Criollas
+                if (widget.config?.isMultiplayer == true && _isChatDrawerOpen) ...[
+                  // Fondo oscuro que detecta toques para cerrar
+                  Positioned.fill(
+                    child: GestureDetector(
+                      onTap: () => _toggleChatDrawer(false),
+                      behavior: HitTestBehavior.opaque,
+                      child: Container(
+                        color: Colors.black.withValues(alpha: 0.45),
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    right: 0,
+                    top: 0,
+                    bottom: 0,
+                    child: SlideTransition(
+                      position: _chatSlideAnimation,
+                      child: MultiplayerChatDrawer(
+                        onSendMessage: (msg) {
+                          _showPlayerChatCallout(0, msg);
+                        },
+                        onClose: () => _toggleChatDrawer(false),
+                      ),
+                    ),
+                  ),
+                ],
               ],
             );
           },
         );
       },
+    );
+  }
+
+  void _toggleChatDrawer(bool open) {
+    setState(() {
+      _isChatDrawerOpen = open;
+    });
+    if (open) {
+      _chatSlideController.forward();
+    } else {
+      _chatSlideController.reverse();
+    }
+  }
+
+  void _showPlayerChatCallout(int playerIndex, String message) {
+    if (playerIndex < 0 || playerIndex >= _players.length) return;
+    final player = _players[playerIndex];
+    player.currentCallout = message;
+    player.calloutTimer?.cancel();
+    player.calloutTimer = Timer(const Duration(milliseconds: 3500), () {
+      if (mounted) {
+        setState(() {
+          player.currentCallout = null;
+        });
+      }
+    });
+    AudioService().playCardSlide();
+    HapticService.instance.onSelection();
+    setState(() {});
+  }
+
+  Widget _buildDiscreetChatToggleButton() {
+    return TactilePressable(
+      depth: 2.5,
+      onTap: () => _toggleChatDrawer(true),
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(10, 8, 5, 8),
+        decoration: BoxDecoration(
+          gradient: AppGradients.cyanAccent,
+          borderRadius: const BorderRadius.horizontal(left: Radius.circular(16)),
+          border: Border.all(color: AppPalette.cartoonBorder, width: 1.8),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x60000000),
+              blurRadius: 8,
+              offset: Offset(-2, 2),
+            ),
+          ],
+        ),
+        child: const Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.chat_bubble_rounded,
+              color: Color(0xFF1E1B4B),
+              size: 18,
+            ),
+            SizedBox(width: 3),
+            Icon(
+              Icons.chevron_left_rounded,
+              color: Color(0xFF1E1B4B),
+              size: 16,
+            ),
+          ],
+        ),
+      ),
     );
   }
 

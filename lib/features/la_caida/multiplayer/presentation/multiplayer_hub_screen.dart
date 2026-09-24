@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/presentation/widgets/cartoon_widgets.dart';
 import '../../../../core/theme/app_palette.dart';
 import '../../economy/player_session.dart';
+import '../../economy/venezuela_room_tier.dart';
 import '../domain/multiplayer_models.dart';
 import '../network/local_game_client.dart';
 import '../network/local_game_host.dart';
@@ -34,6 +35,7 @@ class _MultiplayerHubScreenState extends State<MultiplayerHubScreen> {
   bool _isPrivate = false;
   final TextEditingController _pinController = TextEditingController(text: '1234');
   bool _fillWithBots = true;
+  VenezuelaRoomTier? _selectedRegionalRoom;
   final MultiplayerNetworkMode _createNetworkMode = MultiplayerNetworkMode.localWifi;
   String? _myLocalIp;
 
@@ -69,6 +71,17 @@ class _MultiplayerHubScreenState extends State<MultiplayerHubScreen> {
     final hostIp = _myLocalIp ?? '127.0.0.1';
     final roomId = 'RM-${DateTime.now().millisecondsSinceEpoch % 10000}';
 
+    final entryFee = _selectedRegionalRoom?.entryFee ?? 0;
+    if (entryFee > 0 && _session.coins < entryFee) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Monedas insuficientes. Necesitas ${formatCoins(entryFee)} 🪙 para esta sala.'),
+          backgroundColor: const Color(0xFFEF4444),
+        ),
+      );
+      return;
+    }
+
     final pin = _isPrivate ? _pinController.text.trim() : null;
     if (_isPrivate && (pin == null || !LocalNetworkUtils.isValidPin(pin))) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -95,6 +108,8 @@ class _MultiplayerHubScreenState extends State<MultiplayerHubScreen> {
       isTeams: _isTeams && _targetPlayers == 4,
       fillWithBots: _fillWithBots,
       networkMode: _createNetworkMode,
+      regionalRoomId: _selectedRegionalRoom?.id,
+      entryFee: entryFee,
     );
 
     final host = LocalGameHost();
@@ -132,6 +147,16 @@ class _MultiplayerHubScreenState extends State<MultiplayerHubScreen> {
 
   // --- UNIRSE A UNA SALA (CLIENTE) ---
   Future<void> _joinRoom(MultiplayerRoomInfo room) async {
+    if (room.entryFee > 0 && _session.coins < room.entryFee) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Monedas insuficientes. Esta sala requiere ${formatCoins(room.entryFee)} 🪙 de entrada.'),
+          backgroundColor: const Color(0xFFEF4444),
+        ),
+      );
+      return;
+    }
+
     String? pinToUse;
     if (room.isPrivate) {
       pinToUse = await EnterPinDialog.show(context, roomName: room.roomName);
@@ -273,14 +298,18 @@ class _MultiplayerHubScreenState extends State<MultiplayerHubScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(ctx).pop(),
-              child: const Text('CANCELAR', style: TextStyle(color: Colors.white60)),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppPalette.cartoonYellow,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              child: const Text(
+                'CANCELAR',
+                style: TextStyle(
+                  color: Color(0xFFEF4444),
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 0.5,
+                ),
               ),
-              onPressed: () {
+            ),
+            TactilePressable(
+              depth: 3,
+              onTap: () {
                 final pin = pinController.text.trim();
                 final customIp = ipController.text.trim();
                 Navigator.of(ctx).pop();
@@ -308,13 +337,217 @@ class _MultiplayerHubScreenState extends State<MultiplayerHubScreen> {
                   pinCode: pin,
                 ));
               },
-              child: const Text(
-                'ENTRAR',
-                style: TextStyle(color: Color(0xFF1E1B4B), fontWeight: FontWeight.bold),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                decoration: BoxDecoration(
+                  gradient: AppGradients.greenAccept,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppPalette.cartoonBorder, width: 1.5),
+                  boxShadow: const [
+                    BoxShadow(color: Color(0xFF1B165E), offset: Offset(0, 2)),
+                  ],
+                ),
+                child: const Text(
+                  'ENTRAR',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 0.6,
+                  ),
+                ),
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  // --- DIÁLOGO PARA SELECCIONAR TIPO DE SALA (PÚBLICA O PRIVADA) ---
+  void _showCreateRoomTypeDialog() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppPalette.cartoonBgDark,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(24),
+          side: const BorderSide(color: AppPalette.cartoonBorder, width: 2.2),
+        ),
+        title: const Center(
+          child: CartoonStrokeText(
+            'TIPO DE SALA',
+            fontSize: 20,
+            textColor: AppPalette.cartoonYellow,
+            strokeColor: AppPalette.cartoonCardText,
+            strokeWidth: 3,
+          ),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              '¿Cómo deseas configurar el acceso a tu partida?',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.white70, fontSize: 12.5),
+            ),
+            const SizedBox(height: 18),
+
+            // Opción 1: Sala Pública
+            TactilePressable(
+              depth: 3,
+              onTap: () {
+                Navigator.of(ctx).pop();
+                setState(() {
+                  _isPrivate = false;
+                });
+                _openCreateRoomSheet();
+              },
+              child: Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  gradient: AppGradients.cyanAccent,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: AppPalette.cartoonBorder, width: 2),
+                  boxShadow: const [
+                    BoxShadow(color: Color(0xFF1B165E), offset: Offset(0, 3)),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.25),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.public_rounded,
+                        color: Color(0xFF1E1B4B),
+                        size: 26,
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'SALA PÚBLICA',
+                            style: TextStyle(
+                              color: Color(0xFF1E1B4B),
+                              fontWeight: FontWeight.w900,
+                              fontSize: 15,
+                            ),
+                          ),
+                          SizedBox(height: 2),
+                          Text(
+                            'Sin contraseña. Visible para todos.',
+                            style: TextStyle(
+                              color: Color(0xFF1E1B4B),
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Icon(
+                      Icons.arrow_forward_ios_rounded,
+                      color: Color(0xFF1E1B4B),
+                      size: 16,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 12),
+
+            // Opción 2: Sala Privada
+            TactilePressable(
+              depth: 3,
+              onTap: () {
+                Navigator.of(ctx).pop();
+                setState(() {
+                  _isPrivate = true;
+                });
+                _openCreateRoomSheet();
+              },
+              child: Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  gradient: AppGradients.goldReward,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: AppPalette.cartoonBorder, width: 2),
+                  boxShadow: const [
+                    BoxShadow(color: Color(0xFF1B165E), offset: Offset(0, 3)),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.3),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.lock_rounded,
+                        color: AppPalette.cartoonCardText,
+                        size: 26,
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'SALA PRIVADA',
+                            style: TextStyle(
+                              color: AppPalette.cartoonCardText,
+                              fontWeight: FontWeight.w900,
+                              fontSize: 15,
+                            ),
+                          ),
+                          SizedBox(height: 2),
+                          Text(
+                            'Protegida con PIN de 4 dígitos.',
+                            style: TextStyle(
+                              color: AppPalette.cartoonCardText,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Icon(
+                      Icons.arrow_forward_ios_rounded,
+                      color: AppPalette.cartoonCardText,
+                      size: 16,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          Center(
+            child: TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: const Text(
+                'CANCELAR',
+                style: TextStyle(
+                  color: Colors.white54,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -357,9 +590,9 @@ class _MultiplayerHubScreenState extends State<MultiplayerHubScreen> {
                   const SizedBox(height: 14),
 
                   // Título del modal
-                  const Center(
+                  Center(
                     child: CartoonStrokeText(
-                      'CREAR SALA',
+                      _isPrivate ? 'CREAR SALA PRIVADA' : 'CREAR SALA PÚBLICA',
                       fontSize: 22,
                       textColor: AppPalette.cartoonYellow,
                       strokeColor: AppPalette.cartoonCardText,
@@ -394,6 +627,156 @@ class _MultiplayerHubScreenState extends State<MultiplayerHubScreen> {
 
                   const SizedBox(height: 16),
 
+                  // Selector de Sala Regional de Venezuela / Apuesta
+                  const Text(
+                    'SALA REGIONAL / APUESTA',
+                    style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    height: 80,
+                    child: ListView(
+                      scrollDirection: Axis.horizontal,
+                      children: [
+                        // Opción Mesa Libre
+                        Padding(
+                          padding: const EdgeInsets.only(right: 8),
+                          child: TactilePressable(
+                            depth: 2,
+                            onTap: () {
+                              setSheetState(() => _selectedRegionalRoom = null);
+                              setState(() => _selectedRegionalRoom = null);
+                            },
+                            child: Container(
+                              width: 110,
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: _selectedRegionalRoom == null ? null : const Color(0xFF262169),
+                                gradient: _selectedRegionalRoom == null ? AppGradients.cyanAccent : null,
+                                borderRadius: BorderRadius.circular(14),
+                                border: Border.all(
+                                  color: _selectedRegionalRoom == null ? AppPalette.cartoonBorder : AppPalette.cartoonBorder.withValues(alpha: 0.6),
+                                  width: 2,
+                                ),
+                              ),
+                              alignment: Alignment.center,
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    'Mesa Libre',
+                                    style: TextStyle(
+                                      color: _selectedRegionalRoom == null ? const Color(0xFF1E1B4B) : Colors.white,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w900,
+                                    ),
+                                    maxLines: 1,
+                                  ),
+                                  const SizedBox(height: 3),
+                                  Text(
+                                    'Sin Apuesta',
+                                    style: TextStyle(
+                                      color: _selectedRegionalRoom == null ? const Color(0xFF1E1B4B).withValues(alpha: 0.8) : Colors.white60,
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                        // 7 Salas Regionales de Venezuela
+                        ...VenezuelaRoomTier.catalog.map((tier) {
+                          final isSel = _selectedRegionalRoom?.id == tier.id;
+                          return Padding(
+                            padding: const EdgeInsets.only(right: 8),
+                            child: TactilePressable(
+                              depth: 2,
+                              onTap: () {
+                                setSheetState(() => _selectedRegionalRoom = tier);
+                                setState(() => _selectedRegionalRoom = tier);
+                              },
+                              child: Container(
+                                width: 120,
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: isSel ? null : const Color(0xFF262169),
+                                  gradient: isSel ? AppGradients.goldReward : null,
+                                  borderRadius: BorderRadius.circular(14),
+                                  border: Border.all(
+                                    color: isSel ? AppPalette.cartoonBorder : AppPalette.cartoonBorder.withValues(alpha: 0.6),
+                                    width: 2,
+                                  ),
+                                ),
+                                alignment: Alignment.center,
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      tier.name,
+                                      style: TextStyle(
+                                        color: isSel ? const Color(0xFF1E1B4B) : Colors.white,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w900,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    const SizedBox(height: 3),
+                                    Text(
+                                      '${formatCoins(tier.entryFee)} 🪙',
+                                      style: TextStyle(
+                                        color: isSel ? const Color(0xFF1E1B4B).withValues(alpha: 0.9) : const Color(0xFFFBBF24),
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w900,
+                                      ),
+                                    ),
+                                    Text(
+                                      '+${tier.winTrophies}/-${tier.lossTrophies} 🏆',
+                                      style: TextStyle(
+                                        color: isSel ? const Color(0xFF1E1B4B).withValues(alpha: 0.75) : Colors.white54,
+                                        fontSize: 9,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          );
+                        }),
+                      ],
+                    ),
+                  ),
+
+                  if (_selectedRegionalRoom != null) ...[
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF262169),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: const Color(0xFF3B3592)),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Pozo Total: ${formatCoins(_selectedRegionalRoom!.entryFee * (_isTeams && _targetPlayers == 4 ? 4 : _targetPlayers))} 🪙',
+                            style: const TextStyle(color: Color(0xFFFBBF24), fontSize: 11, fontWeight: FontWeight.bold),
+                          ),
+                          Text(
+                            'Premio Ganador: ${formatCoins(_isTeams && _targetPlayers == 4 ? (_selectedRegionalRoom!.entryFee * 4) ~/ 2 : _selectedRegionalRoom!.entryFee * _targetPlayers)} 🪙',
+                            style: const TextStyle(color: Color(0xFF38BDF8), fontSize: 11, fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+
+                  const SizedBox(height: 16),
+
                   // Selector de jugadores: 2, 3 o 4
                   const Text(
                     'CANTIDAD DE JUGADORES',
@@ -406,7 +789,8 @@ class _MultiplayerHubScreenState extends State<MultiplayerHubScreen> {
                       return Expanded(
                         child: Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 4),
-                          child: InkWell(
+                          child: TactilePressable(
+                            depth: 2,
                             onTap: () {
                               setSheetState(() {
                                 _targetPlayers = count;
@@ -417,11 +801,11 @@ class _MultiplayerHubScreenState extends State<MultiplayerHubScreen> {
                                 if (count != 4) _isTeams = false;
                               });
                             },
-                            borderRadius: BorderRadius.circular(14),
                             child: Container(
                               padding: const EdgeInsets.symmetric(vertical: 10),
                               decoration: BoxDecoration(
-                                color: isSel ? AppPalette.cartoonCyan : const Color(0xFF262169),
+                                color: isSel ? null : const Color(0xFF262169),
+                                gradient: isSel ? AppGradients.cyanAccent : null,
                                 borderRadius: BorderRadius.circular(14),
                                 border: Border.all(
                                   color: isSel ? AppPalette.cartoonBorder : AppPalette.cartoonBorder.withValues(alpha: 0.6),
@@ -556,18 +940,18 @@ class _MultiplayerHubScreenState extends State<MultiplayerHubScreen> {
 
                   const SizedBox(height: 20),
 
-                  // Botón Confirmar Crear Sala
-                  InkWell(
+                  // Botón Confirmar Crear Sala (Verde Aceptar)
+                  TactilePressable(
+                    depth: 3.5,
                     onTap: () {
                       Navigator.of(ctx).pop();
                       _createRoom();
                     },
-                    borderRadius: BorderRadius.circular(16),
                     child: Container(
                       width: double.infinity,
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       decoration: BoxDecoration(
-                        color: AppPalette.cartoonYellow,
+                        gradient: AppGradients.greenAccept,
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(color: AppPalette.cartoonBorder, width: 2.2),
                         boxShadow: const [
@@ -582,9 +966,7 @@ class _MultiplayerHubScreenState extends State<MultiplayerHubScreen> {
                       child: const CartoonStrokeText(
                         'ABRIR SALA (SIN INTERNET)',
                         fontSize: 15,
-                        textColor: Color(0xFF1E1B4B),
-                        strokeColor: Colors.white,
-                        strokeWidth: 2,
+                        textColor: Colors.white,
                       ),
                     ),
                   ),
@@ -604,10 +986,10 @@ class _MultiplayerHubScreenState extends State<MultiplayerHubScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // Header estilo cartoon: Botón <, Título SALAS, Botón 🔍
+            // Header estilo cartoon: Botón <, Título SALAS, Botón Buscar
             _buildHeader(context),
 
-            // Pestañas cartoon: "TODAS" y "SIN CONTRASEÑA" con indicador turquesa
+            // Pestañas cartoon: "PÚBLICAS" y "PRIVADAS" con indicador turquesa
             _buildFilterTabs(),
 
             const SizedBox(height: 6),
@@ -683,7 +1065,7 @@ class _MultiplayerHubScreenState extends State<MultiplayerHubScreen> {
                     padding: const EdgeInsets.symmetric(vertical: 8),
                     alignment: Alignment.center,
                     child: CartoonStrokeText(
-                      'TODAS',
+                      'PÚBLICAS',
                       fontSize: 15,
                       textColor: _selectedFilterIndex == 0
                           ? AppPalette.cartoonCyan
@@ -701,7 +1083,7 @@ class _MultiplayerHubScreenState extends State<MultiplayerHubScreen> {
                     padding: const EdgeInsets.symmetric(vertical: 8),
                     alignment: Alignment.center,
                     child: CartoonStrokeText(
-                      'SIN CONTRASEÑA',
+                      'PRIVADAS',
                       fontSize: 15,
                       textColor: _selectedFilterIndex == 1
                           ? AppPalette.cartoonCyan
@@ -762,10 +1144,10 @@ class _MultiplayerHubScreenState extends State<MultiplayerHubScreen> {
     return ValueListenableBuilder<List<MultiplayerRoomInfo>>(
       valueListenable: _beaconService.discoveredRoomsNotifier,
       builder: (context, allRooms, _) {
-        // Filtrar según la pestaña activa
+        // Filtrar según la pestaña activa (0 = Públicas, 1 = Privadas)
         final filteredRooms = _selectedFilterIndex == 1
-            ? allRooms.where((r) => !r.isPrivate).toList()
-            : allRooms;
+            ? allRooms.where((r) => r.isPrivate).toList()
+            : allRooms.where((r) => !r.isPrivate).toList();
 
         if (filteredRooms.isEmpty) {
           return Center(
@@ -830,61 +1212,85 @@ class _MultiplayerHubScreenState extends State<MultiplayerHubScreen> {
     // Formatear código de sala a 5 caracteres
     final rawCode = room.roomId.replaceAll('RM-', '');
     final displayCode = rawCode.padLeft(5, '0');
+    final regionalRoom = room.regionalRoomId != null ? VenezuelaRoomTier.fromId(room.regionalRoomId!) : null;
 
     return CartoonCard(
       onTap: () => _joinRoom(room),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       child: Row(
         children: [
           // Código de sala (5 dígitos)
-          Text(
-            displayCode,
-            style: const TextStyle(
-              color: AppPalette.cartoonCardText,
-              fontSize: 18,
-              fontWeight: FontWeight.w900,
-              letterSpacing: 1.0,
-            ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                children: [
+                  Text(
+                    displayCode,
+                    style: const TextStyle(
+                      color: AppPalette.cartoonCardText,
+                      fontSize: 17,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 1.0,
+                    ),
+                  ),
+                  if (room.isPrivate) ...[
+                    const SizedBox(width: 6),
+                    const Icon(
+                      Icons.lock_rounded,
+                      color: AppPalette.cartoonCardText,
+                      size: 15,
+                    ),
+                  ],
+                ],
+              ),
+              if (regionalRoom != null)
+                Text(
+                  regionalRoom.name,
+                  style: const TextStyle(
+                    color: Color(0xFF4338CA),
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+            ],
           ),
-          const SizedBox(width: 8),
-
-          // Candado si es privada
-          if (room.isPrivate) ...[
-            const Icon(
-              Icons.lock_rounded,
-              color: AppPalette.cartoonCardText,
-              size: 16,
-            ),
-            const SizedBox(width: 8),
-          ],
 
           const Spacer(),
 
-          // Icono de refresh/estado
-          const Icon(
-            Icons.sync_rounded,
-            color: Color(0xFF4338CA),
-            size: 20,
-          ),
-          const SizedBox(width: 6),
-
-          // Puntos / objetivo
-          const Text(
-            '0/24',
-            style: TextStyle(
-              color: AppPalette.cartoonCardText,
-              fontSize: 15,
-              fontWeight: FontWeight.w900,
+          // Badge de Apuesta / Pozo
+          if (room.entryFee > 0) ...[
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                gradient: AppGradients.goldReward,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: AppPalette.cartoonBorder, width: 1.2),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text('🪙 ', style: TextStyle(fontSize: 10)),
+                  Text(
+                    formatCoins(room.entryFee),
+                    style: const TextStyle(
+                      color: Color(0xFF1E1B4B),
+                      fontSize: 11,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-
-          const SizedBox(width: 14),
+            const SizedBox(width: 10),
+          ],
 
           // Icono silueta jugador
           const Icon(
             Icons.person_rounded,
             color: Color(0xFF4338CA),
-            size: 20,
+            size: 18,
           ),
           const SizedBox(width: 4),
 
@@ -893,7 +1299,7 @@ class _MultiplayerHubScreenState extends State<MultiplayerHubScreen> {
             '${room.currentPlayers}/${room.targetPlayers}',
             style: const TextStyle(
               color: AppPalette.cartoonCardText,
-              fontSize: 15,
+              fontSize: 14,
               fontWeight: FontWeight.w900,
             ),
           ),
@@ -905,56 +1311,53 @@ class _MultiplayerHubScreenState extends State<MultiplayerHubScreen> {
   Widget _buildBottomBar() {
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 10, 20, 16),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: _openCreateRoomSheet,
-          borderRadius: BorderRadius.circular(18),
-          child: Container(
-            height: 54,
-            decoration: BoxDecoration(
-              color: AppPalette.cartoonYellow,
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: AppPalette.cartoonBorder, width: 2.4),
-              boxShadow: const [
-                BoxShadow(
-                  color: Color(0xFF1B165E),
-                  offset: Offset(0, 4),
-                  blurRadius: 0,
+      child: TactilePressable(
+        onTap: _showCreateRoomTypeDialog,
+        depth: 4,
+        child: Container(
+          height: 54,
+          decoration: BoxDecoration(
+            gradient: AppGradients.goldReward,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: AppPalette.cartoonBorder, width: 2.4),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0xFF1B165E),
+                offset: Offset(0, 4),
+                blurRadius: 0,
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Icono redondeado en rojo con tuerca/engranaje
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  gradient: AppGradients.redDanger,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: AppPalette.cartoonBorder, width: 1.8),
                 ),
-              ],
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                // Icono redondeado en rojo con tuerca/engranaje
-                Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color: AppPalette.cartoonRed,
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: AppPalette.cartoonBorder, width: 1.8),
-                  ),
-                  child: const Icon(
-                    Icons.settings_rounded,
-                    color: Colors.white,
-                    size: 20,
-                  ),
+                child: const Icon(
+                  Icons.settings_rounded,
+                  color: Colors.white,
+                  size: 20,
                 ),
-                const SizedBox(width: 12),
-                // Texto CREAR SALA
-                const Text(
-                  'CREAR SALA',
-                  style: TextStyle(
-                    color: AppPalette.cartoonCardText,
-                    fontSize: 16.5,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 1.0,
-                  ),
+              ),
+              const SizedBox(width: 12),
+              // Texto CREAR SALA
+              const Text(
+                'CREAR SALA',
+                style: TextStyle(
+                  color: AppPalette.cartoonCardText,
+                  fontSize: 16.5,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 1.0,
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),

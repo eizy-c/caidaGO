@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import '../../../../core/presentation/widgets/app_3d_button.dart';
+import '../../../../core/presentation/widgets/cartoon_widgets.dart';
+import '../../../../core/theme/app_palette.dart';
 import '../../economy/player_session.dart';
 import '../../economy/player_stats_model.dart';
 import '../../economy/rank_system.dart';
-import '../../economy/user_progress.dart';
 import 'avatar_view.dart';
 import 'user_frame_view.dart';
 
@@ -26,10 +27,10 @@ class LobbyThemeOption {
   static const List<LobbyThemeOption> allThemes = [
     LobbyThemeOption(
       id: 'royal_blue',
-      name: 'Azul Royale',
-      backgroundGradient: [Color(0xFF0F172A), Color(0xFF1E1B4B), Color(0xFF312E81)],
-      accentColor: Color(0xFF38BDF8),
-      icon: Icons.brightness_3_rounded,
+      name: 'Criollo Indigo (Oficial)',
+      backgroundGradient: [Color(0xFF3B32B0), Color(0xFF2E2692), Color(0xFF251E75)],
+      accentColor: Color(0xFF22D3EE),
+      icon: Icons.auto_awesome_rounded,
     ),
     LobbyThemeOption(
       id: 'casino_green',
@@ -66,8 +67,9 @@ class LobbyThemeOption {
   }
 }
 
-/// Modal integrado de Resumen de Nivel, Progreso de XP y Personalización completa
-/// (Fondos de color/tema, Avatares, Marcos y Nombre de Usuario).
+/// Modal de personalización del perfil del jugador:
+/// Permite editar Nombre, Avatar de héroe, Marcos competitivos y Fondos de tapete.
+/// El nivel y la XP han sido omitidos ya que se gestionan en las Estadísticas oficiales.
 class ProfileAndLevelModal extends StatefulWidget {
   final PlayerSession session;
   final int initialTabIndex;
@@ -78,9 +80,15 @@ class ProfileAndLevelModal extends StatefulWidget {
     this.initialTabIndex = 0,
   });
 
-  static Future<void> show(BuildContext context, {required PlayerSession session, int initialTabIndex = 0}) {
+static Future<void> show(
+    BuildContext context, {
+    required PlayerSession session,
+    int initialTabIndex = 0,
+  }) {
     return showDialog(
       context: context,
+      barrierColor: Colors.black87,
+
       builder: (_) => ProfileAndLevelModal(
         session: session,
         initialTabIndex: initialTabIndex,
@@ -92,7 +100,8 @@ class ProfileAndLevelModal extends StatefulWidget {
   State<ProfileAndLevelModal> createState() => _ProfileAndLevelModalState();
 }
 
-class _ProfileAndLevelModalState extends State<ProfileAndLevelModal> with SingleTickerProviderStateMixin {
+class _ProfileAndLevelModalState extends State<ProfileAndLevelModal>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
   late TextEditingController _nameController;
   late int _tempAvatarIndex;
@@ -102,7 +111,9 @@ class _ProfileAndLevelModalState extends State<ProfileAndLevelModal> with Single
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 4, vsync: this, initialIndex: widget.initialTabIndex);
+    // 3 pestañas: 0 = Avatar, 1 = Marcos, 2 = Fondos
+    final initIndex = widget.initialTabIndex.clamp(0, 2);
+    _tabController = TabController(length: 3, vsync: this, initialIndex: initIndex);
     _nameController = TextEditingController(text: widget.session.name);
     _tempAvatarIndex = widget.session.avatarIndex;
     _tempFrameId = widget.session.selectedFrameId;
@@ -117,7 +128,9 @@ class _ProfileAndLevelModalState extends State<ProfileAndLevelModal> with Single
   }
 
   void _saveCustomization() {
-    final finalName = _nameController.text.trim().isNotEmpty ? _nameController.text.trim() : 'Jugador';
+    final finalName = _nameController.text.trim().isNotEmpty
+        ? _nameController.text.trim()
+        : 'Jugador';
     widget.session.updateCustomization(
       name: finalName,
       avatarIndex: _tempAvatarIndex,
@@ -129,9 +142,7 @@ class _ProfileAndLevelModalState extends State<ProfileAndLevelModal> with Single
 
   @override
   Widget build(BuildContext context) {
-    final progress = UserProgress(totalXp: widget.session.xp);
-
-    return Dialog(
+return Dialog(
       backgroundColor: Colors.transparent,
       insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
       child: ConstrainedBox(
@@ -139,55 +150,58 @@ class _ProfileAndLevelModalState extends State<ProfileAndLevelModal> with Single
         child: Container(
           decoration: BoxDecoration(
             gradient: const LinearGradient(
-              colors: [Color(0xFF1E1E1E), Color(0xFF121212)],
+              colors: [Color(0xFF2E267D), Color(0xFF26206D)],
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
             ),
             borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: const Color(0xFF2E2E2E), width: 1.2),
+            border: Border.all(color: AppPalette.cartoonBorder, width: 2.2),
             boxShadow: const [
               BoxShadow(color: Colors.black87, blurRadius: 20, offset: Offset(0, 8)),
             ],
           ),
           child: Column(
             children: [
-              // 1. Cabecera superior con botón de cerrar
-              _buildHeader(progress),
+              // 1. Cabecera superior con Avatar y Rango (sin nivel) y botón de cierre táctil
+              _buildHeader(),
 
-              // 2. Barra de Pestañas
+              // 2. Barra de Pestañas Cartoon (Avatar, Marcos, Fondos)
               Container(
-                color: const Color(0xFF181818),
+                decoration: const BoxDecoration(
+                  color: AppPalette.cartoonBgDark,
+                  border: Border(
+                    bottom: BorderSide(color: AppPalette.cartoonBorder, width: 1.5),
+                  ),
+                ),
                 child: TabBar(
                   controller: _tabController,
-                  indicatorColor: Colors.white,
-                  indicatorWeight: 2.5,
+                  indicatorColor: AppPalette.cartoonCyan,
+                  indicatorWeight: 3.0,
                   labelColor: Colors.white,
                   unselectedLabelColor: Colors.white60,
-                  labelStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
-                  unselectedLabelStyle: const TextStyle(fontSize: 11),
+                  labelStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w900, letterSpacing: 0.5),
+                  unselectedLabelStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
                   tabs: const [
-                    Tab(icon: Icon(Icons.military_tech_rounded, size: 18), text: 'Nivel & XP'),
-                    Tab(icon: Icon(Icons.filter_frames_rounded, size: 18), text: 'Marcos'),
-                    Tab(icon: Icon(Icons.palette_rounded, size: 18), text: 'Fondos'),
-                    Tab(icon: Icon(Icons.person_rounded, size: 18), text: 'Avatar'),
+                    Tab(icon: Icon(Icons.person_rounded, size: 20), text: 'Avatar'),
+                    Tab(icon: Icon(Icons.filter_frames_rounded, size: 20), text: 'Marcos'),
+                    Tab(icon: Icon(Icons.palette_rounded, size: 20), text: 'Fondos'),
                   ],
                 ),
               ),
 
-              // 3. Contenido de las pestañas
+              // 3. Contenido de las 3 pestañas
               Expanded(
                 child: TabBarView(
                   controller: _tabController,
                   children: [
-                    _buildLevelTab(progress),
-                    _buildFramesTab(progress),
-                    _buildThemesTab(),
                     _buildAvatarTab(),
+                    _buildFramesTab(),
+                    _buildThemesTab(),
                   ],
                 ),
               ),
 
-              // 4. Botón inferior de Guardar / Listo
+              // 4. Botón inferior de Guardar
               Padding(
                 padding: const EdgeInsets.all(12),
                 child: App3dButton(
@@ -213,7 +227,10 @@ class _ProfileAndLevelModalState extends State<ProfileAndLevelModal> with Single
     );
   }
 
-  Widget _buildHeader(UserProgress progress) {
+  Widget _buildHeader() {
+    final trophies = PlayerStatsModel.shared.trophies;
+    final rank = RankInfo.forTrophies(trophies);
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 14, 12, 10),
       child: Row(
@@ -221,8 +238,8 @@ class _ProfileAndLevelModalState extends State<ProfileAndLevelModal> with Single
           UserFrameView(
             avatarIndex: _tempAvatarIndex,
             frameId: _tempFrameId,
-            level: progress.currentLevel,
             size: 48,
+            showLevelBadge: false, // Sin insignia numérica de nivel
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -238,433 +255,62 @@ class _ProfileAndLevelModalState extends State<ProfileAndLevelModal> with Single
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
-                Builder(
-                  builder: (context) {
-                    final trophies = PlayerStatsModel.shared.trophies;
-                    final rank = RankInfo.forTrophies(trophies);
-                    return Text(
-                      'Nivel ${progress.currentLevel} • Rango: ${rank.fullNameFor(trophies)} ($trophies 🏆)',
-                      style: const TextStyle(
-                        color: Color(0xFFF59E0B),
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    );
-                  },
-                ),
-              ],
-            ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.close_rounded, color: Colors.white70),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // --- PESTAÑA 1: RESUMEN DE NIVEL & XP ---
-  Widget _buildLevelTab(UserProgress progress) {
-    final currentLevel = progress.currentLevel;
-    final nextLevel = currentLevel + 1;
-    final xpInTier = progress.currentTierXp;
-    final neededInTier = progress.neededInCurrentTier;
-    final percent = (progress.levelProgressPercentage * 100).toInt();
-    final remaining = progress.xpRemainingToNextLevel;
-
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Tarjeta Principal de Progreso
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: const Color(0xFF181818),
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: const Color(0xFF2E2E2E), width: 1.0),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'NIVEL $currentLevel',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                    Text(
-                      'Nivel $nextLevel',
-                      style: const TextStyle(
-                        color: Colors.white70,
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-
-                // Barra de progreso de XP
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
-                  child: LinearProgressIndicator(
-                    value: progress.levelProgressPercentage,
-                    minHeight: 14,
-                    backgroundColor: const Color(0xFF101010),
-                    valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF22C55E)),
-                  ),
-                ),
-                const SizedBox(height: 8),
+const SizedBox(height: 2),
 
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      '$xpInTier / $neededInTier XP ($percent%)',
-                      style: const TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold),
-                    ),
-                    Text(
-                      'Total: ${widget.session.xp} XP',
-                      style: const TextStyle(color: Colors.white54, fontSize: 11),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 14),
 
-          // Banner de "¿Qué falta para subir?"
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-            decoration: BoxDecoration(
-              color: const Color(0xFF181818),
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: const Color(0xFF2E2E2E), width: 1.0),
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.bolt_rounded, color: Colors.white70, size: 24),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: RichText(
-                    text: TextSpan(
-                      text: 'Te faltan ',
-                      style: const TextStyle(color: Colors.white, fontSize: 13),
-                      children: [
-                        TextSpan(
-                          text: '$remaining XP',
-                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                        ),
-                        const TextSpan(
-                          text: ' para alcanzar el Nivel ',
-                        ),
-                        TextSpan(
-                          text: '$nextLevel.',
-                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          // Recordatorio claro de Rangos y Marcos por Trofeos
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            decoration: BoxDecoration(
-              color: const Color(0xFF181818),
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: const Color(0xFF2E2E2E), width: 1),
-            ),
-            child: const Row(
-              children: [
-                Icon(Icons.emoji_events_rounded, color: Color(0xFFF59E0B), size: 18),
-                SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    'Los Rangos competitivos y Marcos de avatar se desbloquean con Trofeos 🏆 en partidas clasificatorias, no por nivel de XP.',
-                    style: TextStyle(color: Colors.white70, fontSize: 11),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 14),
-
-          const Text(
-            'Recompensas de Experiencia (XP)',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 10),
-
-          // Lista de metas basada en el modelo de objetos LevelMilestone
-          ...LevelMilestone.catalog.map(
-            (milestone) => _buildMilestone(
-              milestone.level,
-              milestone.title,
-              milestone.reward,
-              milestone.isUnlocked(currentLevel),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMilestone(int lvl, String title, String reward, bool isUnlocked) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: const Color(0xFF181818),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: const Color(0xFF2E2E2E),
-          width: 1,
-        ),
-      ),
-      child: Row(
-        children: [
-          Icon(
-            isUnlocked ? Icons.check_circle_rounded : Icons.lock_outline_rounded,
-            color: isUnlocked ? const Color(0xFF22C55E) : Colors.white30,
-            size: 20,
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: TextStyle(
-                    color: isUnlocked ? Colors.white : Colors.white54,
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                Text(
-                  reward,
-                  style: TextStyle(
-                    color: isUnlocked ? Colors.white70 : Colors.white30,
-                    fontSize: 10,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // --- PESTAÑA 2: MARCOS DE USUARIO ---
-  Widget _buildFramesTab(UserProgress progress) {
-    final playerTrophies = PlayerStatsModel.shared.trophies;
-
-    return ListView.builder(
-      padding: const EdgeInsets.all(14),
-      itemCount: UserFrameItem.allFrames.length,
-      itemBuilder: (context, i) {
-        final frame = UserFrameItem.allFrames[i];
-        final isUnlocked = frame.isUnlockedByTrophies(playerTrophies);
-        final isSelected = _tempFrameId == frame.id;
-
-        return Container(
-          margin: const EdgeInsets.only(bottom: 10),
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: const Color(0xFF181818),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: isSelected ? Colors.white70 : const Color(0xFF2E2E2E),
-              width: 1,
-            ),
-          ),
-          child: Row(
-            children: [
-              Stack(
-                alignment: Alignment.center,
-                children: [
-                  UserFrameView(
-                    avatarIndex: _tempAvatarIndex,
-                    frameId: frame.id,
-                    level: progress.currentLevel,
-                    size: 46,
-                    showLevelBadge: false,
-                  ),
-                  if (!isUnlocked)
                     Container(
-                      width: 46,
-                      height: 46,
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.55),
-                        shape: BoxShape.circle,
+                        gradient: rank.gradient,
+                        borderRadius: BorderRadius.circular(5),
                       ),
-                      child: const Icon(
-                        Icons.lock_rounded,
-                        color: Color(0xFFFCA5A5),
-                        size: 20,
+                      child: Text(
+                        rank.fullNameFor(trophies),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w900,
+                        ),
                       ),
                     ),
+                    const SizedBox(width: 6),
+                    Text(
+                      '$trophies 🏆',
+                      style: const TextStyle(
+                        color: Color(0xFFFBBF24),
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          TactilePressable(
+            depth: 2.5,
+            onTap: () => Navigator.of(context).pop(),
+            child: Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                gradient: AppGradients.redDanger,
+                shape: BoxShape.circle,
+                boxShadow: const [
+                  BoxShadow(color: Colors.black45, blurRadius: 4, offset: Offset(0, 2)),
                 ],
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Text(
-                          frame.name,
-                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
-                        ),
-                        if (!isUnlocked) ...[
-                          const SizedBox(width: 5),
-                          const Icon(Icons.lock_rounded, size: 12, color: Color(0xFFF87171)),
-                        ],
-                      ],
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      frame.description,
-                      style: const TextStyle(color: Colors.white60, fontSize: 10),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      isUnlocked ? 'Desbloqueado (${frame.minTrophies}+ Trofeos 🏆)' : 'Requiere ${frame.minTrophies} Trofeos 🏆',
-                      style: TextStyle(
-                        color: isUnlocked ? const Color(0xFF4ADE80) : const Color(0xFFF87171),
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: isSelected
-                      ? const Color(0xFF22C55E)
-                      : (isUnlocked ? const Color(0xFF38BDF8) : Colors.white12),
-                  foregroundColor: isSelected ? Colors.white : (isUnlocked ? const Color(0xFF0F172A) : Colors.white38),
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                ),
-                icon: isUnlocked
-                    ? (isSelected ? const Icon(Icons.check, size: 13) : const SizedBox.shrink())
-                    : const Icon(Icons.lock_rounded, size: 13),
-                onPressed: isUnlocked
-                    ? () {
-                        setState(() {
-                          _tempFrameId = frame.id;
-                        });
-                      }
-                    : null,
-                label: Text(
-                  isSelected ? 'ACTIVO' : (isUnlocked ? 'EQUIPAR' : 'BLOQUEADO'),
-                  style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
+child: const Icon(Icons.close_rounded, color: Colors.white, size: 18),
 
-  // --- PESTAÑA 3: FONDOS / TEMAS DE COLOR ---
-  Widget _buildThemesTab() {
-    return ListView.builder(
-      padding: const EdgeInsets.all(14),
-      itemCount: LobbyThemeOption.allThemes.length,
-      itemBuilder: (context, i) {
-        final theme = LobbyThemeOption.allThemes[i];
-        final isSelected = _tempThemeId == theme.id;
-
-        return Container(
-          margin: const EdgeInsets.only(bottom: 10),
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: const Color(0xFF181818),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: isSelected ? Colors.white70 : const Color(0xFF2E2E2E),
-              width: 1,
             ),
           ),
-          child: Row(
-            children: [
-              // Muestra visual del gradiente
-              Container(
-                width: 46,
-                height: 46,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(colors: theme.backgroundGradient),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: const Color(0xFF2E2E2E), width: 1),
-                ),
-                child: Center(
-                  child: Icon(theme.icon, color: theme.accentColor, size: 22),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      theme.name,
-                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
-                    ),
-                    const SizedBox(height: 2),
-                    const Text(
-                      'Fondo de interfaz y tapete para el Lobby',
-                      style: TextStyle(color: Colors.white60, fontSize: 10),
-                    ),
-                  ],
-                ),
-              ),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: isSelected ? const Color(0xFF22C55E) : const Color(0xFF2E2E2E),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                ),
-                onPressed: () {
-                  setState(() {
-                    _tempThemeId = theme.id;
-                  });
-                },
-                child: Text(
-                  isSelected ? 'APLICADO' : 'APLICAR',
-                  style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
+        ],
+      ),
     );
   }
 
-  // --- PESTAÑA 4: AVATAR & NOMBRE (EXCLUSIVO HÉROES) ---
+  // --- PESTAÑA 1: AVATAR & NOMBRE ---
   Widget _buildAvatarTab() {
     final heroes = AvatarPreset.heroesPresets;
 
@@ -680,20 +326,20 @@ class _ProfileAndLevelModalState extends State<ProfileAndLevelModal> with Single
             decoration: InputDecoration(
               labelText: 'Nombre de Jugador',
               labelStyle: const TextStyle(color: Colors.white70),
-              prefixIcon: const Icon(Icons.badge_rounded, color: Colors.white70, size: 18),
+              prefixIcon: const Icon(Icons.badge_rounded, color: AppPalette.cartoonCyan, size: 18),
               filled: true,
-              fillColor: const Color(0xFF181818),
+              fillColor: AppPalette.cartoonBgDark,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(14),
-                borderSide: const BorderSide(color: Color(0xFF2E2E2E)),
+                borderSide: const BorderSide(color: AppPalette.cartoonBorder, width: 1.5),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(14),
-                borderSide: const BorderSide(color: Color(0xFF2E2E2E)),
+                borderSide: const BorderSide(color: AppPalette.cartoonBorder, width: 1.5),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(14),
-                borderSide: const BorderSide(color: Colors.white70, width: 1.2),
+                borderSide: const BorderSide(color: AppPalette.cartoonCyan, width: 1.8),
               ),
               counterStyle: const TextStyle(color: Colors.white54, fontSize: 10),
             ),
@@ -703,19 +349,19 @@ class _ProfileAndLevelModalState extends State<ProfileAndLevelModal> with Single
 
         // Encabezado de Héroes disponibles
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Row(
                 children: [
-                  Icon(Icons.shield_rounded, size: 16, color: Colors.white70),
+                  Icon(Icons.shield_rounded, size: 16, color: AppPalette.cartoonYellow),
                   SizedBox(width: 6),
                   Text(
-                    'HÉROES DISPONIBLES',
+                    'AVATARES DISPONIBLES',
                     style: TextStyle(
-                      color: Colors.white70,
-                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                      fontWeight: FontWeight.w900,
                       fontSize: 12,
                       letterSpacing: 0.5,
                     ),
@@ -725,13 +371,14 @@ class _ProfileAndLevelModalState extends State<ProfileAndLevelModal> with Single
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
-                  color: Colors.white10,
+                  color: AppPalette.cartoonBgDark,
                   borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: AppPalette.cartoonBorder),
                 ),
                 child: Text(
                   '${heroes.length} Héroes',
                   style: const TextStyle(
-                    color: Colors.white70,
+                    color: AppPalette.cartoonCyan,
                     fontSize: 10.5,
                     fontWeight: FontWeight.bold,
                   ),
@@ -745,6 +392,7 @@ class _ProfileAndLevelModalState extends State<ProfileAndLevelModal> with Single
         Expanded(
           child: GridView.builder(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+            physics: const BouncingScrollPhysics(),
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 4,
               mainAxisSpacing: 12,
@@ -756,7 +404,8 @@ class _ProfileAndLevelModalState extends State<ProfileAndLevelModal> with Single
               final hero = heroes[i];
               final isSelected = _tempAvatarIndex == hero.id;
 
-              return GestureDetector(
+              return TactilePressable(
+                depth: 2.5,
                 onTap: () {
                   setState(() {
                     _tempAvatarIndex = hero.id;
@@ -767,15 +416,16 @@ class _ProfileAndLevelModalState extends State<ProfileAndLevelModal> with Single
                   children: [
                     Container(
                       decoration: BoxDecoration(
+                        color: isSelected ? const Color(0xFF22D3EE).withValues(alpha: 0.15) : AppPalette.cartoonCardDark,
                         borderRadius: BorderRadius.circular(14),
                         border: Border.all(
-                          color: isSelected ? Colors.white70 : const Color(0xFF2E2E2E),
-                          width: isSelected ? 2.0 : 1.0,
+                          color: isSelected ? AppPalette.cartoonCyan : AppPalette.cartoonBorder,
+                          width: isSelected ? 2.5 : 1.5,
                         ),
                         boxShadow: isSelected
                             ? [
                                 const BoxShadow(
-                                  color: Colors.white24,
+                                  color: Color(0xFF22D3EE),
                                   blurRadius: 6,
                                   spreadRadius: 1,
                                 ),
@@ -797,9 +447,9 @@ class _ProfileAndLevelModalState extends State<ProfileAndLevelModal> with Single
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        color: isSelected ? Colors.white : Colors.white60,
+                        color: isSelected ? AppPalette.cartoonYellow : Colors.white70,
                         fontSize: 10.5,
-                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                        fontWeight: isSelected ? FontWeight.w900 : FontWeight.bold,
                       ),
                     ),
                   ],
@@ -809,6 +459,225 @@ class _ProfileAndLevelModalState extends State<ProfileAndLevelModal> with Single
           ),
         ),
       ],
+    );
+  }
+
+  // --- PESTAÑA 2: MARCOS DE USUARIO ---
+  Widget _buildFramesTab() {
+    final playerTrophies = PlayerStatsModel.shared.trophies;
+
+    return ListView.builder(
+      padding: const EdgeInsets.all(14),
+      physics: const BouncingScrollPhysics(),
+      itemCount: UserFrameItem.allFrames.length,
+      itemBuilder: (context, i) {
+        final frame = UserFrameItem.allFrames[i];
+        final isUnlocked = frame.isUnlockedByTrophies(playerTrophies);
+        final isSelected = _tempFrameId == frame.id;
+
+        return Container(
+          margin: const EdgeInsets.only(bottom: 10),
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: isSelected ? const Color(0xFF382F99) : AppPalette.cartoonCardDark,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: isSelected ? AppPalette.cartoonCyan : AppPalette.cartoonBorder,
+              width: isSelected ? 2.0 : 1.5,
+            ),
+          ),
+          child: Row(
+            children: [
+              Stack(
+                alignment: Alignment.center,
+                children: [
+                  UserFrameView(
+                    avatarIndex: _tempAvatarIndex,
+                    frameId: frame.id,
+                    size: 46,
+                    showLevelBadge: false,
+                  ),
+                  if (!isUnlocked)
+                    Container(
+                      width: 46,
+                      height: 46,
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.55),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.lock_rounded,
+                        color: Color(0xFFFBBF24),
+                        size: 20,
+                      ),
+                    ),
+                ],
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Text(
+                          frame.name,
+                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 13),
+                        ),
+                        if (!isUnlocked) ...[
+                          const SizedBox(width: 5),
+                          const Icon(Icons.lock_rounded, size: 12, color: Color(0xFFFBBF24)),
+                        ],
+                      ],
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      frame.description,
+                      style: const TextStyle(color: Colors.white60, fontSize: 10),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      isUnlocked
+                          ? 'Desbloqueado'
+                          : (frame.requiredRoomId != null
+                              ? 'Requiere conquistar ${frame.name} (${frame.minTrophies} 🏆)'
+                              : 'Requiere ${frame.minTrophies} Trofeos 🏆'),
+                      style: TextStyle(
+                        color: isUnlocked ? const Color(0xFF10B981) : const Color(0xFFF87171),
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              TactilePressable(
+                depth: 2.5,
+                onTap: isUnlocked
+                    ? () {
+                        setState(() {
+                          _tempFrameId = frame.id;
+                        });
+                      }
+                    : null,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    gradient: isSelected
+                        ? AppGradients.greenAccept
+                        : (isUnlocked ? AppGradients.cyanAccent : null),
+                    color: isUnlocked ? null : Colors.white12,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: AppPalette.cartoonBorder, width: 1.2),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (isSelected)
+                        const Icon(Icons.check_rounded, color: Colors.white, size: 13)
+                      else if (!isUnlocked)
+                        const Icon(Icons.lock_rounded, color: Colors.white38, size: 13),
+                      if (isSelected || !isUnlocked) const SizedBox(width: 3),
+                      Text(
+                        isSelected ? 'ACTIVO' : (isUnlocked ? 'EQUIPAR' : 'BLOQUEADO'),
+                        style: TextStyle(
+                          color: isUnlocked ? Colors.white : Colors.white38,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  // --- PESTAÑA 3: FONDOS / TEMAS DE COLOR ---
+  Widget _buildThemesTab() {
+    return ListView.builder(
+      padding: const EdgeInsets.all(14),
+      physics: const BouncingScrollPhysics(),
+      itemCount: LobbyThemeOption.allThemes.length,
+      itemBuilder: (context, i) {
+        final theme = LobbyThemeOption.allThemes[i];
+        final isSelected = _tempThemeId == theme.id;
+
+        return Container(
+          margin: const EdgeInsets.only(bottom: 10),
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: isSelected ? const Color(0xFF382F99) : AppPalette.cartoonCardDark,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: isSelected ? AppPalette.cartoonCyan : AppPalette.cartoonBorder,
+              width: isSelected ? 2.0 : 1.5,
+            ),
+          ),
+          child: Row(
+            children: [
+              // Muestra visual del gradiente
+              Container(
+                width: 46,
+                height: 46,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(colors: theme.backgroundGradient),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppPalette.cartoonBorder, width: 1.5),
+                ),
+                child: Center(
+                  child: Icon(theme.icon, color: theme.accentColor, size: 22),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      theme.name,
+                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 13),
+                    ),
+                    const SizedBox(height: 2),
+                    const Text(
+                      'Fondo de interfaz y tapete para el Lobby',
+                      style: TextStyle(color: Colors.white60, fontSize: 10),
+                    ),
+                  ],
+                ),
+              ),
+              TactilePressable(
+                depth: 2.5,
+                onTap: () {
+                  setState(() {
+                    _tempThemeId = theme.id;
+                  });
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    gradient: isSelected ? AppGradients.greenAccept : AppGradients.cyanAccent,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: AppPalette.cartoonBorder, width: 1.2),
+                  ),
+                  child: Text(
+                    isSelected ? 'APLICADO' : 'APLICAR',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

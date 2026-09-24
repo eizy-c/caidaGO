@@ -3,13 +3,15 @@ import 'package:flutter/material.dart';
 import '../../../core/presentation/widgets/spanish_card_view.dart';
 import '../../../core/services/debug_logger.dart';
 import '../../../core/services/user_profile_service.dart';
+import '../../../core/theme/app_palette.dart';
 import '../economy/player_session.dart';
 import 'caida_lobby_screen.dart';
 import 'widgets/profile_options_dialog.dart';
 import 'widgets/four_aces_display_view.dart';
 
-/// Pantalla de bienvenida y portada estilizada para La Caída,
-/// inspirada en la captura con fondo chevron púrpura y tipografía 3D abombada.
+/// Pantalla de bienvenida y portada estilizada para La Caída (CaidaGO),
+/// con paleta Cartoon Indigo/Púrpura, abanico de cartas, logotipo 3D,
+/// emblema central flotante y barra de carga reactiva con efectos de brillo.
 class CaidaSplashScreen extends StatefulWidget {
   const CaidaSplashScreen({super.key});
 
@@ -18,16 +20,24 @@ class CaidaSplashScreen extends StatefulWidget {
 }
 
 class _CaidaSplashScreenState extends State<CaidaSplashScreen>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   late AnimationController _loadingController;
   late Animation<double> _loadingAnimation;
+
+  late AnimationController _floatingController;
+  late Animation<double> _floatingAnimation;
+
+  late AnimationController _pulseController;
+  late Animation<double> _pulseAnimation;
 
   @override
   void initState() {
     super.initState();
+
+    // 1. Controlador de carga
     _loadingController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1800),
+      duration: const Duration(milliseconds: 2000),
     );
 
     _loadingAnimation = CurvedAnimation(
@@ -41,6 +51,26 @@ class _CaidaSplashScreenState extends State<CaidaSplashScreen>
       }
     });
 
+    // 2. Controlador de flotación suave (respiración)
+    _floatingController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2400),
+    )..repeat(reverse: true);
+
+    _floatingAnimation = Tween<double>(begin: -5.0, end: 5.0).animate(
+      CurvedAnimation(parent: _floatingController, curve: Curves.easeInOutSine),
+    );
+
+    // 3. Controlador de resplandor / pulso
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1500),
+    )..repeat(reverse: true);
+
+    _pulseAnimation = Tween<double>(begin: 0.85, end: 1.15).animate(
+      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
+    );
+
     _loadingController.forward();
   }
 
@@ -53,6 +83,8 @@ class _CaidaSplashScreenState extends State<CaidaSplashScreen>
   @override
   void dispose() {
     _loadingController.dispose();
+    _floatingController.dispose();
+    _pulseController.dispose();
     super.dispose();
   }
 
@@ -81,19 +113,19 @@ class _CaidaSplashScreenState extends State<CaidaSplashScreen>
           transitionsBuilder: (_, animation, _, child) {
             return FadeTransition(opacity: animation, child: child);
           },
-          transitionDuration: const Duration(milliseconds: 400),
+          transitionDuration: const Duration(milliseconds: 450),
         ),
       );
     }
   }
 
   String _getLoadingStatusText(double progress) {
-    if (progress < 0.35) {
+    if (progress < 0.30) {
       return 'Cargando baraja española...';
-    } else if (progress < 0.70) {
+    } else if (progress < 0.65) {
       return 'Sincronizando perfil de juego...';
-    } else if (progress < 0.95) {
-      return 'Preparando la mesa de Caída...';
+    } else if (progress < 0.90) {
+      return 'Preparando mesas regionales...';
     } else {
       return '¡Mesa lista!';
     }
@@ -104,23 +136,23 @@ class _CaidaSplashScreenState extends State<CaidaSplashScreen>
     return Scaffold(
       body: Stack(
         children: [
-          // 1. Fondo de Chevrons en zigzag Púrpura / Azul Rey
+          // 1. Fondo Chevron en Zigzag Cartoon Púrpura/Índigo
           Positioned.fill(
             child: CustomPaint(
               painter: _ChevronBackgroundPainter(),
             ),
           ),
 
-          // 2. Resplandor radial central
+          // 2. Resplandor radial central y partículas decorativas
           Positioned.fill(
             child: Container(
               decoration: BoxDecoration(
                 gradient: RadialGradient(
-                  center: const Alignment(0, -0.1),
-                  radius: 0.85,
+                  center: const Alignment(0, -0.15),
+                  radius: 0.9,
                   colors: [
-                    const Color(0xFF9333EA).withValues(alpha: 0.28),
-                    const Color(0xFF6B21A8).withValues(alpha: 0.12),
+                    const Color(0xFF8B5CF6).withValues(alpha: 0.28),
+                    const Color(0xFF4338CA).withValues(alpha: 0.15),
                     Colors.transparent,
                   ],
                 ),
@@ -128,366 +160,461 @@ class _CaidaSplashScreenState extends State<CaidaSplashScreen>
             ),
           ),
 
-          // 3. Contenido Central (Abanico de 4 Ases + Logo 3D + 3 Tarjetas Flotantes + Lema)
+          // 3. Contenido Principal Flotante
           SafeArea(
-            child: Center(
-              child: SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // A. Abanico de los 4 Ases (Oros, Copas, Espadas, Bastos)
-                      const FourAcesDisplayView(cardWidth: 54),
-                      const SizedBox(height: 6),
+            child: SizedBox(
+              width: double.infinity,
+              height: double.infinity,
+              child: Column(
+                children: [
+                  const Spacer(flex: 2),
 
-                      // B. Logotipo 3D CAIDAGO + Rótulo "Tradicional"
-                      Stack(
-                        clipBehavior: Clip.none,
-                        alignment: Alignment.center,
-                        children: [
-                          // Sombra 3D profunda
-                          Transform.translate(
-                            offset: const Offset(3, 7),
-                            child: Text(
-                              'CAIDAGO',
-                              style: TextStyle(
-                                fontSize: 52,
-                                fontWeight: FontWeight.w900,
-                                letterSpacing: 2.5,
-                                foreground: Paint()
-                                  ..style = PaintingStyle.fill
-                                  ..color = const Color(0xFF0F172A).withValues(alpha: 0.9),
-                              ),
-                            ),
-                          ),
-                          // Borde exterior 3D
-                          Text(
-                            'CAIDAGO',
-                            style: TextStyle(
-                              fontSize: 52,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: 2.5,
-                              foreground: Paint()
-                                ..style = PaintingStyle.stroke
-                                ..strokeWidth = 6.5
-                                ..color = const Color(0xFF0284C7),
-                            ),
-                          ),
-                          // Gradiente interior celeste brillante
-                          ShaderMask(
-                            shaderCallback: (bounds) => const LinearGradient(
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                              colors: [Color(0xFFE0F2FE), Color(0xFF38BDF8), Color(0xFF0284C7)],
-                            ).createShader(bounds),
-                            child: const Text(
-                              'CAIDAGO',
-                              style: TextStyle(
-                                fontSize: 52,
-                                fontWeight: FontWeight.w900,
-                                letterSpacing: 2.5,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-
-                          // Rótulo "Tradicional"
-                          Positioned(
-                            bottom: -10,
-                            right: -10,
-                            child: Transform.rotate(
-                              angle: -math.pi / 24,
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 3),
-                                decoration: BoxDecoration(
-                                  gradient: const LinearGradient(
-                                    colors: [Color(0xFFA855F7), Color(0xFF7C3AED)],
-                                  ),
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(color: Colors.white38, width: 1.2),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: const Color(0xFF9333EA).withValues(alpha: 0.6),
-                                      blurRadius: 10,
-                                      offset: const Offset(0, 3),
-                                    ),
-                                  ],
-                                ),
-                                child: const Text(
-                                  'Tradicional',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 14.5,
-                                    fontWeight: FontWeight.w900,
-                                    letterSpacing: 0.4,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 38),
-
-                      // C. 3 Tarjetas Flotantes 3D (Desafíos, JUGAR, Historial) con Chispas
-                      _buildFloatingCardsRow(),
-                      const SizedBox(height: 24),
-
-                      // D. Lema / Tagline
-                      Text(
-                        'ESTRATEGIA  •  CONCENTRACIÓN  •  DIVERSIÓN',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.65),
-                          fontSize: 11,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 2.0,
-                        ),
-                      ),
-                      const SizedBox(height: 48),
-                    ],
+                  // A. Abanico de los 4 Ases con animación de flotación suave
+                  AnimatedBuilder(
+                    animation: _floatingAnimation,
+                    builder: (context, child) {
+                      return Transform.translate(
+                        offset: Offset(0, _floatingAnimation.value),
+                        child: child,
+                      );
+                    },
+                    child: const FourAcesDisplayView(cardWidth: 52),
                   ),
-                ),
+                  const SizedBox(height: 12),
+
+                  // B. Logotipo 3D "CAIDAGO" + Badge "Tradicional"
+                  _buildBrandLogo(),
+
+                  const Spacer(flex: 3),
+
+                  // C. 3 Tarjetas 3D Separadas: ESTRATEGIA, CONCENTRACIÓN y DIVERSIÓN
+                  _buildThreeFeatureCardsRow(),
+
+                  const Spacer(flex: 4),
+
+                  // E. Barra de Carga Dinámica Inferior
+                  _buildLoadingBar(),
+
+                  const SizedBox(height: 20),
+                ],
               ),
             ),
           ),
+        ],
+      ),
+    );
+  }
 
-          // 4. Barra de Carga Dinámica Inferior (0% al 100%)
-          Positioned(
-            bottom: MediaQuery.of(context).padding.bottom + 24,
-            left: 24,
-            right: 24,
-            child: AnimatedBuilder(
-              animation: _loadingAnimation,
-              builder: (context, _) {
-                final progress = _loadingAnimation.value.clamp(0.0, 1.0);
-                final percentInt = (progress * 100).toInt();
+  /// Logotipo 3D "CAIDAGO" con sombra profunda y badge "Tradicional"
+  Widget _buildBrandLogo() {
+    return Stack(
+      clipBehavior: Clip.none,
+      alignment: Alignment.center,
+      children: [
+        // Sombra 3D profunda inferior
+        Transform.translate(
+          offset: const Offset(0, 7),
+          child: Text(
+            'CAIDAGO',
+            style: TextStyle(
+              fontSize: 54,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 3.5,
+              foreground: Paint()
+                ..style = PaintingStyle.fill
+                ..color = const Color(0xFF0F0B38),
+            ),
+          ),
+        ),
 
-                return Center(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 340),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF1E1B4B).withValues(alpha: 0.75),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: Colors.white12, width: 1),
-                        boxShadow: const [
-                          BoxShadow(color: Colors.black45, blurRadius: 10, offset: Offset(0, 3)),
-                        ],
-                      ),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          // Fila de estado y porcentaje
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Flexible(
-                                child: Text(
-                                  _getLoadingStatusText(progress),
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                    color: Colors.white70,
-                                    fontSize: 11.5,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                '$percentInt%',
-                                style: const TextStyle(
-                                  color: Color(0xFF38BDF8),
-                                  fontSize: 13.5,
-                                  fontWeight: FontWeight.w900,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 6),
+        // Trazo exterior cartoon
+        Text(
+          'CAIDAGO',
+          style: TextStyle(
+            fontSize: 54,
+            fontWeight: FontWeight.w900,
+            letterSpacing: 3.5,
+            foreground: Paint()
+              ..style = PaintingStyle.stroke
+              ..strokeWidth = 7
+              ..strokeCap = StrokeCap.round
+              ..strokeJoin = StrokeJoin.round
+              ..color = const Color(0xFF1E1763),
+          ),
+        ),
 
-                          // Riel de la barra de progreso
-                          Container(
-                            height: 10,
-                            width: double.infinity,
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF0F172A),
-                              borderRadius: BorderRadius.circular(10),
-                              border: Border.all(
-                                color: const Color(0xFF0284C7).withValues(alpha: 0.4),
-                                width: 1.0,
-                              ),
-                            ),
-                            child: LayoutBuilder(
-                              builder: (context, constraints) {
-                                final fillWidth = constraints.maxWidth * progress;
-                                return Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: Container(
-                                    width: fillWidth,
-                                    height: double.infinity,
-                                    decoration: BoxDecoration(
-                                      gradient: const LinearGradient(
-                                        colors: [
-                                          Color(0xFF0284C7),
-                                          Color(0xFF38BDF8),
-                                          Color(0xFF67E8F9),
-                                        ],
-                                      ),
-                                      borderRadius: BorderRadius.circular(8),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: const Color(0xFF38BDF8).withValues(alpha: 0.7),
-                                          blurRadius: 8,
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
+        // Relleno degradado cian/celeste brillante
+        ShaderMask(
+          shaderCallback: (bounds) => const LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Color(0xFFFFFFFF),
+              Color(0xFF67E8F9),
+              Color(0xFF06B6D4),
+              Color(0xFF0284C7),
+            ],
+            stops: [0.0, 0.3, 0.7, 1.0],
+          ).createShader(bounds),
+          child: const Text(
+            'CAIDAGO',
+            style: TextStyle(
+              fontSize: 54,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 3.5,
+              color: Colors.white,
+            ),
+          ),
+        ),
+
+        // Rótulo "Tradicional" estilo píldora neón
+        Positioned(
+          bottom: -10,
+          right: -14,
+          child: Transform.rotate(
+            angle: -math.pi / 22,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFFA855F7), Color(0xFF7C3AED), Color(0xFF6D28D9)],
+                ),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.8), width: 1.8),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFFA855F7).withValues(alpha: 0.7),
+                    blurRadius: 12,
+                    spreadRadius: 1,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.star_rounded, color: AppPalette.cartoonYellow, size: 13),
+                  SizedBox(width: 4),
+                  Text(
+                    'Tradicional',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Fila de las 3 Tarjetas 3D independientes: ESTRATEGIA, CONCENTRACIÓN y DIVERSIÓN
+  Widget _buildThreeFeatureCardsRow() {
+    return AnimatedBuilder(
+      animation: _pulseAnimation,
+      builder: (context, child) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              // 1. Tarjeta Izquierda: ESTRATEGIA (Dorada)
+              _buildFeatureCard(
+                title: 'ESTRATEGIA',
+                icon: Icons.psychology_rounded,
+                gradientColors: [const Color(0xFFFBBF24), const Color(0xFFD97706), const Color(0xFFB45309)],
+                edgeColor: const Color(0xFF78350F),
+                width: 95,
+                height: 116,
+                rotationAngle: -0.06,
+              ),
+
+              const SizedBox(width: 8),
+
+              // 2. Tarjeta Central: CONCENTRACIÓN / JUGAR (Cian Prominente con Aura)
+              Stack(
+                alignment: Alignment.center,
+                clipBehavior: Clip.none,
+                children: [
+                  // Aura brillante
+                  Container(
+                    width: 120 * _pulseAnimation.value,
+                    height: 140 * _pulseAnimation.value,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: RadialGradient(
+                        colors: [
+                          const Color(0xFF38BDF8).withValues(alpha: 0.35),
+                          Colors.transparent,
                         ],
                       ),
                     ),
                   ),
-                );
-              },
-            ),
+                  _buildFeatureCard(
+                    title: 'CONCENTRACIÓN',
+                    subtitle: 'JUGAR',
+                    icon: Icons.sports_esports_rounded,
+                    gradientColors: [const Color(0xFF38BDF8), const Color(0xFF0284C7), const Color(0xFF0369A1)],
+                    edgeColor: const Color(0xFF0C4A6E),
+                    width: 114,
+                    height: 138,
+                    isProminent: true,
+                  ),
+                ],
+              ),
+
+              const SizedBox(width: 8),
+
+              // 3. Tarjeta Derecha: DIVERSIÓN (Rubí / Fresa)
+              _buildFeatureCard(
+                title: 'DIVERSIÓN',
+                icon: Icons.celebration_rounded,
+                gradientColors: [const Color(0xFFFB7185), const Color(0xFFE11D48), const Color(0xFFBE123C)],
+                edgeColor: const Color(0xFF881337),
+                width: 95,
+                height: 116,
+                rotationAngle: 0.06,
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
-  /// Fila de las 3 Tarjetas Flotantes 3D en el centro de la pantalla
-  Widget _buildFloatingCardsRow() {
-    return SizedBox(
-      height: 140,
-      child: Stack(
-        alignment: Alignment.center,
-        clipBehavior: Clip.none,
-        children: [
-          // Tarjeta Izquierda (Amarilla - DESAFÍOS)
-          Positioned(
-            left: 10,
-            child: Transform.rotate(
-              angle: -0.12,
-              child: _buildFloatingCard(
-                label: 'DESAFÍOS',
-                icon: Icons.military_tech_rounded,
-                gradientColors: [const Color(0xFFFBBF24), const Color(0xFFD97706)],
-                shadowColor: const Color(0xFFF59E0B),
-                width: 90,
-                height: 115,
-              ),
-            ),
-          ),
-
-          // Tarjeta Derecha (Roja - HISTORIAL)
-          Positioned(
-            right: 10,
-            child: Transform.rotate(
-              angle: 0.12,
-              child: _buildFloatingCard(
-                label: 'HISTORIAL',
-                icon: Icons.emoji_events_rounded,
-                gradientColors: [const Color(0xFFFB7185), const Color(0xFFE11D48)],
-                shadowColor: const Color(0xFFF43F5E),
-                width: 90,
-                height: 115,
-              ),
-            ),
-          ),
-
-          // Tarjeta Central Elevada (Celeste - JUGAR)
-          Positioned(
-            child: _buildFloatingCard(
-              label: 'JUGAR',
-              icon: Icons.sports_esports_rounded,
-              gradientColors: [const Color(0xFF38BDF8), const Color(0xFF0284C7)],
-              shadowColor: const Color(0xFF38BDF8),
-              width: 102,
-              height: 130,
-              isProminent: true,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFloatingCard({
-    required String label,
+  Widget _buildFeatureCard({
+    required String title,
+    String? subtitle,
     required IconData icon,
     required List<Color> gradientColors,
-    required Color shadowColor,
+    required Color edgeColor,
     required double width,
     required double height,
+    double rotationAngle = 0.0,
     bool isProminent = false,
   }) {
-    return Container(
+    final cardWidget = Container(
       width: width,
       height: height,
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: gradientColors,
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
+          colors: gradientColors,
         ),
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(isProminent ? 22 : 18),
         border: Border.all(
-          color: Colors.white.withValues(alpha: isProminent ? 0.6 : 0.35),
-          width: isProminent ? 2.2 : 1.5,
+          color: Colors.white.withValues(alpha: isProminent ? 0.9 : 0.65),
+          width: isProminent ? 2.2 : 1.6,
         ),
         boxShadow: [
+          // Base 3D
           BoxShadow(
-            color: shadowColor.withValues(alpha: isProminent ? 0.6 : 0.4),
-            blurRadius: isProminent ? 20 : 12,
-            spreadRadius: isProminent ? 2 : 0,
-            offset: const Offset(0, 4),
+            color: edgeColor,
+            offset: Offset(0, isProminent ? 5.5 : 4.0),
+            blurRadius: 0,
           ),
+          // Sombra ambiental
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.45),
-            blurRadius: 8,
-            offset: const Offset(0, 6),
+            color: Colors.black.withValues(alpha: 0.35),
+            offset: Offset(0, isProminent ? 8 : 6),
+            blurRadius: 10,
           ),
         ],
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            icon,
-            color: Colors.white,
-            size: isProminent ? 42 : 34,
-            shadows: const [
-              Shadow(color: Colors.black38, blurRadius: 4, offset: Offset(0, 2)),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            label,
-            style: TextStyle(
+          // Icono dentro de círculo translúcido
+          Container(
+            padding: EdgeInsets.all(isProminent ? 9 : 7),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.22),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              icon,
               color: Colors.white,
-              fontWeight: FontWeight.w900,
-              fontSize: isProminent ? 13 : 11,
-              letterSpacing: 0.8,
+              size: isProminent ? 32 : 24,
               shadows: const [
-                Shadow(color: Colors.black45, blurRadius: 3, offset: Offset(0, 1)),
+                Shadow(color: Colors.black38, blurRadius: 4, offset: Offset(0, 2)),
               ],
+            ),
+          ),
+          SizedBox(height: isProminent ? 6 : 4),
+
+          if (subtitle != null) ...[
+            Text(
+              subtitle,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 13,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 0.6,
+                shadows: [
+                  Shadow(color: Colors.black45, blurRadius: 3, offset: Offset(0, 1)),
+                ],
+              ),
+            ),
+            const SizedBox(height: 2),
+          ],
+
+          // Título del pilar
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: Text(
+              title,
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: isProminent ? Colors.white.withValues(alpha: 0.9) : Colors.white,
+                fontSize: isProminent ? 9.5 : 9.0,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 0.4,
+                shadows: const [
+                  Shadow(color: Colors.black45, blurRadius: 2, offset: Offset(0, 1)),
+                ],
+              ),
             ),
           ),
         ],
       ),
     );
+
+    if (rotationAngle != 0.0) {
+      return Transform.rotate(
+        angle: rotationAngle,
+        child: cardWidget,
+      );
+    }
+
+    return cardWidget;
+  }
+
+  /// Barra de Carga Dinámica Inferior con brillo y porcentajes
+  Widget _buildLoadingBar() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 28),
+      child: AnimatedBuilder(
+        animation: _loadingAnimation,
+        builder: (context, _) {
+          final progress = _loadingAnimation.value.clamp(0.0, 1.0);
+          final percentInt = (progress * 100).toInt();
+
+          return Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: const Color(0xFF1E1763).withValues(alpha: 0.85),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: const Color(0xFF38BDF8).withValues(alpha: 0.35),
+                width: 1.5,
+              ),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0xFF0F0B38),
+                  blurRadius: 14,
+                  offset: Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Fila de texto de estado y porcentaje
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Flexible(
+                      child: Text(
+                        _getLoadingStatusText(progress),
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: Color(0xFFCBD5E1),
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF0F172A),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        '$percentInt%',
+                        style: const TextStyle(
+                          color: AppPalette.cartoonCyan,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+
+                // Riel de la barra con gradiente brillante
+                Container(
+                  height: 10,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF0F172A),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: Colors.white12, width: 1.0),
+                  ),
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      final fillWidth = constraints.maxWidth * progress;
+                      return Align(
+                        alignment: Alignment.centerLeft,
+                        child: Container(
+                          width: fillWidth,
+                          height: double.infinity,
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [
+                                Color(0xFF0284C7),
+                                Color(0xFF38BDF8),
+                                Color(0xFF67E8F9),
+                                Color(0xFFFFFFFF),
+                              ],
+                              stops: [0.0, 0.6, 0.9, 1.0],
+                            ),
+                            borderRadius: BorderRadius.circular(8),
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(0xFF38BDF8).withValues(alpha: 0.8),
+                                blurRadius: 10,
+                                spreadRadius: 1,
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
   }
 }
 
-/// CustomPainter para generar el patrón en zigzag / chevrons en tonos púrpuras
+/// CustomPainter para generar el patrón en zigzag / chevrons en tonos cartoon púrpuras
 class _ChevronBackgroundPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
@@ -495,12 +622,11 @@ class _ChevronBackgroundPainter extends CustomPainter {
       ..shader = const LinearGradient(
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
-        colors: [Color(0xFF2E1065), Color(0xFF3B0764), Color(0xFF1E1B4B)],
+        colors: [Color(0xFF2E1065), Color(0xFF3B0764), Color(0xFF1E1763)],
       ).createShader(Rect.fromLTWH(0, 0, size.width, size.height));
 
     canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), basePaint);
 
-    // Dibujar chevrons repetitivos con bandas alternas
     final chevronHeight = 56.0;
     final halfWidth = size.width / 2;
     final totalChevrons = (size.height / (chevronHeight * 0.75)).ceil() + 3;
@@ -531,3 +657,4 @@ class _ChevronBackgroundPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
+

@@ -65,23 +65,51 @@ class _AboutSettingsScreenState extends State<AboutSettingsScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('LUEGO', style: TextStyle(color: Colors.white60)),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppPalette.cartoonYellow,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            child: const Text(
+              'LUEGO',
+              style: TextStyle(
+                color: Color(0xFFEF4444),
+                fontWeight: FontWeight.w900,
+              ),
             ),
-            onPressed: () {
+          ),
+          TactilePressable(
+            depth: 3,
+            onTap: () {
               Navigator.of(ctx).pop();
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                  content: Text('¡Gracias por tus 5 estrellas! ⭐⭐⭐⭐⭐'),
+                  content: Text('¡Gracias por tu calificación de 5 estrellas!'),
                   backgroundColor: AppPalette.cartoonCyan,
                 ),
               );
             },
-            child: const Text('CALIFICAR ⭐', style: TextStyle(color: Color(0xFF1E1B4B), fontWeight: FontWeight.bold)),
+child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              decoration: BoxDecoration(
+                gradient: AppGradients.greenAccept,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppPalette.cartoonBorder, width: 1.5),
+                boxShadow: const [
+                  BoxShadow(color: Color(0xFF1B165E), offset: Offset(0, 2)),
+                ],
+              ),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.star_rounded, size: 16, color: Colors.white),
+                  SizedBox(width: 4),
+                  Text(
+                    'CALIFICAR',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ],
       ),
@@ -120,7 +148,7 @@ class _AboutSettingsScreenState extends State<AboutSettingsScreen> {
                   Icon(Icons.email_rounded, color: AppPalette.cartoonCyan, size: 18),
                   SizedBox(width: 8),
                   Text(
-                    'soporte@caidago.com',
+                    'yoangeleizaga@gmail.com',
                     style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
                   ),
                 ],
@@ -129,13 +157,28 @@ class _AboutSettingsScreenState extends State<AboutSettingsScreen> {
           ],
         ),
         actions: [
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppPalette.cartoonYellow,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          TactilePressable(
+            depth: 3,
+            onTap: () => Navigator.of(ctx).pop(),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+              decoration: BoxDecoration(
+                gradient: AppGradients.greenAccept,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppPalette.cartoonBorder, width: 1.5),
+                boxShadow: const [
+                  BoxShadow(color: Color(0xFF1B165E), offset: Offset(0, 2)),
+                ],
+              ),
+              child: const Text(
+                'ENTENDIDO',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 0.6,
+                ),
+              ),
             ),
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('ENTENDIDO', style: TextStyle(color: Color(0xFF1E1B4B), fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -152,13 +195,21 @@ class _AboutSettingsScreenState extends State<AboutSettingsScreen> {
           side: const BorderSide(color: AppPalette.cartoonBorder, width: 2),
         ),
         title: const CartoonStrokeText('NOVEDADES CAIDAGO', fontSize: 18),
-        content: const Column(
+        content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              '🎉 ¡Llegó el Multijugador Local Wi-Fi!',
-              style: TextStyle(color: AppPalette.cartoonYellow, fontWeight: FontWeight.bold, fontSize: 14),
+          children: const [
+            Row(
+              children: [
+                Icon(Icons.celebration_rounded, color: AppPalette.cartoonYellow, size: 18),
+                SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    '¡Llegó el Multijugador Local Wi-Fi!',
+                    style: TextStyle(color: AppPalette.cartoonYellow, fontWeight: FontWeight.bold, fontSize: 14),
+                  ),
+                ),
+              ],
             ),
             SizedBox(height: 6),
             Text(
@@ -171,13 +222,28 @@ class _AboutSettingsScreenState extends State<AboutSettingsScreen> {
           ],
         ),
         actions: [
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppPalette.cartoonYellow,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          TactilePressable(
+            depth: 3,
+            onTap: () => Navigator.of(ctx).pop(),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+              decoration: BoxDecoration(
+                gradient: AppGradients.greenAccept,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppPalette.cartoonBorder, width: 1.5),
+                boxShadow: const [
+                  BoxShadow(color: Color(0xFF1B165E), offset: Offset(0, 2)),
+                ],
+              ),
+              child: const Text(
+                '¡GENIAL!',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 0.6,
+                ),
+              ),
             ),
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('¡GENIAL!', style: TextStyle(color: Color(0xFF1E1B4B), fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -230,6 +296,11 @@ class _AboutSettingsScreenState extends State<AboutSettingsScreen> {
                     _buildSocialRow(),
 
                     const SizedBox(height: 24),
+
+                    // Sección: DESARROLLO Y CRÉDITOS
+                    _buildDeveloperSection(),
+
+                    const SizedBox(height: 24),
                   ],
                 ),
               ),
@@ -237,6 +308,130 @@ class _AboutSettingsScreenState extends State<AboutSettingsScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildDeveloperSection() {
+    return Column(
+      children: [
+        _buildSectionTitle(
+          icon: Icons.code_rounded,
+          title: 'CRÉDITOS A:',
+        ),
+        const SizedBox(height: 12),
+        TactilePressable(
+          depth: 3,
+          onTap: () => _launchUrl('https://github.com/eizy-c'),
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF332D8C), Color(0xFF231E6B)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: AppPalette.cartoonBorder, width: 2),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0xFF1B165E),
+                  offset: Offset(0, 3.5),
+                  blurRadius: 0,
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                // Icono / Badge de Desarrollador 3D
+                Container(
+                  width: 50,
+                  height: 50,
+                  decoration: BoxDecoration(
+                    gradient: AppGradients.goldReward,
+                    borderRadius: BorderRadius.circular(15),
+                    border: Border.all(color: AppPalette.cartoonBorder, width: 2),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Color(0xFF1B165E),
+                        offset: Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: const Icon(
+                    Icons.terminal_rounded,
+                    color: AppPalette.cartoonCardText,
+                    size: 26,
+                  ),
+                ),
+                const SizedBox(width: 14),
+
+                // Información del creador
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Row(
+                        children: [
+                          Text(
+                            'eizy-c',
+                            style: TextStyle(
+                              color: AppPalette.cartoonYellow,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 0.6,
+                            ),
+                          ),
+                          SizedBox(width: 6),
+                          Icon(
+                            Icons.verified_rounded,
+                            color: AppPalette.cartoonCyan,
+                            size: 16,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 2),
+                      const Text(
+                        'Desarrollo, Diseño y Creación',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 5),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2.5),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF1A144E),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: AppPalette.cartoonCyan.withValues(alpha: 0.4),
+                            width: 1,
+                          ),
+                        ),
+                        child: const Text(
+                          '🇻🇪 Creado con Flutter & Pasión Criolla',
+                          style: TextStyle(
+                            color: AppPalette.cartoonCyan,
+                            fontSize: 9.5,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const Icon(
+                  Icons.open_in_new_rounded,
+                  color: Colors.white54,
+                  size: 18,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -508,25 +703,23 @@ class _AboutSettingsScreenState extends State<AboutSettingsScreen> {
     String? subtitle,
     required VoidCallback onTap,
   }) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(14),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-          decoration: BoxDecoration(
-            color: const Color(0xFF332D8C),
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: AppPalette.cartoonBorder, width: 1.8),
-            boxShadow: const [
-              BoxShadow(
-                color: Color(0xFF1B165E),
-                offset: Offset(0, 2.5),
-                blurRadius: 0,
-              ),
-            ],
-          ),
+    return TactilePressable(
+      depth: 2.5,
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+        decoration: BoxDecoration(
+          color: const Color(0xFF332D8C),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: AppPalette.cartoonBorder, width: 1.8),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0xFF1B165E),
+              offset: Offset(0, 2.5),
+              blurRadius: 0,
+            ),
+          ],
+        ),
           child: Row(
             children: [
               Icon(icon, color: AppPalette.cartoonCyan, size: 22),
@@ -565,36 +758,25 @@ class _AboutSettingsScreenState extends State<AboutSettingsScreen> {
             ],
           ),
         ),
-      ),
-    );
-  }
+      );
+    }
 
   Widget _buildSocialRow() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         _buildSocialButton(
-          icon: Icons.music_note_rounded,
-          label: 'TikTok',
-          url: 'https://tiktok.com',
-        ),
-        const SizedBox(width: 14),
-        _buildSocialButton(
           icon: Icons.camera_alt_rounded,
           label: 'Instagram',
-          url: 'https://instagram.com',
+          handle: '@eizy-c',
+          url: 'https://instagram.com/eizy-c',
         ),
-        const SizedBox(width: 14),
+        const SizedBox(width: 24),
         _buildSocialButton(
-          icon: Icons.sports_esports_rounded,
-          label: 'Discord',
-          url: 'https://discord.com',
-        ),
-        const SizedBox(width: 14),
-        _buildSocialButton(
-          icon: Icons.play_arrow_rounded,
-          label: 'YouTube',
-          url: 'https://youtube.com',
+          icon: Icons.music_note_rounded,
+          label: 'TikTok',
+          handle: '@eizy.c',
+          url: 'https://tiktok.com/@eizy.c',
         ),
       ],
     );
@@ -603,18 +785,41 @@ class _AboutSettingsScreenState extends State<AboutSettingsScreen> {
   Widget _buildSocialButton({
     required IconData icon,
     required String label,
+    required String handle,
     required String url,
   }) {
-    return CartoonRoundButton(
-      width: 50,
-      height: 50,
-      borderRadius: 14,
-      onPressed: () => _launchUrl(url),
-      child: Icon(
-        icon,
-        color: AppPalette.cartoonCardText,
-        size: 24,
-      ),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        CartoonRoundButton(
+          width: 54,
+          height: 54,
+          borderRadius: 16,
+          onPressed: () => _launchUrl(url),
+          child: Icon(
+            icon,
+            color: AppPalette.cartoonCardText,
+            size: 26,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          label,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 11,
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+        Text(
+          handle,
+          style: const TextStyle(
+            color: AppPalette.cartoonCyan,
+            fontSize: 9.5,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ],
     );
   }
 }
