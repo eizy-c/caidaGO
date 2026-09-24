@@ -1,0 +1,70 @@
+<svg width="300" height="465" viewBox="0 0 300 465" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- Marco y Fondo de Carta 300x465 px con esquinas redondeadas r=18px -->
+    <rect x="1.5" y="1.5" width="297" height="462" rx="18" fill="#FFFFFF" stroke="#0F172A" stroke-width="3"/>
+    <rect x="8" y="8" width="284" height="449" rx="14" fill="#FFFDF8" stroke="#EF4444" stroke-width="1.8" stroke-dasharray="6 3"/>
+
+    <!-- Índice Esquina Superior Izquierda -->
+    <g transform="translate(18, 16)">
+        <text x="0" y="32" font-family="Impact, Arial Black, sans-serif" font-size="34" font-weight="900" fill="#EF4444">5</text>
+        <g transform="translate(2, 38) scale(0.9)">
+            <g id="copa_icon">
+            <path d="M12 2C6 2 2 7 2 13c0 6 5 11 10 11s10-5 10-11c0-6-4-11-10-11z" fill="#DC2626"/>
+            <path d="M4 11c1 5 4 8 8 8s7-3 8-8H4z" fill="#EF4444"/>
+            <path d="M10 24h4v10h-4z" fill="#F59E0B"/>
+            <path d="M6 34h12v4H6z" fill="#D97706" rx="2"/>
+            <ellipse cx="12" cy="7" rx="7" ry="2.5" fill="#FBBF24"/>
+        </g>
+        </g>
+    </g>
+
+    <!-- Índice Esquina Inferior Derecha (Invertido 180°) -->
+    <g transform="translate(282, 449) rotate(180)">
+        <text x="0" y="32" font-family="Impact, Arial Black, sans-serif" font-size="34" font-weight="900" fill="#EF4444">5</text>
+        <g transform="translate(2, 38) scale(0.9)">
+            <g id="copa_icon">
+            <path d="M12 2C6 2 2 7 2 13c0 6 5 11 10 11s10-5 10-11c0-6-4-11-10-11z" fill="#DC2626"/>
+            <path d="M4 11c1 5 4 8 8 8s7-3 8-8H4z" fill="#EF4444"/>
+            <path d="M10 24h4v10h-4z" fill="#F59E0B"/>
+            <path d="M6 34h12v4H6z" fill="#D97706" rx="2"/>
+            <ellipse cx="12" cy="7" rx="7" ry="2.5" fill="#FBBF24"/>
+        </g>
+        </g>
+    </g>
+
+    <!-- Símbolos e Ilustraciones Centrales -->
+    <g transform="translate(50, 75) scale(3.2)"><g id="copa_icon">
+            <path d="M12 2C6 2 2 7 2 13c0 6 5 11 10 11s10-5 10-11c0-6-4-11-10-11z" fill="#DC2626"/>
+            <path d="M4 11c1 5 4 8 8 8s7-3 8-8H4z" fill="#EF4444"/>
+            <path d="M10 24h4v10h-4z" fill="#F59E0B"/>
+            <path d="M6 34h12v4H6z" fill="#D97706" rx="2"/>
+            <ellipse cx="12" cy="7" rx="7" ry="2.5" fill="#FBBF24"/>
+        </g></g>
+<g transform="translate(170, 75) scale(3.2)"><g id="copa_icon">
+            <path d="M12 2C6 2 2 7 2 13c0 6 5 11 10 11s10-5 10-11c0-6-4-11-10-11z" fill="#DC2626"/>
+            <path d="M4 11c1 5 4 8 8 8s7-3 8-8H4z" fill="#EF4444"/>
+            <path d="M10 24h4v10h-4z" fill="#F59E0B"/>
+            <path d="M6 34h12v4H6z" fill="#D97706" rx="2"/>
+            <ellipse cx="12" cy="7" rx="7" ry="2.5" fill="#FBBF24"/>
+        </g></g>
+<g transform="translate(110, 165) scale(3.4)"><g id="copa_icon">
+            <path d="M12 2C6 2 2 7 2 13c0 6 5 11 10 11s10-5 10-11c0-6-4-11-10-11z" fill="#DC2626"/>
+            <path d="M4 11c1 5 4 8 8 8s7-3 8-8H4z" fill="#EF4444"/>
+            <path d="M10 24h4v10h-4z" fill="#F59E0B"/>
+            <path d="M6 34h12v4H6z" fill="#D97706" rx="2"/>
+            <ellipse cx="12" cy="7" rx="7" ry="2.5" fill="#FBBF24"/>
+        </g></g>
+<g transform="translate(50, 255) scale(3.2)"><g id="copa_icon">
+            <path d="M12 2C6 2 2 7 2 13c0 6 5 11 10 11s10-5 10-11c0-6-4-11-10-11z" fill="#DC2626"/>
+            <path d="M4 11c1 5 4 8 8 8s7-3 8-8H4z" fill="#EF4444"/>
+            <path d="M10 24h4v10h-4z" fill="#F59E0B"/>
+            <path d="M6 34h12v4H6z" fill="#D97706" rx="2"/>
+            <ellipse cx="12" cy="7" rx="7" ry="2.5" fill="#FBBF24"/>
+        </g></g>
+<g transform="translate(170, 255) scale(3.2)"><g id="copa_icon">
+            <path d="M12 2C6 2 2 7 2 13c0 6 5 11 10 11s10-5 10-11c0-6-4-11-10-11z" fill="#DC2626"/>
+            <path d="M4 11c1 5 4 8 8 8s7-3 8-8H4z" fill="#EF4444"/>
+            <path d="M10 24h4v10h-4z" fill="#F59E0B"/>
+            <path d="M6 34h12v4H6z" fill="#D97706" rx="2"/>
+            <ellipse cx="12" cy="7" rx="7" ry="2.5" fill="#FBBF24"/>
+        </g></g>
+</svg>
