@@ -15,6 +15,7 @@ import '../../../../core/presentation/widgets/app_3d_button.dart';
 /// Modal oficial "Perfil del Jugador" que unifica la vista de estadísticas de juego
 /// detalladas (Generales, Jugadas de Caída y Cantos Tradicionales) y la pestaña de Logros.
 /// Rediseñado con estética Cartoon Indigo a juego con el Lobby y demás módulos.
+
 class PlayerProfileStatsModal extends StatefulWidget {
   final PlayerSession? session;
   final PlayerStatsModel? stats;
@@ -27,17 +28,18 @@ class PlayerProfileStatsModal extends StatefulWidget {
     this.initialTabIndex = 0,
   });
 
-  /// Muestra el modal en pantalla de forma centrada.
+  /// Muestra el modal en pantalla como un bottom sheet deslizable desde abajo.
   static Future<void> show(
     BuildContext context, {
     PlayerSession? session,
     PlayerStatsModel? stats,
     int initialTabIndex = 0,
   }) {
-    return showDialog(
+    return showModalBottomSheet<void>(
       context: context,
-      barrierDismissible: true,
-      barrierColor: Colors.black87,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      enableDrag: true,
       builder: (_) => PlayerProfileStatsModal(
         session: session,
         stats: stats,
@@ -86,15 +88,13 @@ class _PlayerProfileStatsModalState extends State<PlayerProfileStatsModal> {
         final neededTierXp = progress.neededInCurrentTier;
         final progressRatio = progress.levelProgressPercentage;
 
-        return Dialog(
-          backgroundColor: Colors.transparent,
-          insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(
-              maxWidth: 680,
-              maxHeight: 580,
+        return SafeArea(
+          child: Container(
+            constraints: BoxConstraints(
+              maxWidth: 620,
+              maxHeight: MediaQuery.of(context).size.height * 0.88,
             ),
-            child: Container(
+child: Container(
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
                   colors: [Color(0xFF2E267D), Color(0xFF26206D)],
@@ -108,25 +108,25 @@ class _PlayerProfileStatsModalState extends State<PlayerProfileStatsModal> {
                     color: Colors.black87,
                     blurRadius: 24,
                     offset: Offset(0, 10),
-                  ),
-                ],
-              ),
-              child: Column(
-                children: [
-                  // 1. Cabecera integrada moderna con botón de cerrar
-                  _buildHeader(),
 
-                  // 2. Barra de Pestañas (Perfil | Logros)
-                  _buildTabsRow(),
-
-                  // 3. Contenido interior de las pestañas
-                  Expanded(
-                    child: _selectedTabIndex == 0
-                        ? _buildProfileTab(progress, level, currentTierXp, neededTierXp, progressRatio)
-                        : _buildAchievementsTab(),
                   ),
-                ],
-              ),
+                ),
+
+                // 1. Cabecera estilo cartoon con cápsula naranja y botón (X)
+                _buildHeader(),
+
+                // 2. Barra de Pestañas (Perfil | Logros)
+                _buildTabsRow(),
+
+                const SizedBox(height: 6),
+
+                // 3. Contenido interior de las pestañas
+                Expanded(
+                  child: _selectedTabIndex == 0
+                      ? _buildProfileTab(progress, level, currentTierXp, neededTierXp, progressRatio)
+                      : _buildAchievementsTab(),
+                ),
+              ],
             ),
           ),
         );
@@ -137,26 +137,39 @@ class _PlayerProfileStatsModalState extends State<PlayerProfileStatsModal> {
   /// Cabecera moderna integrada en la ventana modal
   Widget _buildHeader() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(18, 14, 12, 10),
+      padding: const EdgeInsets.fromLTRB(16, 4, 12, 10),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const Row(
-            children: [
-              Icon(Icons.query_stats_rounded, color: Colors.white70, size: 22),
-              SizedBox(width: 10),
-              Text(
-                'Perfil del jugador',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 0.5,
-                ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFFFF7A3D), Color(0xFFF95B16)],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
               ),
-            ],
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFFEA580C), width: 1.2),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFFEA580C).withValues(alpha: 0.35),
+                  blurRadius: 6,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: const Text(
+              'Perfil del jugador',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 0.4,
+              ),
+            ),
           ),
-          TactilePressable(
+TactilePressable(
             depth: 2.5,
             onTap: () => Navigator.of(context).pop(),
             child: Container(
@@ -170,6 +183,7 @@ class _PlayerProfileStatsModalState extends State<PlayerProfileStatsModal> {
               ),
               child: const Icon(Icons.close_rounded, color: Colors.white, size: 18),
             ),
+
           ),
         ],
       ),
@@ -520,19 +534,27 @@ class _PlayerProfileStatsModalState extends State<PlayerProfileStatsModal> {
                             child: LinearProgressIndicator(
                               value: rankProg.progressInTier,
                               minHeight: 7,
-                              backgroundColor: AppPalette.cartoonBgDark,
+backgroundColor: AppPalette.cartoonBgDark,
                               valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFFFBBF24)),
+
                             ),
                           ),
                         ),
                         const SizedBox(width: 6),
-                        Text(
-                          '${_stats.trophies} 🏆',
-                          style: const TextStyle(
-                            color: Colors.white70,
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                          ),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              '${_stats.trophies}',
+                              style: TextStyle(
+                                color: rank.secondaryColor,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(width: 2),
+                            Icon(Icons.emoji_events_rounded, size: 10, color: rank.secondaryColor),
+                          ],
                         ),
                       ],
                     );
@@ -704,15 +726,14 @@ class _PlayerProfileStatsModalState extends State<PlayerProfileStatsModal> {
 
   /// Pestaña 2: Logros y Misiones de La Caída (Categorías y niveles progresivos)
   Widget _buildAchievementsTab() {
-    final achievements = AchievementCatalog.allAchievements;
+    final families = AchievementCatalog.familyGroups;
 
-    return ListView.separated(
+    return ListView.builder(
       physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-      itemCount: achievements.length,
-      separatorBuilder: (_, _) => const SizedBox(height: 8),
+      padding: const EdgeInsets.fromLTRB(16, 10, 16, 20),
+      itemCount: families.length,
       itemBuilder: (context, index) {
-        final ach = achievements[index];
+final ach = achievements[index];
         final currentProgress = ach.getProgress(_stats);
         final isClaimed = _stats.claimedAchievementIds.contains(ach.id);
         final isUnlocked = AchievementCatalog.isUnlocked(ach, _stats);
@@ -1056,6 +1077,7 @@ class _PlayerProfileStatsModalState extends State<PlayerProfileStatsModal> {
                 ),
             ],
           ),
+
         );
 
         if (!isUnlocked) {

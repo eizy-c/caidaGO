@@ -80,7 +80,7 @@ class ProfileAndLevelModal extends StatefulWidget {
     this.initialTabIndex = 0,
   });
 
-  static Future<void> show(
+static Future<void> show(
     BuildContext context, {
     required PlayerSession session,
     int initialTabIndex = 0,
@@ -88,6 +88,7 @@ class ProfileAndLevelModal extends StatefulWidget {
     return showDialog(
       context: context,
       barrierColor: Colors.black87,
+
       builder: (_) => ProfileAndLevelModal(
         session: session,
         initialTabIndex: initialTabIndex,
@@ -141,7 +142,7 @@ class _ProfileAndLevelModalState extends State<ProfileAndLevelModal>
 
   @override
   Widget build(BuildContext context) {
-    return Dialog(
+return Dialog(
       backgroundColor: Colors.transparent,
       insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
       child: ConstrainedBox(
@@ -221,7 +222,84 @@ class _ProfileAndLevelModalState extends State<ProfileAndLevelModal>
               ),
             ],
           ),
+
         ),
+        boxShadow: [
+          BoxShadow(color: Colors.black87, blurRadius: 24, offset: Offset(0, -6)),
+        ],
+      ),
+      child: Column(
+        children: [
+          // Tirador superior de arrastre hacia abajo
+          const SizedBox(height: 10),
+          Center(
+            child: Container(
+              width: 44,
+              height: 4.5,
+              decoration: BoxDecoration(
+                color: Colors.white24,
+                borderRadius: BorderRadius.circular(2.5),
+              ),
+            ),
+          ),
+          const SizedBox(height: 4),
+
+          // 1. Cabecera superior con botón de cerrar
+          _buildHeader(progress),
+
+          // 2. Barra de Pestañas
+          Container(
+            color: const Color(0xFF181818),
+            child: TabBar(
+              controller: _tabController,
+              indicatorColor: Colors.white,
+              indicatorWeight: 2.5,
+              labelColor: Colors.white,
+              unselectedLabelColor: Colors.white60,
+              labelStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+              unselectedLabelStyle: const TextStyle(fontSize: 11),
+              tabs: const [
+                Tab(icon: Icon(Icons.military_tech_rounded, size: 18), text: 'Nivel & XP'),
+                Tab(icon: Icon(Icons.filter_frames_rounded, size: 18), text: 'Marcos'),
+                Tab(icon: Icon(Icons.palette_rounded, size: 18), text: 'Fondos'),
+                Tab(icon: Icon(Icons.person_rounded, size: 18), text: 'Avatar'),
+              ],
+            ),
+          ),
+
+          // 3. Contenido de las pestañas
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                _buildLevelTab(progress),
+                _buildFramesTab(progress),
+                _buildThemesTab(),
+                _buildAvatarTab(),
+              ],
+            ),
+          ),
+
+          // 4. Botón inferior de Guardar / Listo
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: App3dButton(
+              onPressed: _saveCustomization,
+              expand: true,
+              height: 46,
+              depth: 5,
+              borderRadius: 14,
+              variant: App3dButtonVariant.cyan,
+              label: 'GUARDAR CAMBIOS',
+              textStyle: const TextStyle(
+                color: Color(0xFF0F172A),
+                fontWeight: FontWeight.w900,
+                fontSize: 14,
+                letterSpacing: 0.8,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -254,9 +332,11 @@ class _ProfileAndLevelModalState extends State<ProfileAndLevelModal>
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 2),
+const SizedBox(height: 2),
+
                 Row(
                   children: [
+
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(
@@ -298,7 +378,8 @@ class _ProfileAndLevelModalState extends State<ProfileAndLevelModal>
                   BoxShadow(color: Colors.black45, blurRadius: 4, offset: Offset(0, 2)),
                 ],
               ),
-              child: const Icon(Icons.close_rounded, color: Colors.white, size: 18),
+child: const Icon(Icons.close_rounded, color: Colors.white, size: 18),
+
             ),
           ),
         ],

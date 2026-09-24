@@ -79,12 +79,12 @@ class _AboutSettingsScreenState extends State<AboutSettingsScreen> {
               Navigator.of(ctx).pop();
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                  content: Text('¡Gracias por tus 5 estrellas! ⭐⭐⭐⭐⭐'),
+                  content: Text('¡Gracias por tu calificación de 5 estrellas!'),
                   backgroundColor: AppPalette.cartoonCyan,
                 ),
               );
             },
-            child: Container(
+child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               decoration: BoxDecoration(
                 gradient: AppGradients.greenAccept,
@@ -94,14 +94,22 @@ class _AboutSettingsScreenState extends State<AboutSettingsScreen> {
                   BoxShadow(color: Color(0xFF1B165E), offset: Offset(0, 2)),
                 ],
               ),
-              child: const Text(
-                'CALIFICAR ⭐',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 0.5,
-                ),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.star_rounded, size: 16, color: Colors.white),
+                  SizedBox(width: 4),
+                  Text(
+                    'CALIFICAR',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ],
               ),
+            )
             ),
           ),
         ],
@@ -141,7 +149,7 @@ class _AboutSettingsScreenState extends State<AboutSettingsScreen> {
                   Icon(Icons.email_rounded, color: AppPalette.cartoonCyan, size: 18),
                   SizedBox(width: 8),
                   Text(
-                    'soporte@caidago.com',
+                    'yoangeleizaga@gmail.com',
                     style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
                   ),
                 ],
@@ -188,13 +196,21 @@ class _AboutSettingsScreenState extends State<AboutSettingsScreen> {
           side: const BorderSide(color: AppPalette.cartoonBorder, width: 2),
         ),
         title: const CartoonStrokeText('NOVEDADES CAIDAGO', fontSize: 18),
-        content: const Column(
+        content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              '🎉 ¡Llegó el Multijugador Local Wi-Fi!',
-              style: TextStyle(color: AppPalette.cartoonYellow, fontWeight: FontWeight.bold, fontSize: 14),
+          children: const [
+            Row(
+              children: [
+                Icon(Icons.celebration_rounded, color: AppPalette.cartoonYellow, size: 18),
+                SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    '¡Llegó el Multijugador Local Wi-Fi!',
+                    style: TextStyle(color: AppPalette.cartoonYellow, fontWeight: FontWeight.bold, fontSize: 14),
+                  ),
+                ),
+              ],
             ),
             SizedBox(height: 6),
             Text(

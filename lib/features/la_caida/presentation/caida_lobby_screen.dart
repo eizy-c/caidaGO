@@ -24,6 +24,8 @@ import '../economy/venezuela_room_tier.dart';
 import '../economy/trophy_session_manager.dart';
 import '../multiplayer/presentation/multiplayer_hub_screen.dart';
 import '../tutorial/presentation/tutorial_screen.dart';
+import '../economy/player_stats_model.dart';
+import 'widgets/rank_badge_widget.dart';
 import 'about_settings_screen.dart';
 import '../../../core/presentation/widgets/cartoon_widgets.dart';
 import '../economy/rank_system.dart';
@@ -66,6 +68,7 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
     _session = PlayerSession.shared;
     _session.addListener(_onProfileChanged);
     _profileService.addListener(_onProfileChanged);
+    PlayerStatsModel.shared.addListener(_onProfileChanged);
     _loadSessionAsync();
 
     _ticketRegenTimer = Timer.periodic(const Duration(seconds: 1), (_) {
@@ -100,6 +103,7 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
     _ticketRegenTimer?.cancel();
     _session.removeListener(_onProfileChanged);
     _profileService.removeListener(_onProfileChanged);
+    PlayerStatsModel.shared.removeListener(_onProfileChanged);
     super.dispose();
   }
 
@@ -327,8 +331,20 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
 
   void _openSettingsDialog() {
     Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => const AboutSettingsScreen(),
+      PageRouteBuilder(
+        pageBuilder: (context, animation, secondaryAnimation) => const AboutSettingsScreen(),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          const begin = Offset(-1.0, 0.0);
+          const end = Offset.zero;
+          const curve = Curves.easeOutCubic;
+          final tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+          return SlideTransition(
+            position: animation.drive(tween),
+            child: child,
+          );
+        },
+        transitionDuration: const Duration(milliseconds: 350),
+        reverseTransitionDuration: const Duration(milliseconds: 300),
       ),
     );
   }
@@ -666,9 +682,10 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
           ),
           const Spacer(),
 
-          // Chip de Tickets con gradiente Cyan y efecto táctil
+// Chip de Tickets con gradiente Cyan y efecto táctil
           TactilePressable(
             depth: 2,
+
             onTap: _openBuyTicketsModal,
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
@@ -707,9 +724,10 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
           ),
           const SizedBox(width: 8),
 
-          // Chip de Monedas con gradiente Dorado y efecto táctil
+// Chip de Monedas con gradiente Dorado y efecto táctil
           TactilePressable(
             depth: 2,
+
             onTap: () => _openBuyTicketsModal(initialTab: 1),
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
@@ -893,7 +911,7 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
+Text(
                     _session.name.isNotEmpty ? _session.name : 'Jugador',
                     style: const TextStyle(
                       color: Colors.white,
@@ -903,6 +921,7 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
+
                   ),
                   const SizedBox(height: 3),
                   Row(

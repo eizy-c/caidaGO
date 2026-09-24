@@ -368,7 +368,14 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
     }
   }
 
-  void _initMatch(int count, bool teams, String userName, {bool? animate, bool startWithManoSelection = false}) {
+  Future<void> _initMatch(
+    int count,
+    bool teams,
+    String userName, {
+    bool? animate,
+    bool startWithManoSelection = false,
+    int? startingManoIndex,
+  }) async {
     for (final t in _pendingAsyncTimers) {
       t.cancel();
     }
@@ -398,8 +405,25 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
     if (startWithManoSelection) {
       _startManoSelection(animate: animate ?? widget.animateDealing);
     } else {
-      _manoIndex = 0;
+      final targetMano = startingManoIndex ?? 0;
+      setState(() {
+        _manoIndex = targetMano;
+      });
       final shouldAnimate = animate ?? widget.animateDealing;
+
+      if (_manoIndex == 0) {
+        // Si el usuario es la Mano, permitirle elegir cómo comenzar el conteo (1..4 o 4..1)
+        await Future<void>.delayed(const Duration(milliseconds: 150));
+        if (!mounted) return;
+        final dir = await TableCantoDialog.show(context);
+        if (dir != null && mounted) {
+          setState(() => _cantoDirection = dir);
+        }
+      } else {
+        _cantoDirection = DealDirection.ascending;
+      }
+
+      if (!mounted) return;
       _startDeal(isFirstRound: true, animate: shouldAnimate);
     }
   }
@@ -800,6 +824,8 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
     final bool isLastHandOfDeck = _deck.remainingCount == _players.length * 3;
     if (isLastHandOfDeck) {
       AudioService().playUltimas();
+      await _safeDelay(const Duration(milliseconds: 650));
+      if (!mounted) return;
     }
 
     // 1. Repartir 1 carta a la vez en sentido horario comenzando desde el jugador que es Mano (3 vueltas)
@@ -855,6 +881,8 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
       } else {
         AudioService().playCuatro();
       }
+      await _safeDelay(const Duration(milliseconds: 450));
+      if (!mounted) return;
 
       final dealResult = CaidaRulesEngine.dealInitialTable(
         direction: _cantoDirection,
@@ -970,34 +998,57 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
         dealerId: _players[_manoIndex].id,
       );
 
-      for (final p in _players) {
-        p.cardsWon = res.totalCardsWon[p.id] ?? p.cardsWon;
-        p.score = res.updatedScores[p.id] ?? p.score;
-        final vol = res.volumeBonusPoints[p.id] ?? 0;
-        if (vol > 0) {
-          _triggerCallout(p, 'Volumen (+$vol pts)');
-          final isUserTeam = p.id == 'user' || (_isTeams && p.teamId == _players[0].teamId);
-          _addAuditLog(
-            playerName: p.name,
-            type: AuditEntryType.puntos,
-            description: 'Excedente de cartas al contar a 20: ${p.cardsWon} cartas recogidas (+$vol pts)',
-            points: vol,
-            isUserTeam: isUserTeam,
-          );
-        }
-      }
-
       if (_isTeams) {
-        // Asegurar que los puntos y cartas recogidas sean exactamente iguales para ambos miembros del equipo
+        // En parejas, el conteo de cartas y el excedente a 20 se calcula y audita POR EQUIPO (no por jugador individual)
         for (int team = 1; team <= 2; team++) {
           final teamPlayers = _players.where((pl) => pl.teamId == team).toList();
           if (teamPlayers.isNotEmpty) {
-            final maxScore = teamPlayers.map((pl) => pl.score).reduce(math.max);
-            final maxCards = teamPlayers.map((pl) => pl.cardsWon).reduce(math.max);
+            final representative = teamPlayers.first;
+            final maxCards = teamPlayers
+                .map((pl) => res.totalCardsWon[pl.id] ?? pl.cardsWon)
+                .reduce(math.max);
+            final updatedScore = teamPlayers
+                .map((pl) => res.updatedScores[pl.id] ?? pl.score)
+                .reduce(math.max);
+            final vol = res.volumeBonusPoints[representative.id] ?? 0;
+
             for (final pl in teamPlayers) {
-              pl.score = maxScore;
+              pl.score = updatedScore;
               pl.cardsWon = maxCards;
             }
+
+            if (vol > 0) {
+              final isUserTeam = team == _players[0].teamId;
+              final teamLabel = isUserTeam ? 'Tu Equipo' : 'Equipo Rival';
+              // Callout visual una sola vez por equipo para no duplicar puntos
+              _triggerCallout(isUserTeam ? _players[0] : representative, 'Volumen (+$vol pts)');
+              // Registro de auditoría único por equipo
+              _addAuditLog(
+                playerName: teamLabel,
+                type: AuditEntryType.puntos,
+                description: 'Excedente de cartas al contar a 20: $maxCards cartas del equipo (+$vol pts)',
+                points: vol,
+                isUserTeam: isUserTeam,
+              );
+            }
+          }
+        }
+      } else {
+        // Modo individual (1 vs 1)
+        for (final p in _players) {
+          p.cardsWon = res.totalCardsWon[p.id] ?? p.cardsWon;
+          p.score = res.updatedScores[p.id] ?? p.score;
+          final vol = res.volumeBonusPoints[p.id] ?? 0;
+          if (vol > 0) {
+            _triggerCallout(p, 'Volumen (+$vol pts)');
+            final isUserTeam = p.id == 'user';
+            _addAuditLog(
+              playerName: p.name,
+              type: AuditEntryType.puntos,
+              description: 'Excedente de cartas al contar a 20: ${p.cardsWon} cartas recogidas (+$vol pts)',
+              points: vol,
+              isUserTeam: isUserTeam,
+            );
           }
         }
       }
@@ -1299,7 +1350,8 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
           HapticService.instance.onCaida();
         }
         if (eval.isLimpia) {
-          _safeDelay(const Duration(milliseconds: 400)).then((_) {
+          final limpiaDelay = eval.isCaida ? 520 : 0;
+          _safeDelay(Duration(milliseconds: limpiaDelay)).then((_) {
             if (mounted) {
               AudioService().playMesaLimpia();
               HapticService.instance.onCaida();
@@ -1427,18 +1479,6 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
           type: AuditEntryType.jugada,
           description: 'Recogió ${eval.capturedCards.length} cartas con ${card.displayName}',
         );
-      }
-
-      if (eval.isCaida && eval.isLimpia) {
-        AudioService().playCaida();
-        AudioService().playMesaLimpia();
-        HapticService.instance.onCaida();
-      } else if (eval.isCaida) {
-        AudioService().playCaida();
-        HapticService.instance.onCaida();
-      } else if (eval.isLimpia) {
-        AudioService().playMesaLimpia();
-        HapticService.instance.onCaida();
       }
     }
 
@@ -1830,7 +1870,15 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
           summary: matchSummary,
           onRematch: () {
             Navigator.pop(context);
-            _initMatch(_playerCount, _isTeams, _players[0].name);
+            final nextManoIndex = _players.isNotEmpty
+                ? (_manoIndex + 1) % _players.length
+                : 0;
+            _initMatch(
+              _playerCount,
+              _isTeams,
+              _players.isNotEmpty ? _players[0].name : (_effectiveUserName ?? 'Tú'),
+              startingManoIndex: nextManoIndex,
+            );
           },
           onBackToMenu: () {
             Navigator.pop(context);
@@ -1984,7 +2032,7 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
                     width: 1.2,
                   ),
                 ),
-                child: Icon(icon, color: iconColor, size: 20),
+child: Icon(icon, color: iconColor, size: 20),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -2013,6 +2061,7 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
                       ),
                     ],
                   ],
+
                 ),
               ),
               ?trailing,
@@ -2558,7 +2607,12 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
                   setState(() {
                     _hasGameStarted = true;
                   });
-                  _initMatch(_playerCount, _isTeams, 'Tú');
+                  _initMatch(
+                    _playerCount,
+                    _isTeams,
+                    _effectiveUserName ?? 'Tú',
+                    startWithManoSelection: _effectiveChooseMano,
+                  );
                 },
               ),
             ],

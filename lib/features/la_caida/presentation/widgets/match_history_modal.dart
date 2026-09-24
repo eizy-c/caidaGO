@@ -235,13 +235,24 @@ class MatchHistoryModal extends StatelessWidget {
                                             const SizedBox(width: 8),
                                           ],
                                           if (m.trophyDelta != 0) ...[
-                                            Text(
-                                              m.trophyDelta > 0 ? '+${m.trophyDelta} 🏆' : '${m.trophyDelta} 🏆',
-                                              style: TextStyle(
-                                                color: m.trophyDelta > 0 ? const Color(0xFF22C55E) : const Color(0xFFEF4444),
-                                                fontSize: 11,
-                                                fontWeight: FontWeight.w900,
-                                              ),
+                                            Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Icon(
+                                                  Icons.emoji_events_rounded,
+                                                  size: 11,
+                                                  color: m.trophyDelta > 0 ? const Color(0xFF22C55E) : const Color(0xFFEF4444),
+                                                ),
+                                                const SizedBox(width: 2),
+                                                Text(
+                                                  m.trophyDelta > 0 ? '+${m.trophyDelta}' : '${m.trophyDelta}',
+                                                  style: TextStyle(
+                                                    color: m.trophyDelta > 0 ? const Color(0xFF22C55E) : const Color(0xFFEF4444),
+                                                    fontSize: 11,
+                                                    fontWeight: FontWeight.w900,
+                                                  ),
+                                                ),
+                                              ],
                                             ),
                                           ],
                                         ],
