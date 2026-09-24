@@ -22,6 +22,8 @@ import 'widgets/user_frame_view.dart';
 import 'widgets/vip_tier_selector_modal.dart';
 import '../multiplayer/presentation/multiplayer_hub_screen.dart';
 import '../tutorial/presentation/tutorial_screen.dart';
+import '../economy/player_stats_model.dart';
+import 'widgets/rank_badge_widget.dart';
 import 'about_settings_screen.dart';
 
 
@@ -61,6 +63,7 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
     _session = PlayerSession.shared;
     _session.addListener(_onProfileChanged);
     _profileService.addListener(_onProfileChanged);
+    PlayerStatsModel.shared.addListener(_onProfileChanged);
     _loadSessionAsync();
 
     _ticketRegenTimer = Timer.periodic(const Duration(seconds: 1), (_) {
@@ -95,6 +98,7 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
     _ticketRegenTimer?.cancel();
     _session.removeListener(_onProfileChanged);
     _profileService.removeListener(_onProfileChanged);
+    PlayerStatsModel.shared.removeListener(_onProfileChanged);
     super.dispose();
   }
 
@@ -880,13 +884,23 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
-                    'Nivel $level',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 13.5,
-                      fontWeight: FontWeight.w900,
-                    ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Nivel $level',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                      RankBadgeWidget(
+                        trophies: PlayerStatsModel.shared.trophies,
+                        compact: true,
+                        fontSize: 9.5,
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 4),
                   ClipRRect(

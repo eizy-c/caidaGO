@@ -189,28 +189,92 @@ class RankProgress {
   /// Rango actual del jugador
   RankInfo get currentRank => RankInfo.forTrophies(trophies);
 
-  /// Progreso normalizado (0.0 a 1.0) dentro del rango/división actual
-  double get progressInTier {
-    final rank = currentRank;
-    if (rank.maxTrophies < 0) return 1.0; // Leyenda: barra siempre llena
-    final range = rank.maxTrophies - rank.minTrophies + 1;
-    if (range <= 0) return 1.0;
-    // División actual
-    final divSize = range ~/ rank.divisions.clamp(1, 3);
-    final divIndex = (rank.divisionFor(trophies) - 1).clamp(0, rank.divisions - 1);
-    final divStart = rank.minTrophies + (divIndex * divSize);
-    final divEnd = (divIndex == rank.divisions - 1) ? rank.maxTrophies : divStart + divSize - 1;
-    final inDiv = trophies - divStart;
-    final divRange = divEnd - divStart + 1;
-    return (inDiv / divRange).clamp(0.0, 1.0);
+  /// Siguiente rango (null si ya está en Leyenda)
+  RankInfo? get nextRank {
+    final idx = RankInfo.allRanks.indexOf(currentRank);
+    if (idx >= 0 && idx < RankInfo.allRanks.length - 1) {
+      return RankInfo.allRanks[idx + 1];
+    }
+    return null;
   }
 
-  /// Trofeos hasta el siguiente rango (o división)
-  int get trophiesToNextDivision {
-    final rank = currentRank;
-    if (rank.maxTrophies < 0) return 0;
-    return (rank.maxTrophies + 1) - trophies;
+  /// Trofeos mínimos del tier actual
+  int get tierMinTrophies => currentRank.minTrophies;
+
+  /// Trofeos meta para el siguiente tier (ej. 150 para Novato, 450 para Bronce)
+  int get tierMaxTrophies => currentRank.maxTrophies >= 0 ? currentRank.maxTrophies + 1 : currentRank.minTrophies;
+
+  /// Trofeos acumulados dentro del tier actual
+  int get trophiesInTier => (trophies - tierMinTrophies).clamp(0, 999999);
+
+  /// Amplitud de trofeos del tier actual
+  int get tierSpan => (tierMaxTrophies - tierMinTrophies).clamp(1, 999999);
+
+  /// Progreso normalizado (0.0 a 1.0) dentro de TODO el rango actual
+  double get progressInTier {
+    if (currentRank.maxTrophies < 0) return 1.0; // Leyenda: barra siempre llena
+    final span = tierSpan;
+    if (span <= 0) return 1.0;
+    return (trophiesInTier / span).clamp(0.0, 1.0);
   }
+
+  /// Trofeos restantes para el siguiente rango
+  int get trophiesToNextRank {
+    if (currentRank.maxTrophies < 0) return 0;
+    return (tierMaxTrophies - trophies).clamp(0, 999999);
+  }
+
+  /// División actual (ej: 4, 3, 2, 1)
+  int get currentDivision => currentRank.divisionFor(trophies);
+
+  /// Trofeos base de la división actual
+  int get divisionMinTrophies {
+    if (currentRank.divisions <= 1 || currentRank.maxTrophies < 0) return currentRank.minTrophies;
+    final totalRange = currentRank.maxTrophies - currentRank.minTrophies + 1;
+    final divSize = totalRange / currentRank.divisions;
+    final stepFromBottom = (currentRank.divisions - currentDivision).clamp(0, currentRank.divisions - 1);
+    return (currentRank.minTrophies + (stepFromBottom * divSize)).round();
+  }
+
+  /// Trofeos objetivo de la división actual (o siguiente rango si es división 1)
+  int get divisionMaxTrophies {
+    if (currentRank.divisions <= 1 || currentRank.maxTrophies < 0) return tierMaxTrophies;
+    final totalRange = currentRank.maxTrophies - currentRank.minTrophies + 1;
+    final divSize = totalRange / currentRank.divisions;
+    final stepFromBottom = (currentRank.divisions - currentDivision).clamp(0, currentRank.divisions - 1);
+    if (stepFromBottom >= currentRank.divisions - 1) {
+      return tierMaxTrophies;
+    }
+    return (currentRank.minTrophies + ((stepFromBottom + 1) * divSize)).round();
+  }
+
+  /// Progreso normalizado (0.0 a 1.0) dentro de la división actual
+  double get progressInDivision {
+    if (currentRank.maxTrophies < 0) return 1.0;
+    final min = divisionMinTrophies;
+    final max = divisionMaxTrophies;
+    final span = max - min;
+    if (span <= 0) return 1.0;
+    return ((trophies - min) / span).clamp(0.0, 1.0);
+  }
+
+  /// Trofeos hasta la siguiente división (o rango si es división 1)
+  int get trophiesToNextDivision {
+    if (currentRank.maxTrophies < 0) return 0;
+    return (divisionMaxTrophies - trophies).clamp(0, 999999);
+  }
+
+  /// Nombre del siguiente escalón (ej. "Novato 3" o "Bronce")
+  String get nextMilestoneName {
+    if (currentRank.maxTrophies < 0) return 'Leyenda';
+    if (currentDivision > 1) {
+      return '${currentRank.name} ${currentDivision - 1}';
+    }
+    return nextRank?.name ?? 'Siguiente Rango';
+  }
+
+  /// Nombre completo del rango y división actual (ej: "Novato 4", "Bronce 2")
+  String get fullName => currentRank.fullNameFor(trophies);
 
   /// Calcula el delta de trofeos según resultado de partida.
   /// Protección en Novato: nunca baja de 0.

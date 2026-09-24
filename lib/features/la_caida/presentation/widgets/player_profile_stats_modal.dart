@@ -533,16 +533,16 @@ class _PlayerProfileStatsModalState extends State<PlayerProfileStatsModal> {
                             child: LinearProgressIndicator(
                               value: rankProg.progressInTier,
                               minHeight: 7,
-                              backgroundColor: const Color(0xFF262626),
-                              valueColor: const AlwaysStoppedAnimation<Color>(Colors.white70),
+                              backgroundColor: rank.primaryColor.withValues(alpha: 0.2),
+                              valueColor: AlwaysStoppedAnimation<Color>(rank.secondaryColor),
                             ),
                           ),
                         ),
                         const SizedBox(width: 6),
                         Text(
                           '${_stats.trophies} 🏆',
-                          style: const TextStyle(
-                            color: Colors.white70,
+                          style: TextStyle(
+                            color: rank.secondaryColor,
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
                           ),
