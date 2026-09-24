@@ -76,12 +76,19 @@ class _AboutSettingsScreenState extends State<AboutSettingsScreen> {
               Navigator.of(ctx).pop();
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                  content: Text('¡Gracias por tus 5 estrellas! ⭐⭐⭐⭐⭐'),
+                  content: Text('¡Gracias por tu calificación de 5 estrellas!'),
                   backgroundColor: AppPalette.cartoonCyan,
                 ),
               );
             },
-            child: const Text('CALIFICAR ⭐', style: TextStyle(color: Color(0xFF1E1B4B), fontWeight: FontWeight.bold)),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: const [
+                Icon(Icons.star_rounded, size: 16, color: Color(0xFF1E1B4B)),
+                SizedBox(width: 4),
+                Text('CALIFICAR', style: TextStyle(color: Color(0xFF1E1B4B), fontWeight: FontWeight.bold)),
+              ],
+            ),
           ),
         ],
       ),
@@ -152,13 +159,21 @@ class _AboutSettingsScreenState extends State<AboutSettingsScreen> {
           side: const BorderSide(color: AppPalette.cartoonBorder, width: 2),
         ),
         title: const CartoonStrokeText('NOVEDADES CAIDAGO', fontSize: 18),
-        content: const Column(
+        content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              '🎉 ¡Llegó el Multijugador Local Wi-Fi!',
-              style: TextStyle(color: AppPalette.cartoonYellow, fontWeight: FontWeight.bold, fontSize: 14),
+          children: const [
+            Row(
+              children: [
+                Icon(Icons.celebration_rounded, color: AppPalette.cartoonYellow, size: 18),
+                SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    '¡Llegó el Multijugador Local Wi-Fi!',
+                    style: TextStyle(color: AppPalette.cartoonYellow, fontWeight: FontWeight.bold, fontSize: 14),
+                  ),
+                ),
+              ],
             ),
             SizedBox(height: 6),
             Text(

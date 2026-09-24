@@ -256,7 +256,7 @@ class _BotCustomizationModalState extends State<BotCustomizationModal> {
                         icon: Icons.casino_rounded,
                         iconColor: const Color(0xFFFDE68A),
                         iconSize: 18,
-                        label: '🎲 Aleatorio Criollo',
+                        label: 'Aleatorio Criollo',
                         variant: App3dButtonVariant.dark,
                         depth: 4,
                         borderRadius: 12,

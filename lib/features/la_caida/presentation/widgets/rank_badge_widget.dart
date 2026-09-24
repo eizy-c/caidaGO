@@ -121,34 +121,48 @@ class RankProgressBar extends StatelessWidget {
               ),
               // Trofeos y meta
               if (rank.maxTrophies >= 0)
-                RichText(
-                  text: TextSpan(
-                    text: '$trophies',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w900,
-                    ),
-                    children: [
-                      TextSpan(
-                        text: ' / ${progress.tierMaxTrophies} 🏆',
-                        style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.6),
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.emoji_events_rounded, size: 13, color: Color(0xFFFBBF24)),
+                    const SizedBox(width: 4),
+                    RichText(
+                      text: TextSpan(
+                        text: '$trophies',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w900,
                         ),
+                        children: [
+                          TextSpan(
+                            text: ' / ${progress.tierMaxTrophies}',
+                            style: TextStyle(
+                              color: Colors.white.withValues(alpha: 0.6),
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 )
               else
-                const Text(
-                  '¡Rango Leyenda Máximo! 🏆',
-                  style: TextStyle(
-                    color: Color(0xFFFDE047),
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
-                  ),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: const [
+                    Icon(Icons.emoji_events_rounded, size: 13, color: Color(0xFFFDE047)),
+                    SizedBox(width: 4),
+                    Text(
+                      '¡Rango Leyenda Máximo!',
+                      style: TextStyle(
+                        color: Color(0xFFFDE047),
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
                 ),
             ],
           ),
@@ -285,13 +299,20 @@ class RankProgressBar extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                '${progress.tierMinTrophies} 🏆',
-                style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.45),
-                  fontSize: 10,
-                  fontWeight: FontWeight.bold,
-                ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.emoji_events_rounded, size: 10, color: Colors.white.withValues(alpha: 0.45)),
+                  const SizedBox(width: 2),
+                  Text(
+                    '${progress.tierMinTrophies}',
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.45),
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
               ),
               if (rank.maxTrophies >= 0)
                 Text(
@@ -311,13 +332,20 @@ class RankProgressBar extends StatelessWidget {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-              Text(
-                '${progress.tierMaxTrophies} 🏆',
-                style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.45),
-                  fontSize: 10,
-                  fontWeight: FontWeight.bold,
-                ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.emoji_events_rounded, size: 10, color: Colors.white.withValues(alpha: 0.45)),
+                  const SizedBox(width: 2),
+                  Text(
+                    '${progress.tierMaxTrophies}',
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.45),
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),

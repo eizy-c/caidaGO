@@ -544,12 +544,12 @@ class _TutorialScreenState extends State<TutorialScreen> with TickerProviderStat
 
     if (isResult) {
       if (isLast) {
-        actionButtonLabel = '¡GRADUARME Y COBRAR 1,000 MONEDAS! 🏆';
+        actionButtonLabel = '¡GRADUARME Y COBRAR 1,000 MONEDAS!';
         actionButtonIcon = Icons.monetization_on_rounded;
         buttonColor = const Color(0xFFF59E0B);
         buttonTextColor = const Color(0xFF1E1B4B);
       } else {
-        actionButtonLabel = 'SIGUIENTE LECCIÓN ▶';
+        actionButtonLabel = 'SIGUIENTE LECCIÓN';
         actionButtonIcon = Icons.arrow_forward_rounded;
         buttonColor = const Color(0xFF10B981);
         buttonTextColor = Colors.white;
@@ -559,37 +559,37 @@ class _TutorialScreenState extends State<TutorialScreen> with TickerProviderStat
       buttonColor = const Color(0xFFF59E0B);
       switch (step.actionType) {
         case TutorialActionType.chooseManoCard:
-          actionButtonLabel = 'SORTEAR CARTA DE MANO ▶';
+          actionButtonLabel = 'SORTEAR CARTA DE MANO';
           actionButtonIcon = Icons.touch_app_rounded;
           break;
         case TutorialActionType.observeStage:
-          actionButtonLabel = step.stepNumber == 2 ? 'VER REPARTO DE CARTAS ▶' : 'CONTINUAR ▶';
+          actionButtonLabel = step.stepNumber == 2 ? 'VER REPARTO DE CARTAS' : 'CONTINUAR';
           actionButtonIcon = Icons.play_arrow_rounded;
           break;
         case TutorialActionType.observeCantos:
-          actionButtonLabel = 'CONTINUAR ▶';
+          actionButtonLabel = 'CONTINUAR';
           actionButtonIcon = Icons.arrow_forward_rounded;
           break;
         case TutorialActionType.playCard:
           if (step.stepNumber == 7) {
-            actionButtonLabel = 'JUGAR 6 Y HACER CAÍDA (+1 pt) ▶';
+            actionButtonLabel = 'JUGAR 6 Y HACER CAÍDA (+1 pt)';
           } else if (step.stepNumber == 8) {
-            actionButtonLabel = 'ARRASTRAR 7 ➔ 10 ➔ 11 ▶';
+            actionButtonLabel = 'ARRASTRAR 7 -> 10 -> 11';
           } else if (step.stepNumber == 9) {
-            actionButtonLabel = 'HACER MESA LIMPIA (+4 pts) ▶';
+            actionButtonLabel = 'HACER MESA LIMPIA (+4 pts)';
           } else {
-            actionButtonLabel = 'JUGAR CARTA ▶';
+            actionButtonLabel = 'JUGAR CARTA';
           }
           actionButtonIcon = Icons.style_rounded;
           break;
         case TutorialActionType.callCanto:
           if (isLast) {
-            actionButtonLabel = '¡¡CANTAR TRIVILÍN!! (VICTORIA) 👑 ▶';
+            actionButtonLabel = '¡¡CANTAR TRIVILÍN!! (VICTORIA)';
             buttonColor = const Color(0xFFDC2626);
             buttonTextColor = Colors.white;
             actionButtonIcon = Icons.auto_awesome_rounded;
           } else {
-            actionButtonLabel = '¡CANTAR ${step.targetCantoName ?? "CANTO"}! (+${step.pointsAwarded} pts) 📢';
+            actionButtonLabel = '¡CANTAR ${step.targetCantoName ?? "CANTO"}! (+${step.pointsAwarded} pts)';
             actionButtonIcon = Icons.campaign_rounded;
           }
           break;
@@ -1023,7 +1023,7 @@ class _TutorialScreenState extends State<TutorialScreen> with TickerProviderStat
                 border: Border.all(color: const Color(0xFFFDE047), width: 0.8),
               ),
               child: const Text(
-                'Mesa: 7 ➔ 10 ➔ 11 (Seguidilla consecutiva)',
+                'Mesa: 7 -> 10 -> 11 (Seguidilla consecutiva)',
                 style: TextStyle(color: Color(0xFFFDE047), fontSize: 9.5, fontWeight: FontWeight.bold),
               ),
             ),

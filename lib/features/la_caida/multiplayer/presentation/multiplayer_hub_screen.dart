@@ -604,7 +604,7 @@ class _MultiplayerHubScreenState extends State<MultiplayerHubScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // Header estilo cartoon: Botón <, Título SALAS, Botón 🔍
+            // Header estilo cartoon: Botón <, Título SALAS, Botón Buscar
             _buildHeader(context),
 
             // Pestañas cartoon: "TODAS" y "SIN CONTRASEÑA" con indicador turquesa

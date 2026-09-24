@@ -162,13 +162,20 @@ class _MultiplayerWaitingRoomScreenState
                       borderRadius: BorderRadius.circular(6),
                       border: Border.all(color: const Color(0xFFF59E0B), width: 0.8),
                     ),
-                    child: Text(
-                      '🔑 PIN: ${room.pinCode}',
-                      style: const TextStyle(
-                        color: Color(0xFFF59E0B),
-                        fontWeight: FontWeight.bold,
-                        fontSize: 10.5,
-                      ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.key_rounded, size: 11, color: Color(0xFFF59E0B)),
+                        const SizedBox(width: 3),
+                        Text(
+                          'PIN: ${room.pinCode}',
+                          style: const TextStyle(
+                            color: Color(0xFFF59E0B),
+                            fontWeight: FontWeight.bold,
+                            fontSize: 10.5,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],

@@ -79,8 +79,11 @@ class ProfileAndLevelModal extends StatefulWidget {
   });
 
   static Future<void> show(BuildContext context, {required PlayerSession session, int initialTabIndex = 0}) {
-    return showDialog(
+    return showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      barrierColor: Colors.black.withValues(alpha: 0.8),
       builder: (_) => ProfileAndLevelModal(
         session: session,
         initialTabIndex: initialTabIndex,
@@ -130,85 +133,94 @@ class _ProfileAndLevelModalState extends State<ProfileAndLevelModal> with Single
   @override
   Widget build(BuildContext context) {
     final progress = UserProgress(totalXp: widget.session.xp);
+    final screenHeight = MediaQuery.of(context).size.height;
 
-    return Dialog(
-      backgroundColor: Colors.transparent,
-      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 420, maxHeight: 620),
-        child: Container(
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [Color(0xFF1E1E1E), Color(0xFF121212)],
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-            ),
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: const Color(0xFF2E2E2E), width: 1.2),
-            boxShadow: const [
-              BoxShadow(color: Colors.black87, blurRadius: 20, offset: Offset(0, 8)),
-            ],
-          ),
-          child: Column(
-            children: [
-              // 1. Cabecera superior con botón de cerrar
-              _buildHeader(progress),
-
-              // 2. Barra de Pestañas
-              Container(
-                color: const Color(0xFF181818),
-                child: TabBar(
-                  controller: _tabController,
-                  indicatorColor: Colors.white,
-                  indicatorWeight: 2.5,
-                  labelColor: Colors.white,
-                  unselectedLabelColor: Colors.white60,
-                  labelStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
-                  unselectedLabelStyle: const TextStyle(fontSize: 11),
-                  tabs: const [
-                    Tab(icon: Icon(Icons.military_tech_rounded, size: 18), text: 'Nivel & XP'),
-                    Tab(icon: Icon(Icons.filter_frames_rounded, size: 18), text: 'Marcos'),
-                    Tab(icon: Icon(Icons.palette_rounded, size: 18), text: 'Fondos'),
-                    Tab(icon: Icon(Icons.person_rounded, size: 18), text: 'Avatar'),
-                  ],
-                ),
-              ),
-
-              // 3. Contenido de las pestañas
-              Expanded(
-                child: TabBarView(
-                  controller: _tabController,
-                  children: [
-                    _buildLevelTab(progress),
-                    _buildFramesTab(progress),
-                    _buildThemesTab(),
-                    _buildAvatarTab(),
-                  ],
-                ),
-              ),
-
-              // 4. Botón inferior de Guardar / Listo
-              Padding(
-                padding: const EdgeInsets.all(12),
-                child: App3dButton(
-                  onPressed: _saveCustomization,
-                  expand: true,
-                  height: 46,
-                  depth: 5,
-                  borderRadius: 14,
-                  variant: App3dButtonVariant.cyan,
-                  label: 'GUARDAR CAMBIOS',
-                  textStyle: const TextStyle(
-                    color: Color(0xFF0F172A),
-                    fontWeight: FontWeight.w900,
-                    fontSize: 14,
-                    letterSpacing: 0.8,
-                  ),
-                ),
-              ),
-            ],
-          ),
+    return Container(
+      height: screenHeight * 0.90,
+      decoration: const BoxDecoration(
+        color: Color(0xFF161616),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        border: Border(
+          top: BorderSide(color: Color(0xFF2E2E2E), width: 1.5),
+          left: BorderSide(color: Color(0xFF2E2E2E), width: 1.0),
+          right: BorderSide(color: Color(0xFF2E2E2E), width: 1.0),
         ),
+        boxShadow: [
+          BoxShadow(color: Colors.black87, blurRadius: 24, offset: Offset(0, -6)),
+        ],
+      ),
+      child: Column(
+        children: [
+          // Tirador superior de arrastre hacia abajo
+          const SizedBox(height: 10),
+          Center(
+            child: Container(
+              width: 44,
+              height: 4.5,
+              decoration: BoxDecoration(
+                color: Colors.white24,
+                borderRadius: BorderRadius.circular(2.5),
+              ),
+            ),
+          ),
+          const SizedBox(height: 4),
+
+          // 1. Cabecera superior con botón de cerrar
+          _buildHeader(progress),
+
+          // 2. Barra de Pestañas
+          Container(
+            color: const Color(0xFF181818),
+            child: TabBar(
+              controller: _tabController,
+              indicatorColor: Colors.white,
+              indicatorWeight: 2.5,
+              labelColor: Colors.white,
+              unselectedLabelColor: Colors.white60,
+              labelStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+              unselectedLabelStyle: const TextStyle(fontSize: 11),
+              tabs: const [
+                Tab(icon: Icon(Icons.military_tech_rounded, size: 18), text: 'Nivel & XP'),
+                Tab(icon: Icon(Icons.filter_frames_rounded, size: 18), text: 'Marcos'),
+                Tab(icon: Icon(Icons.palette_rounded, size: 18), text: 'Fondos'),
+                Tab(icon: Icon(Icons.person_rounded, size: 18), text: 'Avatar'),
+              ],
+            ),
+          ),
+
+          // 3. Contenido de las pestañas
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                _buildLevelTab(progress),
+                _buildFramesTab(progress),
+                _buildThemesTab(),
+                _buildAvatarTab(),
+              ],
+            ),
+          ),
+
+          // 4. Botón inferior de Guardar / Listo
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: App3dButton(
+              onPressed: _saveCustomization,
+              expand: true,
+              height: 46,
+              depth: 5,
+              borderRadius: 14,
+              variant: App3dButtonVariant.cyan,
+              label: 'GUARDAR CAMBIOS',
+              textStyle: const TextStyle(
+                color: Color(0xFF0F172A),
+                fontWeight: FontWeight.w900,
+                fontSize: 14,
+                letterSpacing: 0.8,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -242,13 +254,31 @@ class _ProfileAndLevelModalState extends State<ProfileAndLevelModal> with Single
                   builder: (context) {
                     final trophies = PlayerStatsModel.shared.trophies;
                     final rank = RankInfo.forTrophies(trophies);
-                    return Text(
-                      'Nivel ${progress.currentLevel} • Rango: ${rank.fullNameFor(trophies)} ($trophies 🏆)',
-                      style: const TextStyle(
-                        color: Color(0xFFF59E0B),
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                      ),
+                    return Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Flexible(
+                          child: Text(
+                            'Nivel ${progress.currentLevel} • Rango: ${rank.fullNameFor(trophies)} ($trophies',
+                            style: const TextStyle(
+                              color: Color(0xFFF59E0B),
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: 3),
+                        const Icon(Icons.emoji_events_rounded, size: 12, color: Color(0xFFF59E0B)),
+                        const Text(
+                          ')',
+                          style: TextStyle(
+                            color: Color(0xFFF59E0B),
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
                     );
                   },
                 ),
@@ -392,7 +422,7 @@ class _ProfileAndLevelModalState extends State<ProfileAndLevelModal> with Single
                 SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'Los Rangos competitivos y Marcos de avatar se desbloquean con Trofeos 🏆 en partidas clasificatorias, no por nivel de XP.',
+                    'Los Rangos competitivos y Marcos de avatar se desbloquean con Trofeos en partidas clasificatorias, no por nivel de XP.',
                     style: TextStyle(color: Colors.white70, fontSize: 11),
                   ),
                 ),
@@ -546,13 +576,23 @@ class _ProfileAndLevelModalState extends State<ProfileAndLevelModal> with Single
                       style: const TextStyle(color: Colors.white60, fontSize: 10),
                     ),
                     const SizedBox(height: 4),
-                    Text(
-                      isUnlocked ? 'Desbloqueado (${frame.minTrophies}+ Trofeos 🏆)' : 'Requiere ${frame.minTrophies} Trofeos 🏆',
-                      style: TextStyle(
-                        color: isUnlocked ? const Color(0xFF4ADE80) : const Color(0xFFF87171),
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                      ),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.emoji_events_rounded,
+                          size: 11,
+                          color: isUnlocked ? const Color(0xFF4ADE80) : const Color(0xFFF87171),
+                        ),
+                        const SizedBox(width: 3),
+                        Text(
+                          isUnlocked ? 'Desbloqueado (${frame.minTrophies}+ Trofeos)' : 'Requiere ${frame.minTrophies} Trofeos',
+                          style: TextStyle(
+                            color: isUnlocked ? const Color(0xFF4ADE80) : const Color(0xFFF87171),
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),

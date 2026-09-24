@@ -326,8 +326,20 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
 
   void _openSettingsDialog() {
     Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => const AboutSettingsScreen(),
+      PageRouteBuilder(
+        pageBuilder: (context, animation, secondaryAnimation) => const AboutSettingsScreen(),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          const begin = Offset(-1.0, 0.0);
+          const end = Offset.zero;
+          const curve = Curves.easeOutCubic;
+          final tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+          return SlideTransition(
+            position: animation.drive(tween),
+            child: child,
+          );
+        },
+        transitionDuration: const Duration(milliseconds: 350),
+        reverseTransitionDuration: const Duration(milliseconds: 300),
       ),
     );
   }
@@ -669,7 +681,7 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
           ),
           const Spacer(),
 
-          // Chip de Tickets: 🎫 7/10 con temporizador mini ⏱ 08:02
+          // Chip de Tickets: 7/10 con temporizador mini 08:02
           GestureDetector(
             onTap: _openBuyTicketsModal,
             child: Container(
@@ -709,7 +721,7 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
           ),
           const SizedBox(width: 8),
 
-          // Chip de Monedas: 💰 2506 (+)
+          // Chip de Monedas: 2506 (+)
           GestureDetector(
             onTap: () => _openBuyTicketsModal(initialTab: 1),
             child: Container(

@@ -588,10 +588,18 @@ class _CaidaGameOverModalState extends State<CaidaGameOverModal>
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
+                      Icon(
+                        Icons.emoji_events_rounded,
+                        size: 16,
+                        color: summary.trophyDelta > 0
+                            ? const Color(0xFF22C55E)
+                            : const Color(0xFFEF4444),
+                      ),
+                      const SizedBox(width: 4),
                       Text(
                         summary.trophyDelta > 0
-                            ? '+${summary.trophyDelta} 🏆'
-                            : '${summary.trophyDelta} 🏆',
+                            ? '+${summary.trophyDelta}'
+                            : '${summary.trophyDelta}',
                         style: TextStyle(
                           color: summary.trophyDelta > 0
                               ? const Color(0xFF22C55E)

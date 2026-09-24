@@ -539,13 +539,20 @@ class _PlayerProfileStatsModalState extends State<PlayerProfileStatsModal> {
                           ),
                         ),
                         const SizedBox(width: 6),
-                        Text(
-                          '${_stats.trophies} 🏆',
-                          style: TextStyle(
-                            color: rank.secondaryColor,
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                          ),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              '${_stats.trophies}',
+                              style: TextStyle(
+                                color: rank.secondaryColor,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(width: 2),
+                            Icon(Icons.emoji_events_rounded, size: 10, color: rank.secondaryColor),
+                          ],
                         ),
                       ],
                     );
