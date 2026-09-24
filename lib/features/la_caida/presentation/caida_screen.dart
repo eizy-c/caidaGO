@@ -774,6 +774,78 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
     _startDeal(isFirstRound: true, animate: true);
   }
 
+  List<Color> _computeRoomPlayerColors({
+    required VenezuelaRoomTier? room,
+    required int totalPlayers,
+    required bool isTeams,
+  }) {
+    if (room == null) {
+      if (isTeams && totalPlayers == 4) {
+        return const [
+          Color(0xFF38BDF8), // User (Team 1)
+          Color(0xFFF43F5E), // Rival 1 (Team 2)
+          Color(0xFF00F2FE), // Teammate (Team 1)
+          Color(0xFFA855F7), // Rival 2 (Team 2)
+        ];
+      }
+      return const [
+        Color(0xFF38BDF8), // User
+        Color(0xFFF43F5E), // Rival 1 (Rojo)
+        Color(0xFF10B981), // Rival 2 (Verde)
+        Color(0xFFA855F7), // Rival 3 (Morado)
+      ];
+    }
+
+    final primary = room.primaryColor;
+    final accent = room.accentColor;
+
+    final Color rivalPrimary;
+    final Color rivalAccent;
+
+    switch (room.id) {
+      case 1: // Chivacoa (Esmeralda) -> Rival Fuego Coral & Ámbar
+        rivalPrimary = const Color(0xFFF43F5E);
+        rivalAccent = const Color(0xFFFB923C);
+        break;
+      case 2: // Barquisimeto (Atardecer Crepuscular) -> Rival Morado & Cian
+        rivalPrimary = const Color(0xFFA855F7);
+        rivalAccent = const Color(0xFF06B6D4);
+        break;
+      case 3: // Tucacas (Turquesa Costero) -> Rival Coral & Rosa Intenso
+        rivalPrimary = const Color(0xFFF43F5E);
+        rivalAccent = const Color(0xFFFB7185);
+        break;
+      case 4: // Maracaibo (Rojo Fuego Zuliano) -> Rival Azul Eléctrico & Cian
+        rivalPrimary = const Color(0xFF3B82F6);
+        rivalAccent = const Color(0xFF38BDF8);
+        break;
+      case 5: // Mérida (Azul Escarcha Andino ❄️) -> Rival Ámbar Cálido & Naranja
+        rivalPrimary = const Color(0xFFF59E0B);
+        rivalAccent = const Color(0xFFFB923C);
+        break;
+      case 6: // Caracas (Morado Imperial) -> Rival Esmeralda & Verde Lima
+        rivalPrimary = const Color(0xFF10B981);
+        rivalAccent = const Color(0xFF84CC16);
+        break;
+      case 7: // Margarita VIP (Oro Casino) -> Rival Océano Índigo & Turquesa
+      default:
+        rivalPrimary = const Color(0xFF3B82F6);
+        rivalAccent = const Color(0xFF06B6D4);
+        break;
+    }
+
+    if (isTeams && totalPlayers == 4) {
+      // 0: User (Team 1), 1: Rival 1 (Team 2), 2: Teammate (Team 1), 3: Rival 2 (Team 2)
+      return [primary, rivalPrimary, accent, rivalAccent];
+    } else if (totalPlayers == 2) {
+      return [primary, rivalPrimary];
+    } else if (totalPlayers == 3) {
+      return [primary, rivalPrimary, rivalAccent];
+    } else {
+      return [primary, rivalPrimary, accent, rivalAccent];
+    }
+  }
+
   void _setupPlayers({
     required int totalPlayers,
     required String userName,
@@ -802,11 +874,17 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
         ? customFrames[0]
         : session.selectedFrameId;
 
+    final computedColors = _computeRoomPlayerColors(
+      room: _venezuelaRoom,
+      totalPlayers: totalPlayers,
+      isTeams: teams,
+    );
+
     _players.add(_PlayerState(
       id: 'user',
       name: effectiveUserName,
       isBot: false,
-      color: const Color(0xFF38BDF8),
+      color: computedColors[0],
       teamId: teams ? 1 : 0,
       avatarId: userAvatarId,
       frameId: userFrameId,
@@ -819,11 +897,6 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
     ];
     final effectiveBotNames = _effectiveBotNames ?? defaultBotNames;
     const botAvatars = [20, 21, 22, 23, 24, 1, 14, 5];
-    const botColors = [
-      Color(0xFFF43F5E), // Izquierda / Rival 1 (Rojo)
-      Color(0xFF10B981), // Frente / Compañero o Rival 2 (Verde)
-      Color(0xFFA855F7), // Derecha / Rival 3 (Morado)
-    ];
     const botFrames = ['rank_novato', 'rank_bronce', 'rank_plata', 'rank_oro'];
 
     final rivalCount = totalPlayers - 1;
@@ -853,7 +926,7 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
         id: 'player_$i',
         name: playerName,
         isBot: isBotPlayer,
-        color: botColors[(i - 1) % botColors.length],
+        color: computedColors[i % computedColors.length],
         teamId: teams ? (i % 2 == 0 ? 1 : 2) : i,
         avatarId: rivalAvatarId,
         frameId: rivalFrameId,
@@ -2571,6 +2644,7 @@ child: Icon(icon, color: iconColor, size: 20),
           pingMs: _currentPingMs,
         ),
         body: WoodTableBackground(
+          backgroundImage: _venezuelaRoom?.backgroundAsset,
           child: SafeArea(
             child: !_hasGameStarted
                 ? _buildPreGameLobby()
@@ -3310,6 +3384,7 @@ child: Icon(icon, color: iconColor, size: 20),
             calloutMessage: rival.currentCallout,
             cardsInHandCount: rival.hand.length,
             avatarColor: rival.color,
+            turnGlowColor: rival.color,
             avatarId: rival.avatarId,
             frameId: rival.frameId,
             isMano: _manoIndex == 1,
@@ -3337,6 +3412,7 @@ child: Icon(icon, color: iconColor, size: 20),
             calloutMessage: rival1.currentCallout,
             cardsInHandCount: rival1.hand.length,
             avatarColor: rival1.color,
+            turnGlowColor: rival1.color,
             avatarId: rival1.avatarId,
             frameId: rival1.frameId,
             isMano: _manoIndex == 1,
@@ -3361,6 +3437,7 @@ child: Icon(icon, color: iconColor, size: 20),
             calloutMessage: rival2.currentCallout,
             cardsInHandCount: rival2.hand.length,
             avatarColor: rival2.color,
+            turnGlowColor: rival2.color,
             avatarId: rival2.avatarId,
             frameId: rival2.frameId,
             isMano: _manoIndex == 2,
@@ -3390,6 +3467,7 @@ child: Icon(icon, color: iconColor, size: 20),
             calloutMessage: rival1.currentCallout,
             cardsInHandCount: rival1.hand.length,
             avatarColor: rival1.color,
+            turnGlowColor: rival1.color,
             avatarId: rival1.avatarId,
             frameId: rival1.frameId,
             isMano: _manoIndex == 1,
@@ -3414,6 +3492,7 @@ child: Icon(icon, color: iconColor, size: 20),
             calloutMessage: rival2.currentCallout,
             cardsInHandCount: rival2.hand.length,
             avatarColor: rival2.color,
+            turnGlowColor: rival2.color,
             avatarId: rival2.avatarId,
             frameId: rival2.frameId,
             isMano: _manoIndex == 2,
@@ -3439,6 +3518,7 @@ child: Icon(icon, color: iconColor, size: 20),
             calloutMessage: rival3.currentCallout,
             cardsInHandCount: rival3.hand.length,
             avatarColor: rival3.color,
+            turnGlowColor: rival3.color,
             avatarId: rival3.avatarId,
             frameId: rival3.frameId,
             isMano: _manoIndex == 3,
@@ -3467,6 +3547,7 @@ child: Icon(icon, color: iconColor, size: 20),
         calloutMessage: user.currentCallout,
         cardsInHandCount: user.hand.length,
         avatarColor: user.color,
+        turnGlowColor: user.color,
         avatarId: user.avatarId,
         frameId: user.frameId,
         isMano: _manoIndex == 0,

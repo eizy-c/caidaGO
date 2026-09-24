@@ -48,6 +48,9 @@ class VenezuelaRoomTier {
     this.simulatedActivePlayers = 120,
   });
 
+  /// Ruta del asset de fondo temático de la sala en alta definición (1080x2340).
+  String get backgroundAsset => 'assets/Tiers/backgrounds/$id-FONDO.png';
+
   /// Pozo total acumulado en la mesa según la modalidad de juego.
   /// 1v1: Entrada * 2
   /// 2v2: Entrada * 4

@@ -4,6 +4,7 @@ import '../../economy/player_stats_model.dart';
 import '../../economy/user_progress.dart';
 import '../../economy/rank_system.dart';
 import '../../economy/achievement_catalog.dart';
+import '../../economy/trophy_session_manager.dart';
 import '../../../../core/theme/app_palette.dart';
 import 'profile_and_level_modal.dart';
 import 'user_frame_view.dart';
@@ -80,7 +81,7 @@ class _PlayerProfileStatsModalState extends State<PlayerProfileStatsModal> {
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
-      animation: Listenable.merge([_session, _stats]),
+      animation: Listenable.merge([_session, _stats, TrophySessionManager.shared]),
       builder: (context, _) {
         final progress = UserProgress(totalXp: _session.xp);
         final level = progress.currentLevel;
@@ -726,369 +727,498 @@ backgroundColor: AppPalette.cartoonBgDark,
     );
   }
 
-  /// Pestaña 2: Logros y Misiones de La Caída (Categorías y niveles progresivos)
+  /// Medalla cartoon con listón superior y medalla circular con estrella dorada/metálica.
+  Widget _buildCartoonMedal({
+    required int level,
+    required bool isEarned,
+    required bool isCurrent,
+  }) {
+    final ribbonColors = isEarned
+        ? const [Color(0xFFEF4444), Color(0xFFB91C1C)]
+        : [const Color(0xFF1E174D), const Color(0xFF17113E)];
+
+    final ribbonBorder = isEarned ? const Color(0xFF991B1B) : const Color(0xFF2A2066);
+
+    List<Color> medalColors;
+    Color medalBorder;
+    Color starColor;
+
+    if (isEarned) {
+      switch (level) {
+        case 1:
+          medalColors = const [Color(0xFFF59E0B), Color(0xFFD97706)];
+          medalBorder = const Color(0xFFB45309);
+          starColor = Colors.white;
+          break;
+        case 2:
+          medalColors = const [Color(0xFFF1F5F9), Color(0xFF94A3B8)];
+          medalBorder = const Color(0xFF64748B);
+          starColor = Colors.white;
+          break;
+        case 3:
+        default:
+          medalColors = const [Color(0xFFFEF08A), Color(0xFFEAB308)];
+          medalBorder = const Color(0xFFCA8A04);
+          starColor = const Color(0xFF78350F);
+          break;
+      }
+    } else {
+      medalColors = [const Color(0xFF221A5C), const Color(0xFF1A1349)];
+      medalBorder = const Color(0xFF33277A);
+      starColor = Colors.white12;
+    }
+
+    return SizedBox(
+      width: 25,
+      height: 35,
+      child: Stack(
+        alignment: Alignment.topCenter,
+        children: [
+          // Listón / Cinta superior
+          Container(
+            width: 14,
+            height: 16,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: ribbonColors,
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              ),
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(2),
+                topRight: Radius.circular(2),
+              ),
+              border: Border.all(color: ribbonBorder, width: 0.8),
+            ),
+          ),
+          // Medalla circular inferior
+          Positioned(
+            top: 11,
+            child: Container(
+              width: 23,
+              height: 23,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(
+                  colors: medalColors,
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                border: Border.all(color: medalBorder, width: 1.2),
+                boxShadow: isEarned
+                    ? [
+                        BoxShadow(
+                          color: medalColors.first.withValues(alpha: 0.45),
+                          blurRadius: 4,
+                          offset: const Offset(0, 1.5),
+                        ),
+                      ]
+                    : null,
+              ),
+              child: Center(
+                child: Icon(
+                  Icons.star_rounded,
+                  size: 13,
+                  color: starColor,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Medalla o escudo exclusivo para conquistas de Sala Regional (1 solo nivel).
+  Widget _buildSingleRegionalMedal({
+    required bool isEarned,
+    required IconData icon,
+    required Color iconColor,
+  }) {
+    final ribbonColors = isEarned
+        ? const [Color(0xFFF59E0B), Color(0xFFD97706)]
+        : [const Color(0xFF1E174D), const Color(0xFF17113E)];
+    final ribbonBorder = isEarned ? const Color(0xFFB45309) : const Color(0xFF2A2066);
+
+    final medalColors = isEarned
+        ? const [Color(0xFFFEF08A), Color(0xFFEAB308), Color(0xFFCA8A04)]
+        : const [Color(0xFF221A5C), Color(0xFF1A1349)];
+    final medalBorder = isEarned ? const Color(0xFFCA8A04) : const Color(0xFF33277A);
+
+    return SizedBox(
+      width: 38,
+      height: 44,
+      child: Stack(
+        alignment: Alignment.topCenter,
+        children: [
+          // Listón / Cinta superior
+          Container(
+            width: 18,
+            height: 18,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: ribbonColors,
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              ),
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(3),
+                topRight: Radius.circular(3),
+              ),
+              border: Border.all(color: ribbonBorder, width: 0.9),
+            ),
+          ),
+          // Medalla circular destacada inferior
+          Positioned(
+            top: 12,
+            child: Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(
+                  colors: medalColors,
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                border: Border.all(color: medalBorder, width: 1.5),
+                boxShadow: isEarned
+                    ? [
+                        BoxShadow(
+                          color: const Color(0xFFEAB308).withValues(alpha: 0.5),
+                          blurRadius: 6,
+                          offset: const Offset(0, 2),
+                        ),
+                      ]
+                    : null,
+              ),
+              child: Center(
+                child: Icon(
+                  isEarned ? icon : Icons.lock_outline_rounded,
+                  size: 16,
+                  color: isEarned ? const Color(0xFF78350F) : Colors.white24,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Pestaña 2: Logros y Misiones de La Caída (Agrupados en series de 3 Medallas)
   Widget _buildAchievementsTab() {
-    final achievements = AchievementCatalog.allAchievements;
+    final groups = AchievementCatalog.familyGroups;
 
     return ListView.builder(
       physics: const BouncingScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(16, 10, 16, 20),
-      itemCount: achievements.length,
+      itemCount: groups.length,
       itemBuilder: (context, index) {
-        final ach = achievements[index];
-        final currentProgress = ach.getProgress(_stats);
-        final isClaimed = _stats.claimedAchievementIds.contains(ach.id);
-        final isUnlocked = AchievementCatalog.isUnlocked(ach, _stats);
-        final reqItem = AchievementCatalog.getRequirement(ach);
-        final isCompleted = isUnlocked && currentProgress >= ach.targetProgress;
-        final isInProgress = isUnlocked && !isCompleted && !isClaimed;
-        final progressRatio = isUnlocked
-            ? (currentProgress / ach.targetProgress).clamp(0.0, 1.0)
-            : 0.0;
+        final group = groups[index];
+        final activeItem = group.activeLevel(_stats);
+        final claimedCount = group.claimedMedalsCount(_stats);
+        final isFullyClaimed = group.isFullyClaimed(_stats);
+        final currentProgress = activeItem.getProgress(_stats);
+        final isClaimable = group.isClaimable(_stats);
+        final progressRatio = isFullyClaimed
+            ? 1.0
+            : (activeItem.targetProgress > 0
+                ? (currentProgress / activeItem.targetProgress).clamp(0.0, 1.0)
+                : 0.0);
 
-        final cardContent = Container(
-          padding: const EdgeInsets.all(11),
+        return Container(
+          margin: const EdgeInsets.only(bottom: 12),
           decoration: BoxDecoration(
-            color: isInProgress
-                ? const Color(0xFF352B8C)
-                : (isCompleted && !isClaimed
-                    ? const Color(0xFF1E3A34)
-                    : AppPalette.cartoonCardDark),
-            borderRadius: BorderRadius.circular(14),
+            color: AppPalette.cartoonCardDark,
+            borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: isInProgress
-                  ? const Color(0xFF22D3EE)
-                  : (isCompleted && !isClaimed
-                      ? const Color(0xFF10B981)
+              color: isClaimable
+                  ? const Color(0xFF10B981)
+                  : (isFullyClaimed
+                      ? const Color(0xFFF59E0B).withValues(alpha: 0.6)
                       : AppPalette.cartoonBorder),
-              width: isInProgress || (isCompleted && !isClaimed) ? 1.8 : 1.5,
+              width: isClaimable ? 2.0 : 1.6,
             ),
-            boxShadow: isInProgress
+            boxShadow: isClaimable
                 ? [
                     BoxShadow(
-                      color: const Color(0xFF22D3EE).withValues(alpha: 0.20),
+                      color: const Color(0xFF10B981).withValues(alpha: 0.25),
                       blurRadius: 8,
                       offset: const Offset(0, 2),
                     ),
                   ]
-                : null,
+                : const [
+                    BoxShadow(
+                      color: Color(0xFF151042),
+                      offset: Offset(0, 2),
+                    ),
+                  ],
           ),
-          child: Row(
-            children: [
-              // Icono con contenedor estilizado y colorido (no gris plano)
-              Stack(
-                children: [
-                  Container(
-                    width: 42,
-                    height: 42,
-                    decoration: BoxDecoration(
-                      color: isUnlocked
-                          ? ach.iconColor.withValues(alpha: 0.16)
-                          : const Color(0xFF201B5E),
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: isUnlocked
-                            ? ach.iconColor.withValues(alpha: 0.6)
-                            : Colors.white24,
-                        width: 1.5,
-                      ),
-                    ),
-                    child: Icon(
-                      ach.icon,
-                      color: isUnlocked
-                          ? ach.iconColor
-                          : ach.iconColor.withValues(alpha: 0.5),
-                      size: 22,
-                    ),
-                  ),
-                  if (!isUnlocked)
-                    Positioned(
-                      bottom: 0,
-                      right: 0,
-                      child: Container(
-                        padding: const EdgeInsets.all(2.5),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF1E1763),
-                          shape: BoxShape.circle,
-                          border: Border.all(color: const Color(0xFFFBBF24), width: 1),
-                        ),
-                        child: const Icon(
-                          Icons.lock_rounded,
-                          color: Color(0xFFFBBF24),
-                          size: 9,
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-
-              const SizedBox(width: 10),
-
-              // Información del logro y progreso
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Row(
-                          children: [
-                            Text(
-                              ach.title,
-                              style: TextStyle(
-                                color: isClaimed || !isUnlocked
-                                    ? Colors.white54
-                                    : Colors.white,
-                                fontSize: 12.5,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(width: 6),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 6.5, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: ach.levelBgColor,
-                                borderRadius: BorderRadius.circular(6),
-                                border: Border.all(
-                                  color: ach.levelColor.withValues(alpha: isUnlocked ? 0.9 : 0.4),
-                                  width: 0.9,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(15),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // 1. Cuerpo Principal: Medallas + Título, Descripción y Barra
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 12, 12, 10),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      // Medallas (1 única para salas regionales, o 3 para misiones multi-nivel)
+                      SizedBox(
+                        width: 84,
+                        child: group.isSingleTier
+                            ? Center(
+                                child: _buildSingleRegionalMedal(
+                                  isEarned: claimedCount > 0,
+                                  icon: activeItem.icon,
+                                  iconColor: activeItem.iconColor,
                                 ),
-                              ),
-                              child: Row(
+                              )
+                            : Row(
                                 mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    ach.level == 3
-                                        ? Icons.workspace_premium_rounded
-                                        : (ach.level == 2
-                                            ? Icons.military_tech_rounded
-                                            : Icons.shield_rounded),
-                                    size: 10,
-                                    color: isUnlocked ? ach.levelTextColor : Colors.white38,
-                                  ),
-                                  const SizedBox(width: 3),
-                                  Text(
-                                    ach.levelBadge,
-                                    style: TextStyle(
-                                      color: isUnlocked ? ach.levelTextColor : Colors.white54,
-                                      fontSize: 9.5,
-                                      fontWeight: FontWeight.bold,
-                                      letterSpacing: 0.2,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: List.generate(3, (i) {
+                                  final isEarned = i < claimedCount;
+                                  final isCurrent = i == claimedCount;
+                                  return Padding(
+                                    padding: EdgeInsets.only(right: i < 2 ? 3 : 0),
+                                    child: _buildCartoonMedal(
+                                      level: i + 1,
+                                      isEarned: isEarned,
+                                      isCurrent: isCurrent,
                                     ),
-                                  ),
-                                ],
+                                  );
+                                }),
                               ),
-                            ),
-                          ],
-                        ),
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(Icons.monetization_on_rounded, size: 12, color: Color(0xFFF59E0B)),
-                            const SizedBox(width: 3),
-                            Text(
-                              '+${ach.coinReward}',
-                              style: const TextStyle(
-                                color: Color(0xFFF59E0B),
-                                fontSize: 11,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      ach.description,
-                      style: const TextStyle(
-                        color: Colors.white60,
-                        fontSize: 10.5,
                       ),
-                    ),
-                    if (!isUnlocked && reqItem != null) ...[
-                      const SizedBox(height: 3),
-                      Row(
-                        children: [
-                          const Icon(Icons.lock_outline_rounded, size: 11, color: Colors.white38),
-                          const SizedBox(width: 3),
-                          Expanded(
-                            child: Text(
-                              'Requiere completar nivel ${reqItem.levelBadge}',
+
+                      const SizedBox(width: 10),
+
+                      // Título, Descripción y Barra de Progreso
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              group.title,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: const TextStyle(
-                                color: Colors.white38,
-                                fontSize: 9.5,
-                                fontWeight: FontWeight.w600,
+                                color: Colors.white,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 0.3,
                               ),
                             ),
-                          ),
-                        ],
-                      ),
-                    ],
-                    const SizedBox(height: 4),
-                    // Barra de progreso
-                    Row(
-                      children: [
-                        Expanded(
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(6),
-                            child: LinearProgressIndicator(
-                              value: progressRatio,
-                              backgroundColor: AppPalette.cartoonBgDark,
-                              valueColor: AlwaysStoppedAnimation(
-                                !isUnlocked
-                                    ? Colors.white24
-                                    : (isCompleted
-                                        ? const Color(0xFF10B981)
-                                        : const Color(0xFF22D3EE)),
+                            const SizedBox(height: 2),
+                            Text(
+                              isFullyClaimed
+                                  ? (group.isSingleTier
+                                      ? '¡Sala completada y trofeo conquistado!'
+                                      : '¡Todos los niveles completados con éxito!')
+                                  : activeItem.description,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: isFullyClaimed ? const Color(0xFFFDE047) : Colors.white70,
+                                fontSize: 10.5,
+                                fontWeight: FontWeight.w500,
                               ),
-                              minHeight: 6,
                             ),
-                          ),
+                            const SizedBox(height: 7),
+
+                            // Barra de Progreso Estilo Cartoon con texto centrado
+                            Container(
+                              height: 18,
+                              width: double.infinity,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF15103E),
+                                borderRadius: BorderRadius.circular(9),
+                                border: Border.all(color: AppPalette.cartoonBorder, width: 1.2),
+                              ),
+                              child: LayoutBuilder(
+                                builder: (context, constraints) {
+                                  final totalWidth = constraints.maxWidth;
+                                  final fillWidth = (totalWidth * progressRatio).clamp(0.0, totalWidth);
+                                  return Stack(
+                                    alignment: Alignment.center,
+                                    children: [
+                                      // Relleno de la barra proporcional al avance real
+                                      if (fillWidth > 0)
+                                        Positioned(
+                                          left: 0,
+                                          top: 0,
+                                          bottom: 0,
+                                          width: fillWidth,
+                                          child: Container(
+                                            decoration: BoxDecoration(
+                                              gradient: LinearGradient(
+                                                colors: isFullyClaimed
+                                                    ? const [Color(0xFF10B981), Color(0xFF34D399)]
+                                                    : (isClaimable
+                                                        ? const [Color(0xFF059669), Color(0xFF10B981)]
+                                                        : const [Color(0xFF0284C7), Color(0xFF38BDF8)]),
+                                              ),
+                                              borderRadius: BorderRadius.horizontal(
+                                                left: const Radius.circular(8),
+                                                right: Radius.circular(progressRatio >= 0.98 ? 8 : 2),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      // Texto de progreso centrado
+                                      Center(
+                                        child: Text(
+                                          isFullyClaimed
+                                              ? 'COMPLETADO'
+                                              : '${currentProgress.clamp(0, activeItem.targetProgress)} / ${activeItem.targetProgress}',
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.w900,
+                                            letterSpacing: 0.3,
+                                            shadows: [
+                                              Shadow(color: Colors.black87, blurRadius: 2, offset: Offset(0, 1)),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  );
+                                },
+                              ),
+                            ),
+                          ],
                         ),
+                      ),
+
+                      // Botón Reclamar (si está listo para cobrar)
+                      if (isClaimable) ...[
                         const SizedBox(width: 8),
-                        Text(
-                          isUnlocked
-                              ? '${currentProgress.clamp(0, ach.targetProgress)} / ${ach.targetProgress}'
-                              : '0 / ${ach.targetProgress}',
-                          style: TextStyle(
-                            color: isInProgress
-                                ? Colors.white
-                                : (isUnlocked ? Colors.white70 : Colors.white38),
-                            fontSize: 10,
-                            fontWeight: isInProgress ? FontWeight.w900 : FontWeight.bold,
+                        App3dButton(
+                          label: 'Reclamar',
+                          variant: App3dButtonVariant.emerald,
+                          depth: 2.5,
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          onPressed: () {
+                            _stats.claimAchievement(activeItem.id);
+                            _session.addCoins(activeItem.coinReward);
+                            _session.addXp(activeItem.xpReward);
+                            GameToastQueue.showAchievement(
+                              context,
+                              title: activeItem.title,
+                              description: activeItem.description,
+                              icon: activeItem.icon,
+                              iconColor: activeItem.iconColor,
+                              coinReward: activeItem.coinReward,
+                              xpReward: activeItem.xpReward,
+                            );
+                            setState(() {});
+                          },
+                          child: const Text(
+                            'Reclamar',
+                            style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900),
                           ),
                         ),
                       ],
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
 
-              const SizedBox(width: 10),
-
-              // Botón o Etiqueta de Estado
-              if (isClaimed)
+                // 2. Franja Inferior: Recompensas Oficiales (XP y Monedas) con fondo contrastante
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: AppPalette.cartoonBgDark,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: AppPalette.cartoonBorder),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                  decoration: const BoxDecoration(
+                    color: Color(0xFF1D1754),
+                    border: Border(
+                      top: BorderSide(color: Color(0xFF2E2578), width: 1.0),
+                    ),
                   ),
-                  child: const Row(
-                    mainAxisSize: MainAxisSize.min,
+                  child: Row(
                     children: [
-                      Icon(Icons.check_circle_rounded, color: Color(0xFF10B981), size: 12),
-                      SizedBox(width: 3),
-                      Text(
-                        'Reclamado',
+                      const Text(
+                        'Recompensas:',
                         style: TextStyle(
-                          color: Colors.white60,
-                          fontSize: 9.5,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                )
-              else if (!isUnlocked)
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: AppPalette.cartoonBgDark,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: AppPalette.cartoonBorder),
-                  ),
-                  child: const Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.lock_rounded, size: 11, color: Colors.white38),
-                      SizedBox(width: 3),
-                      Text(
-                        'Bloqueado',
-                        style: TextStyle(
-                          color: Colors.white38,
-                          fontSize: 9.5,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                )
-              else if (isCompleted)
-                App3dButton(
-                  label: 'Reclamar',
-                  variant: App3dButtonVariant.emerald,
-                  depth: 3.0,
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  onPressed: () {
-                    _stats.claimAchievement(ach.id);
-                    _session.addCoins(ach.coinReward);
-                    _session.addXp(ach.xpReward);
-                    GameToastQueue.showAchievement(
-                      context,
-                      title: ach.title,
-                      description: ach.description,
-                      icon: ach.icon,
-                      iconColor: ach.iconColor,
-                      coinReward: ach.coinReward,
-                      xpReward: ach.xpReward,
-                    );
-                    setState(() {});
-                  },
-                  child: const Text(
-                    'Reclamar',
-                    style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900),
-                  ),
-                )
-              else
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4.5),
-                  decoration: BoxDecoration(
-                    gradient: AppGradients.cyanAccent,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: const Color(0xFF1E1763), width: 1),
-                    boxShadow: const [
-                      BoxShadow(
-                        color: Color(0xFF0284C7),
-                        blurRadius: 3,
-                        offset: Offset(0, 1.5),
-                      ),
-                    ],
-                  ),
-                  child: const Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.bolt_rounded, color: Colors.white, size: 11),
-                      SizedBox(width: 2),
-                      Text(
-                        'En curso',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 10,
+                          color: Color(0xFFFBBF24),
+                          fontSize: 11,
                           fontWeight: FontWeight.w900,
                           letterSpacing: 0.3,
                         ),
                       ),
+                      const SizedBox(width: 14),
+
+                      // Recompensa XP
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(2),
+                            decoration: const BoxDecoration(
+                              color: Color(0xFFF59E0B),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(Icons.star_rounded, size: 11, color: Colors.white),
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            isFullyClaimed ? 'Max XP' : '${activeItem.xpReward} XP',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(width: 16),
+
+                      // Recompensa Monedas
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.monetization_on_rounded, size: 14, color: Color(0xFFF59E0B)),
+                          const SizedBox(width: 4),
+                          Text(
+                            isFullyClaimed ? 'Completado' : '${activeItem.coinReward}',
+                            style: const TextStyle(
+                              color: Color(0xFFFDE047),
+                              fontSize: 11,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      const Spacer(),
+
+                      // Indicador de Nivel / Medalla actual
+                      Text(
+                        group.isSingleTier
+                            ? (isFullyClaimed ? '¡Conquistada!' : 'Sala Regional')
+                            : (isFullyClaimed
+                                ? '3 / 3'
+                                : '${claimedCount + 1} / 3 Medallas'),
+                        style: TextStyle(
+                          color: isFullyClaimed
+                              ? const Color(0xFF34D399)
+                              : (group.isSingleTier
+                                  ? const Color(0xFF38BDF8)
+                                  : Colors.white54),
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ],
                   ),
                 ),
-            ],
+              ],
+            ),
           ),
-
         );
-
-        if (!isUnlocked) {
-          return Opacity(
-            opacity: 0.50,
-            child: cardContent,
-          );
-        }
-        return cardContent;
       },
     );
   }

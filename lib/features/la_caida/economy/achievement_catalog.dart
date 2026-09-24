@@ -825,7 +825,7 @@ class AchievementCatalog {
       icon: Icons.waves_rounded,
       iconColor: const Color(0xFF06B6D4),
       category: AchievementCategory.partidas,
-      level: 2,
+      level: 1,
       targetProgress: 60,
       coinReward: 2500,
       xpReward: 400,
@@ -839,7 +839,7 @@ class AchievementCatalog {
       icon: Icons.flash_on_rounded,
       iconColor: const Color(0xFFEF4444),
       category: AchievementCategory.partidas,
-      level: 2,
+      level: 1,
       targetProgress: 75,
       coinReward: 5000,
       xpReward: 800,
@@ -853,7 +853,7 @@ class AchievementCatalog {
       icon: Icons.ac_unit_rounded,
       iconColor: const Color(0xFF38BDF8),
       category: AchievementCategory.partidas,
-      level: 2,
+      level: 1,
       targetProgress: 100,
       coinReward: 15000,
       xpReward: 1500,
@@ -867,7 +867,7 @@ class AchievementCatalog {
       icon: Icons.location_city_rounded,
       iconColor: const Color(0xFFA855F7),
       category: AchievementCategory.partidas,
-      level: 3,
+      level: 1,
       targetProgress: 125,
       coinReward: 50000,
       xpReward: 3000,
@@ -881,7 +881,7 @@ class AchievementCatalog {
       icon: Icons.casino_rounded,
       iconColor: const Color(0xFFEAB308),
       category: AchievementCategory.partidas,
-      level: 3,
+      level: 1,
       targetProgress: 250,
       coinReward: 150000,
       xpReward: 10000,
@@ -910,7 +910,7 @@ class AchievementCatalog {
 }
 
 /// Representa una familia temática de logros que contiene exactamente
-/// 3 niveles secuenciales (Bronce, Plata, Oro) como se muestra en la tarjeta de referencia.
+/// 3 niveles secuenciales (Bronce, Plata, Oro), o 1 nivel único para salas de Venezuela.
 class AchievementFamilyGroup {
   final String familyId;
   final String title;
@@ -921,6 +921,9 @@ class AchievementFamilyGroup {
     required this.title,
     required this.levels,
   });
+
+  /// Indica si este logro es de conquista única (1 solo nivel, como las Salas de Venezuela).
+  bool get isSingleTier => levels.length == 1;
 
   /// Nivel actualmente activo para el jugador (el primer nivel no reclamado, o el último si ya se completaron todos).
   AchievementItem activeLevel(PlayerStatsModel stats) {

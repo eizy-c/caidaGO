@@ -6,11 +6,13 @@ import 'package:flutter/material.dart';
 class WoodTableBackground extends StatelessWidget {
   final Widget? child;
   final Color baseColor;
+  final String? backgroundImage;
 
   const WoodTableBackground({
     super.key,
     this.child,
     this.baseColor = const Color(0xFF261910), // Marrón madera oscura profundo
+    this.backgroundImage,
   });
 
   @override
@@ -18,10 +20,19 @@ class WoodTableBackground extends StatelessWidget {
     return Stack(
       fit: StackFit.expand,
       children: [
-        // Pintura procedural de listones verticales con vetas y sombras
-        CustomPaint(
-          painter: _WoodPlanksPainter(baseColor: baseColor),
-        ),
+        if (backgroundImage != null)
+          Image.asset(
+            backgroundImage!,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) => CustomPaint(
+              painter: _WoodPlanksPainter(baseColor: baseColor),
+            ),
+          )
+        else
+          // Pintura procedural de listones verticales con vetas y sombras
+          CustomPaint(
+            painter: _WoodPlanksPainter(baseColor: baseColor),
+          ),
         // Viñeta perimetral de iluminación cálida en el centro y sombra en los bordes
         Container(
           decoration: BoxDecoration(

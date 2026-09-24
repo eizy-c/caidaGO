@@ -74,6 +74,7 @@ flutter:
     - assets/player/marcos/
     - assets/Tiers/
     - assets/Tiers/box/
+    - assets/Tiers/backgrounds/
     - assets/sfx/cards/
 
   # An image asset can refer to one or more resolution-specific "variants", see

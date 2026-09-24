@@ -24,6 +24,7 @@ class TablePlayerBadge extends StatelessWidget {
   final String? calloutMessage;
   final int cardsInHandCount;
   final Color avatarColor;
+  final Color? turnGlowColor;
   final bool isMano;
   final int? avatarId;
   final String? frameId;
@@ -44,6 +45,7 @@ class TablePlayerBadge extends StatelessWidget {
     this.calloutMessage,
     this.cardsInHandCount = 3,
     this.avatarColor = const Color(0xFF6366F1),
+    this.turnGlowColor,
     this.isMano = false,
     this.avatarId,
     this.frameId,
@@ -56,6 +58,7 @@ class TablePlayerBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final avatarSize = isCompact ? 44.0 : 56.0;
     final frame = frameId != null ? UserFrameItem.getById(frameId!) : null;
+    final effectiveGlowColor = turnGlowColor ?? avatarColor;
 
     return Stack(
       clipBehavior: Clip.none,
@@ -81,6 +84,7 @@ class TablePlayerBadge extends StatelessWidget {
                           painter: _CurvedCornerTimerPainter(
                             progress: turnProgress,
                             isCurrentTurn: isCurrentTurn,
+                            customColor: effectiveGlowColor,
                           ),
                         ),
                       ),
@@ -96,9 +100,9 @@ class TablePlayerBadge extends StatelessWidget {
                           boxShadow: [
                             if (isCurrentTurn)
                               BoxShadow(
-                                color: AppPalette.cartoonCyan.withValues(alpha: 0.65),
-                                blurRadius: 14,
-                                spreadRadius: 3,
+                                color: effectiveGlowColor.withValues(alpha: 0.70),
+                                blurRadius: 16,
+                                spreadRadius: 3.5,
                               ),
                           ],
                         ),
@@ -119,16 +123,16 @@ class TablePlayerBadge extends StatelessWidget {
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
                             color: isCurrentTurn
-                                ? AppPalette.cartoonCyan
+                                ? effectiveGlowColor
                                 : const Color(0xFF4C3E9E),
                             width: isCurrentTurn ? 2.5 : 1.5,
                           ),
                           boxShadow: [
                             if (isCurrentTurn)
                               BoxShadow(
-                                color: AppPalette.cartoonCyan.withValues(alpha: 0.45),
-                                blurRadius: 10,
-                                spreadRadius: 1.5,
+                                color: effectiveGlowColor.withValues(alpha: 0.55),
+                                blurRadius: 12,
+                                spreadRadius: 2,
                               )
                             else
                               const BoxShadow(
@@ -235,16 +239,16 @@ class TablePlayerBadge extends StatelessWidget {
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(
                     color: isCurrentTurn
-                        ? AppPalette.cartoonCyan
+                        ? effectiveGlowColor
                         : AppPalette.cartoonBorder,
                     width: 1.5,
                   ),
                   boxShadow: [
                     if (isCurrentTurn)
                       BoxShadow(
-                        color: AppPalette.cartoonCyan.withValues(alpha: 0.35),
-                        blurRadius: 6,
-                        spreadRadius: 1,
+                        color: effectiveGlowColor.withValues(alpha: 0.45),
+                        blurRadius: 8,
+                        spreadRadius: 1.5,
                       )
                     else
                       const BoxShadow(
@@ -470,10 +474,12 @@ class TablePlayerBadge extends StatelessWidget {
 class _CurvedCornerTimerPainter extends CustomPainter {
   final double progress;
   final bool isCurrentTurn;
+  final Color? customColor;
 
   _CurvedCornerTimerPainter({
     required this.progress,
     required this.isCurrentTurn,
+    this.customColor,
   });
 
   @override
@@ -523,7 +529,7 @@ class _CurvedCornerTimerPainter extends CustomPainter {
     final isWarning = clampedProgress <= 0.25;
     final activeColor = isWarning
         ? const Color(0xFFEF4444)
-        : const Color(0xFF22C55E);
+        : (customColor ?? const Color(0xFF22C55E));
 
     // Resplandor exterior
     final glowPaint = Paint()
@@ -547,6 +553,8 @@ class _CurvedCornerTimerPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _CurvedCornerTimerPainter oldDelegate) {
-    return oldDelegate.progress != progress || oldDelegate.isCurrentTurn != isCurrentTurn;
+    return oldDelegate.progress != progress ||
+        oldDelegate.isCurrentTurn != isCurrentTurn ||
+        oldDelegate.customColor != customColor;
   }
 }
