@@ -113,6 +113,11 @@ class PlayerSession extends ChangeNotifier {
   int get avatarIndex => _avatarIndex;
   String get selectedFrameId => _selectedFrameId;
   String get selectedThemeId => _selectedThemeId;
+  set selectedThemeId(String val) {
+    _selectedThemeId = val;
+    notifyListeners();
+    save();
+  }
   int get coins => _coins;
   int get chapas => _chapas;
   int get tickets => _tickets;

@@ -634,27 +634,56 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
     final theme = LobbyThemeOption.getById(_session.selectedThemeId);
 
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: theme.backgroundGradient,
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-        ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              // 1. Barra Superior idéntica al boceto (Ajustes | Tickets | Monedas)
-              _buildTopBar(),
-
-              // 2. Contenido dinámico del lobby
-              Expanded(
-                child: _currentView == LobbyViewMode.main ? _buildMainSketchLobbyView() : _buildUnJugadorView(),
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          // 1. Imagen de fondo temática (si es una sala regional) o degradado base
+          if (theme.imageAsset != null) ...[
+            Image.asset(
+              theme.imageAsset!,
+              fit: BoxFit.cover,
+            ),
+            // Viñeta y oscurecimiento para mantener legibilidad perfecta de la UI
+            Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    theme.backgroundGradient.first.withValues(alpha: 0.70),
+                    const Color(0xFF0F0B26).withValues(alpha: 0.88),
+                  ],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                ),
               ),
-            ],
+            ),
+          ] else
+            Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: theme.backgroundGradient,
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                ),
+              ),
+            ),
+
+          // 2. Contenido de la pantalla
+          SafeArea(
+            child: Column(
+              children: [
+                // Barra Superior idéntica al boceto (Ajustes | Tickets | Monedas)
+                _buildTopBar(),
+
+                // Contenido dinámico del lobby
+                Expanded(
+                  child: _currentView == LobbyViewMode.main
+                      ? _buildMainSketchLobbyView()
+                      : _buildUnJugadorView(),
+                ),
+              ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }

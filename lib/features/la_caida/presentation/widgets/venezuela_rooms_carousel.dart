@@ -910,33 +910,75 @@ class _VenezuelaRoomsCarouselScreenState extends State<VenezuelaRoomsCarouselScr
       );
     }
 
-    return App3dButton(
-      height: 40,
-      borderRadius: 14,
-      variant: App3dButtonVariant.emerald,
-      onPressed: () => _onPlayRoom(room),
-      child: Center(
-        child: FittedBox(
-          fit: BoxFit.scaleDown,
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.play_arrow_rounded, color: Colors.white, size: 20),
-              const SizedBox(width: 4),
-              Text(
-                'JUGAR (🪙 ${room.entryFee})',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w900,
-                  fontSize: 13,
-                  letterSpacing: 0.5,
+    final isCurrentLobbyBg = PlayerSession.shared.selectedThemeId == 'room_fondo_${room.id}';
+    final hasWonRoom = widget.manager.getTrophies(room.id) > 0 || isUnlocked;
+
+    return Row(
+      children: [
+        if (hasWonRoom) ...[
+          Tooltip(
+            message: isCurrentLobbyBg
+                ? 'Fondo activo en el Menú Principal'
+                : 'Usar fondo de ${room.name} en el Menú Principal',
+            child: CartoonRoundButton(
+              width: 38,
+              height: 38,
+              borderRadius: 12,
+              backgroundColor: isCurrentLobbyBg ? const Color(0xFF059669) : const Color(0xFF2E267D),
+              borderColor: isCurrentLobbyBg ? const Color(0xFF34D399) : const Color(0xFF4C3E9E),
+              onPressed: () {
+                HapticFeedback.selectionClick();
+                PlayerSession.shared.selectedThemeId = 'room_fondo_${room.id}';
+                PlayerSession.shared.save();
+                setState(() {});
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('¡Fondo de ${room.name} aplicado al Menú Principal! 🎨'),
+                    backgroundColor: room.primaryColor,
+                    duration: const Duration(seconds: 2),
+                  ),
+                );
+              },
+              child: Icon(
+                isCurrentLobbyBg ? Icons.wallpaper_rounded : Icons.palette_rounded,
+                color: Colors.white,
+                size: 18,
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+        ],
+        Expanded(
+          child: App3dButton(
+            height: 40,
+            borderRadius: 14,
+            variant: App3dButtonVariant.emerald,
+            onPressed: () => _onPlayRoom(room),
+            child: Center(
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.play_arrow_rounded, color: Colors.white, size: 20),
+                    const SizedBox(width: 4),
+                    Text(
+                      'JUGAR (🪙 ${room.entryFee})',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w900,
+                        fontSize: 13,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ],
+            ),
           ),
         ),
-      ),
+      ],
     );
   }
 

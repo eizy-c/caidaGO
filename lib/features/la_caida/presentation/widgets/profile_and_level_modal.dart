@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../../../core/presentation/widgets/app_3d_button.dart';
 import '../../../../core/presentation/widgets/cartoon_widgets.dart';
 import '../../../../core/theme/app_palette.dart';
 import '../../economy/player_session.dart';
 import '../../economy/player_stats_model.dart';
 import '../../economy/rank_system.dart';
+import '../../economy/trophy_session_manager.dart';
+import '../../economy/venezuela_room_tier.dart';
 import 'avatar_view.dart';
 import 'user_frame_view.dart';
 
@@ -12,29 +15,40 @@ import 'user_frame_view.dart';
 class LobbyThemeOption {
   final String id;
   final String name;
+  final String? subtitle;
   final List<Color> backgroundGradient;
   final Color accentColor;
   final IconData icon;
+  final String? imageAsset;
+  final int? requiredRoomId;
 
   const LobbyThemeOption({
     required this.id,
     required this.name,
+    this.subtitle,
     required this.backgroundGradient,
     required this.accentColor,
     required this.icon,
+    this.imageAsset,
+    this.requiredRoomId,
   });
 
+  bool get isRegionalRoom => requiredRoomId != null;
+
   static const List<LobbyThemeOption> allThemes = [
+    // --- Temas Clásicos de Tapete ---
     LobbyThemeOption(
       id: 'royal_blue',
       name: 'Criollo Indigo (Oficial)',
+      subtitle: 'Tapete tradicional de mesa Criolla',
       backgroundGradient: [Color(0xFF3B32B0), Color(0xFF2E2692), Color(0xFF251E75)],
       accentColor: Color(0xFF22D3EE),
       icon: Icons.auto_awesome_rounded,
     ),
     LobbyThemeOption(
       id: 'casino_green',
-      name: 'Tapete Clásico',
+      name: 'Tapete Clásico Verde',
+      subtitle: 'Fieltro tradicional de casino',
       backgroundGradient: [Color(0xFF064E3B), Color(0xFF065F46), Color(0xFF047857)],
       accentColor: Color(0xFF4ADE80),
       icon: Icons.table_restaurant_rounded,
@@ -42,6 +56,7 @@ class LobbyThemeOption {
     LobbyThemeOption(
       id: 'purple_night',
       name: 'Púrpura Imperial',
+      subtitle: 'Noche misteriosa y elegante',
       backgroundGradient: [Color(0xFF2E1065), Color(0xFF4C1D95), Color(0xFF581C87)],
       accentColor: Color(0xFFC084FC),
       icon: Icons.auto_awesome_rounded,
@@ -49,6 +64,7 @@ class LobbyThemeOption {
     LobbyThemeOption(
       id: 'wood_classic',
       name: 'Madera Noble',
+      subtitle: 'Vetas rústicas tradicionales',
       backgroundGradient: [Color(0xFF29150B), Color(0xFF451A03), Color(0xFF78350F)],
       accentColor: Color(0xFFFDE047),
       icon: Icons.nature_rounded,
@@ -56,9 +72,82 @@ class LobbyThemeOption {
     LobbyThemeOption(
       id: 'crimson_gold',
       name: 'Carmesí Real',
+      subtitle: 'Oro y terciopelo carmesí',
       backgroundGradient: [Color(0xFF450A0A), Color(0xFF7F1D1D), Color(0xFF991B1B)],
       accentColor: Color(0xFFFBBF24),
       icon: Icons.shield_moon_rounded,
+    ),
+
+    // --- Fondos Regionales de Venezuela (Desbloqueables al ganar) ---
+    LobbyThemeOption(
+      id: 'room_fondo_1',
+      name: 'Chivacoa • Yaracuy',
+      subtitle: 'Mesa del Alambique y Selva Esmeralda',
+      backgroundGradient: [Color(0xFF064E3B), Color(0xFF022C22)],
+      accentColor: Color(0xFF34D399),
+      icon: Icons.eco_rounded,
+      imageAsset: 'assets/Tiers/backgrounds/1-FONDO.png',
+      requiredRoomId: 1,
+    ),
+    LobbyThemeOption(
+      id: 'room_fondo_2',
+      name: 'Barquisimeto • Lara',
+      subtitle: 'Atardecer Crepuscular y Obelisco',
+      backgroundGradient: [Color(0xFF78350F), Color(0xFF451A03)],
+      accentColor: Color(0xFFFBBF24),
+      icon: Icons.wb_sunny_rounded,
+      imageAsset: 'assets/Tiers/backgrounds/2-FONDO.png',
+      requiredRoomId: 2,
+    ),
+    LobbyThemeOption(
+      id: 'room_fondo_3',
+      name: 'Tucacas • Falcón',
+      subtitle: 'Brisa Marina y Parque Morrocoy',
+      backgroundGradient: [Color(0xFF164E63), Color(0xFF083344)],
+      accentColor: Color(0xFF22D3EE),
+      icon: Icons.waves_rounded,
+      imageAsset: 'assets/Tiers/backgrounds/3-FONDO.png',
+      requiredRoomId: 3,
+    ),
+    LobbyThemeOption(
+      id: 'room_fondo_4',
+      name: 'Maracaibo • Zulia',
+      subtitle: 'Calor Zuliano y Relámpago',
+      backgroundGradient: [Color(0xFF7F1D1D), Color(0xFF450A0A)],
+      accentColor: Color(0xFFF87171),
+      icon: Icons.bolt_rounded,
+      imageAsset: 'assets/Tiers/backgrounds/4-FONDO.png',
+      requiredRoomId: 4,
+    ),
+    LobbyThemeOption(
+      id: 'room_fondo_5',
+      name: 'Mérida • Páramo ❄️',
+      subtitle: 'Páramo Andino y Baraja Helada',
+      backgroundGradient: [Color(0xFF0C4A6E), Color(0xFF082F49)],
+      accentColor: Color(0xFFBAE6FD),
+      icon: Icons.ac_unit_rounded,
+      imageAsset: 'assets/Tiers/backgrounds/5-FONDO.png',
+      requiredRoomId: 5,
+    ),
+    LobbyThemeOption(
+      id: 'room_fondo_6',
+      name: 'Caracas • Capital',
+      subtitle: 'La Gran Sultana y El Ávila',
+      backgroundGradient: [Color(0xFF581C87), Color(0xFF3B0764)],
+      accentColor: Color(0xFFC084FC),
+      icon: Icons.location_city_rounded,
+      imageAsset: 'assets/Tiers/backgrounds/6-FONDO.png',
+      requiredRoomId: 6,
+    ),
+    LobbyThemeOption(
+      id: 'room_fondo_7',
+      name: 'Margarita VIP • Caribe',
+      subtitle: 'Casino del Caribe y Playa Dorada',
+      backgroundGradient: [Color(0xFF713F12), Color(0xFF422006)],
+      accentColor: Color(0xFFFDE047),
+      icon: Icons.workspace_premium_rounded,
+      imageAsset: 'assets/Tiers/backgrounds/7-FONDO.png',
+      requiredRoomId: 7,
     ),
   ];
 
@@ -607,30 +696,82 @@ child: const Icon(Icons.close_rounded, color: Colors.white, size: 18),
         final theme = LobbyThemeOption.allThemes[i];
         final isSelected = _tempThemeId == theme.id;
 
+        final bool isUnlocked;
+        final String effectiveSubtitle;
+        if (theme.requiredRoomId != null) {
+          final roomId = theme.requiredRoomId!;
+          final roomTrophies = TrophySessionManager.shared.getTrophies(roomId);
+          final isRoomUnlocked = TrophySessionManager.shared.isRoomUnlocked(roomId);
+          final isCompleted = TrophySessionManager.shared.isRoomCompleted(roomId);
+          final room = VenezuelaRoomCatalog.getById(roomId);
+          isUnlocked = roomTrophies > 0 || isRoomUnlocked || isCompleted;
+          effectiveSubtitle = isUnlocked
+              ? (theme.subtitle ?? 'Fondo ilustrado oficial de ${room.name}')
+              : '🔒 Gana trofeos en ${room.name} para desbloquear';
+        } else {
+          isUnlocked = true;
+          effectiveSubtitle = theme.subtitle ?? 'Fondo de interfaz y tapete para el Lobby';
+        }
+
         return Container(
           margin: const EdgeInsets.only(bottom: 10),
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: isSelected ? const Color(0xFF382F99) : AppPalette.cartoonCardDark,
+            color: isSelected
+                ? const Color(0xFF382F99)
+                : (!isUnlocked ? const Color(0xFF1E1742) : AppPalette.cartoonCardDark),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: isSelected ? AppPalette.cartoonCyan : AppPalette.cartoonBorder,
+              color: isSelected
+                  ? theme.accentColor
+                  : (isUnlocked ? AppPalette.cartoonBorder : Colors.white12),
               width: isSelected ? 2.0 : 1.5,
             ),
           ),
           child: Row(
             children: [
-              // Muestra visual del gradiente
+              // Muestra visual del fondo: Imagen o Gradiente
               Container(
-                width: 46,
-                height: 46,
+                width: 48,
+                height: 48,
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(colors: theme.backgroundGradient),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppPalette.cartoonBorder, width: 1.5),
+                  border: Border.all(
+                    color: isSelected ? theme.accentColor : AppPalette.cartoonBorder,
+                    width: 1.5,
+                  ),
+                  boxShadow: [
+                    if (isSelected)
+                      BoxShadow(
+                        color: theme.accentColor.withValues(alpha: 0.45),
+                        blurRadius: 8,
+                      ),
+                  ],
                 ),
-                child: Center(
-                  child: Icon(theme.icon, color: theme.accentColor, size: 22),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(10.5),
+                  child: theme.imageAsset != null
+                      ? Stack(
+                          fit: StackFit.expand,
+                          children: [
+                            Image.asset(theme.imageAsset!, fit: BoxFit.cover),
+                            if (!isUnlocked)
+                              Container(
+                                color: Colors.black.withValues(alpha: 0.65),
+                                child: const Center(
+                                  child: Icon(Icons.lock_rounded, color: Color(0xFFFDE047), size: 18),
+                                ),
+                              ),
+                          ],
+                        )
+                      : Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(colors: theme.backgroundGradient),
+                          ),
+                          child: Center(
+                            child: Icon(theme.icon, color: theme.accentColor, size: 22),
+                          ),
+                        ),
                 ),
               ),
               const SizedBox(width: 12),
@@ -638,21 +779,60 @@ child: const Icon(Icons.close_rounded, color: Colors.white, size: 18),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      theme.name,
-                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 13),
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            theme.name,
+                            style: TextStyle(
+                              color: isUnlocked ? Colors.white : Colors.white60,
+                              fontWeight: FontWeight.w900,
+                              fontSize: 13,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        if (theme.isRegionalRoom && isUnlocked) ...[
+                          const SizedBox(width: 4),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                            decoration: BoxDecoration(
+                              color: theme.accentColor.withValues(alpha: 0.2),
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(color: theme.accentColor.withValues(alpha: 0.6), width: 0.8),
+                            ),
+                            child: const Text(
+                              'VIP',
+                              style: TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                     const SizedBox(height: 2),
-                    const Text(
-                      'Fondo de interfaz y tapete para el Lobby',
-                      style: TextStyle(color: Colors.white60, fontSize: 10),
+                    Text(
+                      effectiveSubtitle,
+                      style: TextStyle(
+                        color: isUnlocked ? Colors.white60 : const Color(0xFFFBBF24),
+                        fontSize: 10,
+                        fontWeight: isUnlocked ? FontWeight.normal : FontWeight.bold,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),
               ),
+              const SizedBox(width: 6),
               TactilePressable(
                 depth: 2.5,
                 onTap: () {
+                  if (!isUnlocked) {
+                    HapticFeedback.lightImpact();
+                    return;
+                  }
+                  HapticFeedback.selectionClick();
                   setState(() {
                     _tempThemeId = theme.id;
                   });
@@ -660,17 +840,33 @@ child: const Icon(Icons.close_rounded, color: Colors.white, size: 18),
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    gradient: isSelected ? AppGradients.greenAccept : AppGradients.cyanAccent,
+                    gradient: isSelected
+                        ? AppGradients.greenAccept
+                        : (isUnlocked ? AppGradients.cyanAccent : null),
+                    color: isUnlocked ? null : const Color(0xFF2E267D).withValues(alpha: 0.5),
                     borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: AppPalette.cartoonBorder, width: 1.2),
-                  ),
-                  child: Text(
-                    isSelected ? 'APLICADO' : 'APLICAR',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 10,
-                      fontWeight: FontWeight.w900,
+                    border: Border.all(
+                      color: isUnlocked ? AppPalette.cartoonBorder : Colors.white12,
+                      width: 1.2,
                     ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (isSelected)
+                        const Icon(Icons.check_rounded, color: Colors.white, size: 12)
+                      else if (!isUnlocked)
+                        const Icon(Icons.lock_rounded, color: Colors.white38, size: 12),
+                      if (isSelected || !isUnlocked) const SizedBox(width: 3),
+                      Text(
+                        isSelected ? 'APLICADO' : (isUnlocked ? 'APLICAR' : 'BLOQUEADO'),
+                        style: TextStyle(
+                          color: isUnlocked ? Colors.white : Colors.white38,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
