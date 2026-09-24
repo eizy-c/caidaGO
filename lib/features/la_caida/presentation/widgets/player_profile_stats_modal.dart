@@ -94,7 +94,7 @@ class _PlayerProfileStatsModalState extends State<PlayerProfileStatsModal> {
               maxWidth: 620,
               maxHeight: MediaQuery.of(context).size.height * 0.88,
             ),
-child: Container(
+            child: Container(
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
                   colors: [Color(0xFF2E267D), Color(0xFF26206D)],
@@ -108,25 +108,27 @@ child: Container(
                     color: Colors.black87,
                     blurRadius: 24,
                     offset: Offset(0, 10),
-
                   ),
-                ),
+                ],
+              ),
+              child: Column(
+                children: [
+                  // 1. Cabecera estilo cartoon con cápsula naranja y botón (X)
+                  _buildHeader(),
 
-                // 1. Cabecera estilo cartoon con cápsula naranja y botón (X)
-                _buildHeader(),
+                  // 2. Barra de Pestañas (Perfil | Logros)
+                  _buildTabsRow(),
 
-                // 2. Barra de Pestañas (Perfil | Logros)
-                _buildTabsRow(),
+                  const SizedBox(height: 6),
 
-                const SizedBox(height: 6),
-
-                // 3. Contenido interior de las pestañas
-                Expanded(
-                  child: _selectedTabIndex == 0
-                      ? _buildProfileTab(progress, level, currentTierXp, neededTierXp, progressRatio)
-                      : _buildAchievementsTab(),
-                ),
-              ],
+                  // 3. Contenido interior de las pestañas
+                  Expanded(
+                    child: _selectedTabIndex == 0
+                        ? _buildProfileTab(progress, level, currentTierXp, neededTierXp, progressRatio)
+                        : _buildAchievementsTab(),
+                  ),
+                ],
+              ),
             ),
           ),
         );
@@ -726,14 +728,14 @@ backgroundColor: AppPalette.cartoonBgDark,
 
   /// Pestaña 2: Logros y Misiones de La Caída (Categorías y niveles progresivos)
   Widget _buildAchievementsTab() {
-    final families = AchievementCatalog.familyGroups;
+    final achievements = AchievementCatalog.allAchievements;
 
     return ListView.builder(
       physics: const BouncingScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(16, 10, 16, 20),
-      itemCount: families.length,
+      itemCount: achievements.length,
       itemBuilder: (context, index) {
-final ach = achievements[index];
+        final ach = achievements[index];
         final currentProgress = ach.getProgress(_stats);
         final isClaimed = _stats.claimedAchievementIds.contains(ach.id);
         final isUnlocked = AchievementCatalog.isUnlocked(ach, _stats);

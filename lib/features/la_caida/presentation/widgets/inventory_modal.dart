@@ -497,7 +497,11 @@ class _InventoryModalState extends State<InventoryModal>
               ),
               const SizedBox(height: 2),
               Text(
-                isUnlocked ? 'Desbloqueado' : '${frame.minTrophies} trofeos',
+                isUnlocked
+                    ? 'Desbloqueado'
+                    : (frame.requiredRoomId != null
+                        ? 'Completar ${frame.name}'
+                        : '${frame.minTrophies} trofeos'),
                 style: TextStyle(
                   color: isUnlocked ? Colors.white70 : Colors.white38,
                   fontSize: 10,

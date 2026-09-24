@@ -71,16 +71,23 @@ class SpeechBubble extends StatelessWidget {
                 arrowDirection == BubbleArrowDirection.right ? 14 : 10,
                 arrowDirection == BubbleArrowDirection.down ? 12 : 6,
               ),
-              child: Text(
-                text,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: textColor,
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 0.2,
-                  decoration: TextDecoration.none,
-                ),
+              child: Builder(
+                builder: (context) {
+                  final isEmojiOnly = text.isNotEmpty &&
+                      text.trim().characters.length <= 3 &&
+                      !RegExp(r'[a-zA-Z0-9]').hasMatch(text);
+                  return Text(
+                    text,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: textColor,
+                      fontSize: isEmojiOnly ? 22.0 : 12.5,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 0.2,
+                      decoration: TextDecoration.none,
+                    ),
+                  );
+                },
               ),
             ),
           ),

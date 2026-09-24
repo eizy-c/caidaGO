@@ -47,6 +47,9 @@ import 'widgets/table_canto_dialog.dart';
 import 'widgets/privacy_policy_dialog.dart';
 import 'widgets/multiplayer_chat_drawer.dart';
 import 'caida_lobby_screen.dart';
+import '../multiplayer/domain/multiplayer_models.dart';
+import '../multiplayer/network/local_game_client.dart';
+import '../multiplayer/network/local_game_host.dart';
 
 class _PlayerState {
   final String id;
@@ -142,7 +145,7 @@ class CaidaScreen extends StatefulWidget {
   State<CaidaScreen> createState() => _CaidaScreenState();
 }
 
-class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin {
+class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin, WidgetsBindingObserver {
   late SpanishDeck _deck;
   late List<_PlayerState> _players;
   final List<SpanishCard> _tableCards = [];
@@ -159,10 +162,18 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
   bool _isTeams = false;
   int _currentTurnIndex = 0;
   bool _isGameOver = false;
+  bool _isAppInBackground = false;
 
   // Mano actual y ronda
   int _manoIndex = 0; // Índice del jugador que es Mano (juega primero)
   int _roundNumber = 1; // Contador de rondas de la partida
+
+  // Helpers de Red Multijugador
+  int get _myLocalSeatIndex => widget.config?.localSeatIndex ?? 0;
+  LocalGameHost? get _host => widget.config?.host;
+  LocalGameClient? get _client => widget.config?.client;
+  bool get _isHostDevice => _host != null;
+  bool get _isClientDevice => _client != null && _host == null;
 
   // Sistema de Nivel
   int _userLevel = 1;
@@ -278,14 +289,20 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _playerCount = _effectivePlayers.clamp(2, 4);
     _botCount = (_playerCount - 1).clamp(1, 3);
     _hasGameStarted = _effectiveAutoStart;
     _isTeams = _effectiveTeams;
 
+    if (widget.config?.isMultiplayer == true || _host != null || _client != null) {
+      _isMultiplayerNetwork = true;
+      _setupMultiplayerNetwork();
+    }
+
     _timerController = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 12),
+      duration: const Duration(seconds: 15),
     )..addStatusListener((status) {
         if (status == AnimationStatus.completed) {
           _onTurnTimeout();
@@ -330,8 +347,119 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
         _isTeams,
         initialUserName,
         animate: _effectiveAnimateDealing,
-        startWithManoSelection: _effectiveChooseMano,
+        startWithManoSelection: _effectiveChooseMano && !_isClientDevice,
       );
+    }
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive) {
+      _isAppInBackground = true;
+    } else if (state == AppLifecycleState.resumed) {
+      _isAppInBackground = false;
+      if (mounted) setState(() {});
+    }
+  }
+
+  void _setupMultiplayerNetwork() {
+    if (_isHostDevice) {
+      _host!.onClientMessageReceived = (msg, playerId) {
+        _handleHostClientMessage(msg, playerId);
+      };
+      _host!.onPlayerDisconnected = (playerId) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Un rival se desconectó de la mesa.'),
+              backgroundColor: Color(0xFFF59E0B),
+            ),
+          );
+        }
+      };
+    } else if (_isClientDevice) {
+      _client!.onMessageReceived = (msg) {
+        _handleClientMessage(msg);
+      };
+      _client!.onDisconnected = () {
+        if (mounted && !_isGameOver) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Conexión con el anfitrión cerrada.'),
+              backgroundColor: Color(0xFFEF4444),
+            ),
+          );
+        }
+      };
+    }
+  }
+
+  void _handleHostClientMessage(NetworkGameMessage msg, String playerId) {
+    if (msg.type == 'PLAY_CARD_REQUEST') {
+      final seatIndex = msg.data['seatIndex'] as int?;
+      final cardMap = msg.data['card'] as Map<String, dynamic>?;
+      if (seatIndex != null && cardMap != null && seatIndex == _currentTurnIndex) {
+        final card = SpanishCard.fromJson(cardMap);
+        final player = _players[seatIndex];
+        final matchingCard = player.hand.where((c) => c.shortCode == card.shortCode).firstOrNull;
+        if (matchingCard != null) {
+          _playCard(player, matchingCard);
+        }
+      }
+    }
+  }
+
+  void _handleClientMessage(NetworkGameMessage msg) {
+    if (msg.type == 'DEAL_CARDS') {
+      final handsMap = msg.data['hands'] as Map<String, dynamic>?;
+      final tableList = msg.data['tableCards'] as List?;
+      final mano = msg.data['manoIndex'] as int? ?? 0;
+      final dirName = msg.data['cantoDirection'] as String? ?? 'ascending';
+
+      _manoIndex = mano;
+      _cantoDirection = dirName == 'descending' ? DealDirection.descending : DealDirection.ascending;
+
+      if (handsMap != null) {
+        for (int i = 0; i < _players.length; i++) {
+          final rawCards = handsMap[i.toString()] as List?;
+          if (rawCards != null) {
+            _players[i].hand = rawCards
+                .map((c) => SpanishCard.fromJson(c as Map<String, dynamic>))
+                .toList();
+          }
+        }
+      }
+
+      if (tableList != null) {
+        _tableCards.clear();
+        _placedTableCards.clear();
+        for (final raw in tableList) {
+          final card = SpanishCard.fromJson(raw as Map<String, dynamic>);
+          _tableCards.add(card);
+          _placedTableCards.add(_computePlacementForCard(card));
+        }
+      }
+
+      _onDealingCompleted();
+      if (mounted) setState(() {});
+    } else if (msg.type == 'CARD_PLAYED') {
+      final seatIndex = msg.data['seatIndex'] as int?;
+      final cardMap = msg.data['card'] as Map<String, dynamic>?;
+      if (seatIndex != null && cardMap != null && seatIndex < _players.length) {
+        final card = SpanishCard.fromJson(cardMap);
+        final player = _players[seatIndex];
+        final matchingCard = player.hand.where((c) => c.shortCode == card.shortCode).firstOrNull ?? card;
+        if (!player.hand.contains(matchingCard)) {
+          player.hand.add(matchingCard);
+        }
+        _playCard(player, matchingCard);
+      }
+    } else if (msg.type == 'CANTO_DECLARED') {
+      final seatIndex = msg.data['seatIndex'] as int?;
+      final cantoText = msg.data['canto'] as String?;
+      if (seatIndex != null && cantoText != null && seatIndex < _players.length) {
+        _triggerCallout(_players[seatIndex], cantoText);
+      }
     }
   }
 
@@ -343,6 +471,12 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    if (_isHostDevice) {
+      _host?.stopServer();
+    } else if (_isClientDevice) {
+      _client?.disconnect();
+    }
     for (final t in _pendingAsyncTimers) {
       t.cancel();
     }
@@ -941,6 +1075,22 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
       if (_checkGameOver()) return;
     }
 
+    if (_isHostDevice) {
+      _host?.broadcastMessage(NetworkGameMessage(
+        type: 'DEAL_CARDS',
+        data: {
+          'round': _roundNumber,
+          'hands': {
+            for (int i = 0; i < _players.length; i++)
+              i.toString(): _players[i].hand.map((c) => c.toJson()).toList(),
+          },
+          'tableCards': _tableCards.map((c) => c.toJson()).toList(),
+          'manoIndex': _manoIndex,
+          'cantoDirection': _cantoDirection.name,
+        },
+      ));
+    }
+
     _isDealing = false;
     _onDealingCompleted();
   }
@@ -1214,6 +1364,24 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
   void _resetTurnTimer() {
     _timerController.reset();
     _timerController.forward();
+
+    // Si la app está minimizada en segundo plano cuando le toca el turno al usuario local,
+    // programar auto-jugada para no congelar la partida a los rivales
+    final isMyTurn = _isMultiplayerNetwork
+        ? _currentTurnIndex == _myLocalSeatIndex
+        : _currentTurnIndex == 0;
+    if (_isAppInBackground && isMyTurn) {
+      Timer(const Duration(seconds: 3), () {
+        if (mounted && _isAppInBackground && !_isGameOver && !_isProcessingPlay) {
+          final currentIsMyTurn = _isMultiplayerNetwork
+              ? _currentTurnIndex == _myLocalSeatIndex
+              : _currentTurnIndex == 0;
+          if (currentIsMyTurn) {
+            _onTurnTimeout();
+          }
+        }
+      });
+    }
   }
 
   void _onTurnTimeout() {
@@ -1223,7 +1391,20 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
         _botPlay(active);
       } else {
         final chosen = _chooseBestBotCard(active);
-        _playCard(active, chosen);
+        if (_isClientDevice) {
+          _client?.sendMessage(NetworkGameMessage(
+            type: 'PLAY_CARD_REQUEST',
+            data: {
+              'seatIndex': _currentTurnIndex,
+              'card': chosen.toJson(),
+            },
+          ));
+        } else {
+          _playCard(active, chosen);
+        }
+        if (mounted) {
+          _triggerCallout(active, '⏰ Auto (${chosen.displayName})');
+        }
       }
     }
   }
@@ -1232,12 +1413,29 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
   /// 1. Si no estaba seleccionada: la selecciona individualmente.
   /// 2. Si ya estaba seleccionada: confirma y la juega a la mesa.
   void _onUserCardTap(SpanishCard card) {
-    if (_currentTurnIndex != 0 || _isGameOver || _isDealing || _isChoosingMano || _isProcessingPlay) return;
+    if (_isGameOver || _isDealing || _isChoosingMano || _isProcessingPlay) return;
+    final isMyTurn = _isMultiplayerNetwork
+        ? _currentTurnIndex == _myLocalSeatIndex
+        : _currentTurnIndex == 0;
+    if (!isMyTurn) return;
 
     if (_selectedCard == card) {
       // Segundo toque en la misma carta -> Jugar
       HapticService.instance.onCardPlay();
-      _playCard(_players[0], card);
+      if (_isClientDevice) {
+        _client?.sendMessage(NetworkGameMessage(
+          type: 'PLAY_CARD_REQUEST',
+          data: {
+            'seatIndex': _myLocalSeatIndex,
+            'card': card.toJson(),
+          },
+        ));
+        setState(() {
+          _selectedCard = null;
+        });
+      } else {
+        _playCard(_players[_myLocalSeatIndex], card);
+      }
     } else {
       // Primer toque -> Seleccionar únicamente esta carta
       HapticService.instance.onSelection();
@@ -1255,6 +1453,19 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
     _botTimer?.cancel();
     _timerController.stop();
 
+    final playerIdx = _players.indexOf(player);
+
+    // Si somos el Host, difundir la jugada a todos los clientes de la sala
+    if (_isHostDevice) {
+      _host?.broadcastMessage(NetworkGameMessage(
+        type: 'CARD_PLAYED',
+        data: {
+          'seatIndex': playerIdx,
+          'card': card.toJson(),
+        },
+      ));
+    }
+
     final previousCard = (_lastPlayedPlayerIndex != null && _lastPlayedPlayerIndex != _currentTurnIndex)
         ? _lastPlayedCard
         : null;
@@ -1266,7 +1477,6 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
       isDeckEmpty: _deck.isEmpty,
     );
 
-    final playerIdx = _players.indexOf(player);
     final isUser = playerIdx == 0;
     final handIndex = player.hand.indexOf(card);
 

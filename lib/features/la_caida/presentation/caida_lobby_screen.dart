@@ -25,11 +25,9 @@ import '../economy/trophy_session_manager.dart';
 import '../multiplayer/presentation/multiplayer_hub_screen.dart';
 import '../tutorial/presentation/tutorial_screen.dart';
 import '../economy/player_stats_model.dart';
-import 'widgets/rank_badge_widget.dart';
 import 'about_settings_screen.dart';
 import '../../../core/presentation/widgets/cartoon_widgets.dart';
 import '../economy/rank_system.dart';
-import '../economy/player_stats_model.dart';
 
 
 
@@ -1009,11 +1007,11 @@ Text(
         ),
         const SizedBox(height: 12),
 
-        // Botón Gigante 3D Amarillo/Dorado: ▶ JUGAR con efecto de presión táctil
+        // Botón Gigante 3D Amarillo/Dorado: ▶ JUGAR con efecto de presión táctil (Abre Salas VIP de Venezuela)
         TactilePressable(
           depth: 5,
           onTap: () {
-            setState(() => _currentView = LobbyViewMode.unJugador);
+            _openVipModal();
           },
           child: Container(
             width: double.infinity,
@@ -1036,12 +1034,12 @@ Text(
                 ),
               ],
             ),
-            child: Row(
+            child: const Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.play_arrow_rounded, color: Colors.white, size: 36),
-                const SizedBox(width: 8),
-                const Text(
+                Icon(Icons.play_arrow_rounded, color: Colors.white, size: 36),
+                SizedBox(width: 8),
+                Text(
                   'JUGAR',
                   style: TextStyle(
                     color: Colors.white,
@@ -1061,48 +1059,74 @@ Text(
     );
   }
 
-  /// Fila de Modos Secundarios (TUTORIAL y MULTIJUGADOR)
+  /// Fila de Modos Secundarios (SALAS MULTIJUGADOR, PRÁCTICA CON BOTS, TUTORIAL)
   Widget _buildSecondaryModesRow() {
-    return Row(
+    return Column(
       children: [
-        // Botón TUTORIAL (Verde esmeralda con gradiente)
-        Expanded(
-          child: App3dButton.icon(
-            onPressed: _openTutorial,
-            height: 48,
-            depth: 4,
-            borderRadius: 16,
-            variant: App3dButtonVariant.emerald,
-            icon: Icons.school_rounded,
-            iconSize: 18,
-            label: 'TUTORIAL',
-            textStyle: const TextStyle(
-              color: Colors.white,
-              fontSize: 14,
-              fontWeight: FontWeight.w900,
-              letterSpacing: 0.8,
+        Row(
+          children: [
+            // Botón MULTIJUGADOR (Turquesa / Cyan con gradiente)
+            Expanded(
+              child: App3dButton.icon(
+                onPressed: _openMultiplayerComingSoonDialog,
+                height: 48,
+                depth: 4,
+                borderRadius: 16,
+                variant: App3dButtonVariant.cyan,
+                icon: Icons.wifi_rounded,
+                iconSize: 18,
+                label: 'MULTIJUGADOR',
+                textStyle: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 0.8,
+                ),
+              ),
             ),
-          ),
-        ),
-        const SizedBox(width: 12),
+            const SizedBox(width: 10),
 
-        // Botón MULTIJUGADOR (Turquesa / Cyan con gradiente)
-        Expanded(
-          child: App3dButton.icon(
-            onPressed: _openMultiplayerComingSoonDialog,
-            height: 48,
-            depth: 4,
-            borderRadius: 16,
-            variant: App3dButtonVariant.cyan,
-            icon: Icons.wifi_rounded,
-            iconSize: 18,
-            label: 'MULTIJUGADOR',
-            textStyle: const TextStyle(
-              color: Colors.white,
-              fontSize: 14,
-              fontWeight: FontWeight.w900,
-              letterSpacing: 0.8,
+            // Botón PRÁCTICA CON BOTS
+            Expanded(
+              child: App3dButton.icon(
+                onPressed: () {
+                  setState(() => _currentView = LobbyViewMode.unJugador);
+                },
+                height: 48,
+                depth: 4,
+                borderRadius: 16,
+                variant: App3dButtonVariant.dark,
+                backgroundColor: const Color(0xFF3B82F6),
+                icon: Icons.smart_toy_rounded,
+                iconSize: 18,
+                label: 'PRÁCTICA BOT',
+                textStyle: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 0.8,
+                ),
+              ),
             ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        // Botón TUTORIAL ancho
+        App3dButton.icon(
+          onPressed: _openTutorial,
+          expand: true,
+          height: 42,
+          depth: 3.5,
+          borderRadius: 14,
+          variant: App3dButtonVariant.emerald,
+          icon: Icons.school_rounded,
+          iconSize: 17,
+          label: 'GUÍA / TUTORIAL DE JUEGO',
+          textStyle: const TextStyle(
+            color: Colors.white,
+            fontSize: 13,
+            fontWeight: FontWeight.w900,
+            letterSpacing: 0.8,
           ),
         ),
       ],

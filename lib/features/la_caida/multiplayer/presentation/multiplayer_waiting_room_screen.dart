@@ -9,6 +9,7 @@ import '../../presentation/widgets/user_frame_view.dart';
 import '../domain/multiplayer_models.dart';
 import '../network/local_game_client.dart';
 import '../network/local_game_host.dart';
+import '../../economy/venezuela_room_tier.dart';
 
 /// Sala de espera interactiva (Lobby de partida) para 2, 3 o 4 jugadores.
 /// Muestra los asientos en tiempo real, permite añadir bots, alternar "Listo" y arrancar la partida.
@@ -34,6 +35,7 @@ class MultiplayerWaitingRoomScreen extends StatefulWidget {
 class _MultiplayerWaitingRoomScreenState
     extends State<MultiplayerWaitingRoomScreen> {
   late ValueNotifier<List<RoomSeat>> _seatsNotifier;
+  bool _isNavigatingToGame = false;
 
   @override
   void initState() {
@@ -52,7 +54,7 @@ class _MultiplayerWaitingRoomScreenState
   }
 
   void _onHostDisconnected() {
-    if (!mounted) return;
+    if (!mounted || _isNavigatingToGame) return;
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('El anfitrión cerró la sala o se perdió la conexión.'),
@@ -78,6 +80,7 @@ class _MultiplayerWaitingRoomScreenState
   }
 
   void _navigateToMatchScreen() {
+    _isNavigatingToGame = true;
     final seats = _seatsNotifier.value;
     final botNames = seats
         .where((s) => s.isBot)
@@ -115,6 +118,10 @@ class _MultiplayerWaitingRoomScreenState
       sortedSeats.add(seat);
     }
 
+    final regionalRoom = widget.roomInfo.regionalRoomId != null
+        ? VenezuelaRoomTier.fromId(widget.roomInfo.regionalRoomId!)
+        : null;
+
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(
         builder: (_) => CaidaScreen(
@@ -130,6 +137,13 @@ class _MultiplayerWaitingRoomScreenState
             playerAvatarIds: sortedSeats.map((s) => s.avatarId).toList(),
             playerFrameIds: sortedSeats.map((s) => s.frameId).toList(),
             playerIsBots: sortedSeats.map((s) => s.isBot).toList(),
+            host: widget.isHost ? widget.host : null,
+            client: widget.client,
+            localSeatIndex: mySeatIndex,
+            multiplayerRoom: widget.roomInfo,
+            venezuelaRoom: regionalRoom,
+            vipPrizePool: widget.roomInfo.totalPot,
+            vipWinnerReward: widget.roomInfo.prizePerWinner,
           ),
         ),
       ),
@@ -138,10 +152,12 @@ class _MultiplayerWaitingRoomScreenState
 
   @override
   void dispose() {
-    if (widget.isHost) {
-      widget.host?.stopServer();
-    } else {
-      widget.client.disconnect();
+    if (!_isNavigatingToGame) {
+      if (widget.isHost) {
+        widget.host?.stopServer();
+      } else {
+        widget.client.disconnect();
+      }
     }
     super.dispose();
   }

@@ -1,5 +1,8 @@
 import '../../economy/venezuela_room_tier.dart';
 import '../../economy/vip_tier.dart';
+import '../../multiplayer/domain/multiplayer_models.dart';
+import '../../multiplayer/network/local_game_client.dart';
+import '../../multiplayer/network/local_game_host.dart';
 
 /// Configuración inmutable para inicializar y parametrizar una partida de La Caída.
 /// Reemplaza la proliferación de parámetros individuales dispersos en constructores.
@@ -21,6 +24,10 @@ class CaidaMatchConfig {
   final List<int>? playerAvatarIds;
   final List<String>? playerFrameIds;
   final List<bool>? playerIsBots;
+  final LocalGameHost? host;
+  final LocalGameClient? client;
+  final int localSeatIndex;
+  final MultiplayerRoomInfo? multiplayerRoom;
 
   const CaidaMatchConfig({
     this.initialPlayers = 2,
@@ -40,6 +47,10 @@ class CaidaMatchConfig {
     this.playerAvatarIds,
     this.playerFrameIds,
     this.playerIsBots,
+    this.host,
+    this.client,
+    this.localSeatIndex = 0,
+    this.multiplayerRoom,
   });
 
   /// Crea una configuración para partida individual rápida
@@ -129,6 +140,10 @@ class CaidaMatchConfig {
     List<int>? playerAvatarIds,
     List<String>? playerFrameIds,
     List<bool>? playerIsBots,
+    LocalGameHost? host,
+    LocalGameClient? client,
+    int? localSeatIndex,
+    MultiplayerRoomInfo? multiplayerRoom,
   }) {
     return CaidaMatchConfig(
       initialPlayers: initialPlayers ?? this.initialPlayers,
@@ -147,6 +162,10 @@ class CaidaMatchConfig {
       playerAvatarIds: playerAvatarIds ?? this.playerAvatarIds,
       playerFrameIds: playerFrameIds ?? this.playerFrameIds,
       playerIsBots: playerIsBots ?? this.playerIsBots,
+      host: host ?? this.host,
+      client: client ?? this.client,
+      localSeatIndex: localSeatIndex ?? this.localSeatIndex,
+      multiplayerRoom: multiplayerRoom ?? this.multiplayerRoom,
     );
   }
 }

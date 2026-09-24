@@ -85,7 +85,16 @@ class VenezuelaRoomTier {
 
   /// Cantidad de participantes requeridos por partida.
   int get playersCount => 4; // En 1v1 participan 2 humanos/bots, en 2v2 participan 4
+
+  static List<VenezuelaRoomTier> get catalog => VenezuelaRoomCatalog.rooms;
+
+  static VenezuelaRoomTier? fromId(int id) {
+    return VenezuelaRoomCatalog.rooms.where((r) => r.id == id).firstOrNull;
+  }
 }
+
+/// Helper global para formateo de monedas
+String formatCoins(int value) => VenezuelaRoomTier.formatCoins(value);
 
 /// Catálogo oficial inmutable con las 7 salas regionales venezolanas.
 class VenezuelaRoomCatalog {
@@ -118,7 +127,7 @@ class VenezuelaRoomCatalog {
       entryFee: 200,
       basePrize: 400,
       trophyCap: 30,
-      winTrophies: 4,
+      winTrophies: 5,
       lossTrophies: -2,
       requiredPrevTrophies: 15,
       frameAsset: 'assets/Tiers/box/2-SALAS.png',
@@ -137,8 +146,8 @@ class VenezuelaRoomCatalog {
       entryFee: 1000,
       basePrize: 2000,
       trophyCap: 60,
-      winTrophies: 6,
-      lossTrophies: -4,
+      winTrophies: 8,
+      lossTrophies: -3,
       requiredPrevTrophies: 30,
       frameAsset: 'assets/Tiers/box/3-SALAS.png',
       primaryColor: Color(0xFF06B6D4), // Turquesa costero
@@ -156,8 +165,8 @@ class VenezuelaRoomCatalog {
       entryFee: 5000,
       basePrize: 10000,
       trophyCap: 75,
-      winTrophies: 8,
-      lossTrophies: -6,
+      winTrophies: 10,
+      lossTrophies: -4,
       requiredPrevTrophies: 60,
       frameAsset: 'assets/Tiers/box/4-SALAS.png',
       primaryColor: Color(0xFFEF4444), // Fuego / Relámpago
@@ -175,8 +184,8 @@ class VenezuelaRoomCatalog {
       entryFee: 20000,
       basePrize: 40000,
       trophyCap: 100,
-      winTrophies: 10,
-      lossTrophies: -8,
+      winTrophies: 12,
+      lossTrophies: -5,
       requiredPrevTrophies: 75,
       frameAsset: 'assets/Tiers/box/5-SALAS.png',
       primaryColor: Color(0xFF38BDF8), // Azul escarcha
@@ -195,8 +204,8 @@ class VenezuelaRoomCatalog {
       entryFee: 100000,
       basePrize: 200000,
       trophyCap: 125,
-      winTrophies: 12,
-      lossTrophies: -10,
+      winTrophies: 16,
+      lossTrophies: -6,
       requiredPrevTrophies: 100,
       frameAsset: 'assets/Tiers/box/6-SALAS.png',
       primaryColor: Color(0xFFA855F7), // Morado imperial
@@ -214,8 +223,8 @@ class VenezuelaRoomCatalog {
       entryFee: 250000,
       basePrize: 500000,
       trophyCap: 250,
-      winTrophies: 15,
-      lossTrophies: -12,
+      winTrophies: 20,
+      lossTrophies: -8,
       requiredPrevTrophies: 125,
       frameAsset: 'assets/Tiers/box/7-SALAS.png',
       primaryColor: Color(0xFFEAB308), // Oro Casino

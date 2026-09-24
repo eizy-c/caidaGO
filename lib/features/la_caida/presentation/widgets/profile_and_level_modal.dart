@@ -222,84 +222,7 @@ return Dialog(
               ),
             ],
           ),
-
         ),
-        boxShadow: [
-          BoxShadow(color: Colors.black87, blurRadius: 24, offset: Offset(0, -6)),
-        ],
-      ),
-      child: Column(
-        children: [
-          // Tirador superior de arrastre hacia abajo
-          const SizedBox(height: 10),
-          Center(
-            child: Container(
-              width: 44,
-              height: 4.5,
-              decoration: BoxDecoration(
-                color: Colors.white24,
-                borderRadius: BorderRadius.circular(2.5),
-              ),
-            ),
-          ),
-          const SizedBox(height: 4),
-
-          // 1. Cabecera superior con botón de cerrar
-          _buildHeader(progress),
-
-          // 2. Barra de Pestañas
-          Container(
-            color: const Color(0xFF181818),
-            child: TabBar(
-              controller: _tabController,
-              indicatorColor: Colors.white,
-              indicatorWeight: 2.5,
-              labelColor: Colors.white,
-              unselectedLabelColor: Colors.white60,
-              labelStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
-              unselectedLabelStyle: const TextStyle(fontSize: 11),
-              tabs: const [
-                Tab(icon: Icon(Icons.military_tech_rounded, size: 18), text: 'Nivel & XP'),
-                Tab(icon: Icon(Icons.filter_frames_rounded, size: 18), text: 'Marcos'),
-                Tab(icon: Icon(Icons.palette_rounded, size: 18), text: 'Fondos'),
-                Tab(icon: Icon(Icons.person_rounded, size: 18), text: 'Avatar'),
-              ],
-            ),
-          ),
-
-          // 3. Contenido de las pestañas
-          Expanded(
-            child: TabBarView(
-              controller: _tabController,
-              children: [
-                _buildLevelTab(progress),
-                _buildFramesTab(progress),
-                _buildThemesTab(),
-                _buildAvatarTab(),
-              ],
-            ),
-          ),
-
-          // 4. Botón inferior de Guardar / Listo
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: App3dButton(
-              onPressed: _saveCustomization,
-              expand: true,
-              height: 46,
-              depth: 5,
-              borderRadius: 14,
-              variant: App3dButtonVariant.cyan,
-              label: 'GUARDAR CAMBIOS',
-              textStyle: const TextStyle(
-                color: Color(0xFF0F172A),
-                fontWeight: FontWeight.w900,
-                fontSize: 14,
-                letterSpacing: 0.8,
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -614,7 +537,11 @@ child: const Icon(Icons.close_rounded, color: Colors.white, size: 18),
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      isUnlocked ? 'Desbloqueado (${frame.minTrophies}+ Trofeos 🏆)' : 'Requiere ${frame.minTrophies} Trofeos 🏆',
+                      isUnlocked
+                          ? 'Desbloqueado'
+                          : (frame.requiredRoomId != null
+                              ? 'Requiere conquistar ${frame.name} (${frame.minTrophies} 🏆)'
+                              : 'Requiere ${frame.minTrophies} Trofeos 🏆'),
                       style: TextStyle(
                         color: isUnlocked ? const Color(0xFF10B981) : const Color(0xFFF87171),
                         fontSize: 10,

@@ -69,6 +69,23 @@ class SpanishCard implements Comparable<SpanishCard> {
     return hierarchyValue.compareTo(other.hierarchyValue);
   }
 
+  Map<String, dynamic> toJson() => {
+        'number': number,
+        'suit': suit.name,
+        'hierarchyValue': hierarchyValue,
+        'points': points,
+      };
+
+  factory SpanishCard.fromJson(Map<String, dynamic> json) => SpanishCard(
+        number: json['number'] as int,
+        suit: CardSuit.values.firstWhere(
+          (s) => s.name == json['suit'],
+          orElse: () => CardSuit.oros,
+        ),
+        hierarchyValue: json['hierarchyValue'] as int? ?? 0,
+        points: json['points'] as int? ?? 0,
+      );
+
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
