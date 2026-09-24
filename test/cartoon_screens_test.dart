@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:gme/features/la_caida/economy/player_session.dart';
-import 'package:gme/features/la_caida/multiplayer/domain/multiplayer_models.dart';
 import 'package:gme/features/la_caida/multiplayer/presentation/multiplayer_hub_screen.dart';
 import 'package:gme/features/la_caida/presentation/about_settings_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
