@@ -37,7 +37,7 @@ class _MultiplayerHubScreenState extends State<MultiplayerHubScreen> {
   bool _fillWithBots = true;
   VenezuelaRoomTier? _selectedRegionalRoom;
   MultiplayerNetworkMode _networkMode = MultiplayerNetworkMode.online;
-  String _onlineServerUrl = 'ws://127.0.0.1:8080/ws';
+  String _onlineServerUrl = 'wss://caidago-main.up.railway.app/ws';
   List<MultiplayerRoomInfo> _onlineRooms = [];
   bool _isLoadingOnlineRooms = false;
   String? _myLocalIp;
