@@ -274,6 +274,7 @@ class _MultiplayerWaitingRoomScreenState
             userName: mySeat.name,
             botNames: botNames.isNotEmpty ? botNames : ['Alejandro', 'Carl', 'Jhonny'],
             isMultiplayer: true,
+            isHost: _isEffectiveHost,
             playerNames: sortedSeats.map((s) => s.name).toList(),
             playerAvatarIds: sortedSeats.map((s) => s.avatarId).toList(),
             playerFrameIds: sortedSeats.map((s) => s.frameId).toList(),

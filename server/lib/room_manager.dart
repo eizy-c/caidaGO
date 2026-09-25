@@ -153,7 +153,7 @@ class RoomManager {
         );
         if (success) {
           registerPlayerInRoom(playerId, room.roomInfo.roomId);
-          print('[RoomManager] ⚡ Emparejamiento Rápido: $playerName unido a ${room.roomInfo.roomId}');
+          print('[RoomManager] Emparejamiento Rápido: $playerName unido a ${room.roomInfo.roomId}');
 
           if (room.isFull) {
             room.startMatch();
@@ -183,7 +183,7 @@ class RoomManager {
     Timer(const Duration(seconds: 7), () {
       final currentRoom = _rooms[newRoom.roomInfo.roomId];
       if (currentRoom != null && !currentRoom.isMatchStarted && currentRoom.humanPlayersCount > 0) {
-        print('[RoomManager] ⚡ Tiempo cumplido para ${newRoom.roomInfo.roomId}. Llenando con bots e iniciando.');
+        print('[RoomManager] Tiempo cumplido para ${newRoom.roomInfo.roomId}. Llenando con bots e iniciando.');
         currentRoom.fillEmptySeatsWithBots();
         currentRoom.startMatch();
       }

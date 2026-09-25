@@ -172,8 +172,20 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
   int get _myLocalSeatIndex => widget.config?.localSeatIndex ?? 0;
   LocalGameHost? get _host => widget.config?.host;
   LocalGameClient? get _client => widget.config?.client;
-  bool get _isHostDevice => _host != null;
-  bool get _isClientDevice => _client != null && _host == null;
+  bool get _isHostDevice =>
+      _host != null ||
+      (widget.config?.isHost ?? false) ||
+      (widget.config?.isMultiplayer == true && _myLocalSeatIndex == 0 && widget.config?.isHost != false);
+  bool get _isClientDevice =>
+      (widget.config?.isMultiplayer == true || _client != null) && !_isHostDevice;
+
+  void _broadcastNetworkMessage(NetworkGameMessage msg) {
+    if (_host != null) {
+      _host!.broadcastMessage(msg);
+    } else if (_client != null) {
+      _client!.sendMessage(msg);
+    }
+  }
 
   /// Conversión bidireccional entre el asiento de red global y el índice de jugador local.
   /// En la pantalla del dispositivo local, _players[0] SIEMPRE representa al usuario local.
@@ -388,30 +400,54 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
 
   void _setupMultiplayerNetwork() {
     if (_isHostDevice) {
-      _currentPingMs = _host!.pingMsNotifier.value;
-      _host!.pingMsNotifier.addListener(_onPingUpdated);
+      if (_host != null) {
+        _currentPingMs = _host!.pingMsNotifier.value;
+        _host!.pingMsNotifier.addListener(_onPingUpdated);
 
-      _host!.onClientMessageReceived = (msg, playerId) {
-        _handleHostClientMessage(msg, playerId);
-      };
-      _host!.onPlayerDisconnected = (playerId) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Un rival se desconectó de la mesa.'),
-              backgroundColor: Color(0xFFF59E0B),
-            ),
-          );
-        }
-      };
+        _host!.onClientMessageReceived = (msg, playerId) {
+          _handleHostClientMessage(msg, playerId);
+        };
+        _host!.onPlayerDisconnected = (playerId) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Un rival se desconectó de la mesa.'),
+                backgroundColor: Color(0xFFF59E0B),
+              ),
+            );
+          }
+        };
+      } else if (_client != null) {
+        // Anfitrión en sala Online (conectado por WebSocket al servidor en la nube)
+        _currentPingMs = _client!.pingMsNotifier.value;
+        _client!.pingMsNotifier.addListener(_onPingUpdated);
+
+        _client!.onMessageReceived = (msg) {
+          final sender = msg.data['senderPlayerId'] as String? ?? '';
+          _handleHostClientMessage(msg, sender);
+        };
+        _client!.onDisconnected = () {
+          if (mounted && !_isGameOver) {
+            setState(() {
+              _isMultiplayerDisconnected = true;
+            });
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Conexión con el servidor cerrada.'),
+                backgroundColor: Color(0xFFEF4444),
+              ),
+            );
+          }
+        };
+      }
     } else if (_isClientDevice) {
-      _currentPingMs = _client!.pingMsNotifier.value;
-      _client!.pingMsNotifier.addListener(_onPingUpdated);
+      _currentPingMs = _client?.pingMsNotifier.value ?? 25;
+      _client?.pingMsNotifier.addListener(_onPingUpdated);
 
-      _client!.onMessageReceived = (msg) {
+      _client?.onMessageReceived = (msg) {
         _handleClientMessage(msg);
       };
-      _client!.onDisconnected = () {
+      _client?.onDisconnected = () {
         if (mounted && !_isGameOver) {
           setState(() {
             _isMultiplayerDisconnected = true;
@@ -430,7 +466,7 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
   void _onPingUpdated() {
     if (!mounted) return;
     final newPing = _isHostDevice
-        ? _host?.pingMsNotifier.value ?? 5
+        ? (_host?.pingMsNotifier.value ?? _client?.pingMsNotifier.value ?? 5)
         : (_client?.pingMsNotifier.value ?? 30);
     if (_currentPingMs != newPing) {
       setState(() {
@@ -462,7 +498,7 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
         final localIdx = _networkSeatToLocalIndex(netSeat);
         if (localIdx >= 0 && localIdx < _players.length) {
           _showPlayerChatCallout(localIdx, chatMsg, voiceSoundKey: voiceKey, broadcast: false);
-          _host?.broadcastMessage(msg);
+          _broadcastNetworkMessage(msg);
         }
       }
     }
@@ -557,9 +593,9 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    if (_isHostDevice) {
+    if (_host != null) {
       _host?.stopServer();
-    } else if (_isClientDevice) {
+    } else if (_client != null) {
       _client?.disconnect();
     }
     for (final t in _pendingAsyncTimers) {
@@ -1206,7 +1242,7 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
     }
 
     if (_isHostDevice) {
-      _host?.broadcastMessage(NetworkGameMessage(
+      _broadcastNetworkMessage(NetworkGameMessage(
         type: 'DEAL_CARDS',
         data: {
           'round': _roundNumber,
@@ -1243,7 +1279,7 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
 
     // Sincronizar el primer turno tras el reparto con los clientes conectados
     if (_isHostDevice) {
-      _host?.broadcastMessage(NetworkGameMessage(
+      _broadcastNetworkMessage(NetworkGameMessage(
         type: 'TURN_CHANGED',
         data: {'turnSeatIndex': _localIndexToNetworkSeat(_currentTurnIndex)},
       ));
@@ -1588,7 +1624,7 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
           _playCard(active, chosen);
         }
         if (mounted) {
-          _triggerCallout(active, '⏰ Auto (${chosen.displayName})');
+          _triggerCallout(active, 'Auto (${chosen.displayName})');
         }
       }
     }
@@ -1640,7 +1676,7 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
 
     // Si somos el Host, difundir la jugada a todos los clientes de la sala
     if (_isHostDevice) {
-      _host?.broadcastMessage(NetworkGameMessage(
+      _broadcastNetworkMessage(NetworkGameMessage(
         type: 'CARD_PLAYED',
         data: {
           'seatIndex': _localIndexToNetworkSeat(playerIdx),
@@ -1898,7 +1934,7 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
 
     // Sincronizar avance de turno con clientes en la red
     if (_isHostDevice) {
-      _host?.broadcastMessage(NetworkGameMessage(
+      _broadcastNetworkMessage(NetworkGameMessage(
         type: 'TURN_CHANGED',
         data: {'turnSeatIndex': _localIndexToNetworkSeat(_currentTurnIndex)},
       ));
@@ -3696,11 +3732,7 @@ child: Icon(icon, color: iconColor, size: 20),
         type: 'CHAT_MESSAGE',
         data: netData,
       );
-      if (_isHostDevice) {
-        _host?.broadcastMessage(netMsg);
-      } else if (_isClientDevice) {
-        _client?.sendMessage(netMsg);
-      }
+      _broadcastNetworkMessage(netMsg);
     }
 
     if (mounted) setState(() {});

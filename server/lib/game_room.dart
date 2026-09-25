@@ -221,7 +221,7 @@ class GameRoom {
   /// Rellena los asientos restantes con Bots si está activado
   void fillEmptySeatsWithBots() {
     lastActivity = DateTime.now();
-    final botNames = ['Pancho Bot 🤖', 'Lola Bot 🤖', 'Tito Bot 🤖'];
+    final botNames = ['Pancho Bot', 'Lola Bot', 'Tito Bot'];
     final botAvatars = [1, 2, 4];
     final botFrames = ['rank_bronce', 'rank_plata', 'rank_oro'];
 
