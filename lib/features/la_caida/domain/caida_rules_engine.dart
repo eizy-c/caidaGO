@@ -368,8 +368,8 @@ class CaidaRulesEngine {
       }
     }
 
-    // 3. Verificación de Mesa Limpia (solo si hubo captura y la mesa quedó sin naipes)
-    final isLimpia = captured.isNotEmpty && sanitizedTable.isEmpty;
+    // 3. Verificación de Mesa Limpia (no aplica en las últimas cartas con el mazo agotado)
+    final isLimpia = !isDeckEmpty && captured.isNotEmpty && sanitizedTable.isEmpty;
     final limpiaPoints = isLimpia ? getLimpiaPoints(isDeckEmpty: isDeckEmpty) : 0;
 
     final totalPoints = caidaPoints + limpiaPoints;

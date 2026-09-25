@@ -37,10 +37,25 @@ class _MultiplayerWaitingRoomScreenState
   late ValueNotifier<List<RoomSeat>> _seatsNotifier;
   bool _isNavigatingToGame = false;
 
+  bool get _isEffectiveHost {
+    if (widget.isHost) return true;
+    if (widget.host != null) return true;
+    if (widget.client.isOnlineMode) {
+      if (widget.client.mySeatIndex == 0) return true;
+      final myName = PlayerSession.shared.name.trim().toLowerCase();
+      if (myName.isNotEmpty && widget.roomInfo.hostName.trim().toLowerCase() == myName) return true;
+      final mySeat = widget.client.seatsNotifier.value
+          .where((s) => s.playerId == widget.client.myPlayerId)
+          .firstOrNull;
+      if (mySeat != null && mySeat.isHost) return true;
+    }
+    return false;
+  }
+
   @override
   void initState() {
     super.initState();
-    _seatsNotifier = widget.isHost && widget.host != null
+    _seatsNotifier = (widget.isHost || _isEffectiveHost) && widget.host != null
         ? widget.host!.seatsNotifier
         : widget.client.seatsNotifier;
 
@@ -92,7 +107,7 @@ class _MultiplayerWaitingRoomScreenState
         .map((s) => s.name.replaceAll(' (Bot)', ''))
         .toList();
 
-    final mySeatIndex = widget.isHost ? 0 : widget.client.mySeatIndex;
+    final mySeatIndex = _isEffectiveHost ? 0 : widget.client.mySeatIndex;
     final sortedSeats = <RoomSeat>[];
 
     // Asiento 0: Jugador local
@@ -100,7 +115,7 @@ class _MultiplayerWaitingRoomScreenState
       (s) => s.seatIndex == mySeatIndex,
       orElse: () => RoomSeat(
         seatIndex: 0,
-        name: widget.isHost ? widget.roomInfo.hostName : 'Tú',
+        name: _isEffectiveHost ? widget.roomInfo.hostName : 'Tú',
         avatarId: PlayerSession.shared.avatarIndex,
         frameId: PlayerSession.shared.selectedFrameId,
       ),
@@ -405,7 +420,7 @@ class _MultiplayerWaitingRoomScreenState
               ),
               child: Row(
                 children: [
-                  if (!widget.isHost) ...[
+                  if (!_isEffectiveHost) ...[
                     Expanded(
                       child: App3dButton(
                         onPressed: () {
@@ -519,7 +534,7 @@ class _MultiplayerWaitingRoomScreenState
                   border: Border.all(color: AppPalette.cartoonBorder, width: 1.0),
                 ),
                 child: Text(
-                  isTeamA ? '🔵 EQUIPO A' : '🔴 EQUIPO B',
+                  isTeamA ? 'EQUIPO A' : 'EQUIPO B',
                   style: TextStyle(
                     color: isTeamA ? const Color(0xFF1E1B4B) : Colors.white,
                     fontWeight: FontWeight.w900,

@@ -371,7 +371,7 @@ class DailyChallengeSystem extends ChangeNotifier {
     return newlyCompleted;
   }
 
-  /// Reclama la recompensa de una misión completada.
+  /// Reclama la recompensa de una misión completada y genera un nuevo reto aleatorio.
   DailyChallengeInstance? claimReward(String id) {
     checkDayRollOver();
     final index = _challenges.indexWhere((c) => c.id == id);
@@ -380,7 +380,23 @@ class DailyChallengeSystem extends ChangeNotifier {
     final ch = _challenges[index];
     if (ch.isCompleted && !ch.isClaimed) {
       final claimed = ch.copyWith(isClaimed: true);
-      _challenges[index] = claimed;
+
+      // Reemplazo dinámico continuo con retos del catálogo para que nunca se acaben
+      final activeActionTypes = _challenges.map((c) => c.actionType).toSet();
+      final availableTemplates = pool.where((t) => !activeActionTypes.contains(t.actionType)).toList();
+      final candidatePool = availableTemplates.isNotEmpty ? availableTemplates : pool;
+      final rng = math.Random();
+      final nextTemplate = candidatePool[rng.nextInt(candidatePool.length)];
+
+      _challenges[index] = DailyChallengeInstance(
+        id: '${nextTemplate.id}_${DateTime.now().millisecondsSinceEpoch}',
+        title: nextTemplate.title,
+        actionType: nextTemplate.actionType,
+        targetProgress: nextTemplate.targetProgress,
+        coinReward: nextTemplate.coinReward,
+        xpReward: nextTemplate.xpReward,
+      );
+
       save();
       notifyListeners();
       return claimed;

@@ -178,11 +178,11 @@ class VenezuelaRoomCatalog {
       simulatedActivePlayers: 180,
     ),
 
-    // 5. Mérida (Mérida) ❄️
+    // 5. Mérida (Mérida)
     VenezuelaRoomTier(
       id: 5,
       name: 'Mérida',
-      region: 'Páramo Andino ❄️',
+      region: 'Páramo Andino',
       subtitle: 'Páramo y Baraja Helada',
       entryFee: 20000,
       basePrize: 40000,

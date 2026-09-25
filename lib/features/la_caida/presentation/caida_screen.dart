@@ -1341,8 +1341,57 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
         }
       }
 
-      _tableCards.clear();
-      _placedTableCards.clear();
+      // Animación de recogida de cartas sobrantes para el último en capturar ("El que se lleva las últimas")
+      if (_placedTableCards.isNotEmpty && widget.animateDealing) {
+        final targetRecipientIdx = (_lastCapturingPlayerIndex != null &&
+                _lastCapturingPlayerIndex! >= 0 &&
+                _lastCapturingPlayerIndex! < _players.length)
+            ? _lastCapturingPlayerIndex!
+            : _manoIndex;
+        final recipientPlayer = _players[targetRecipientIdx];
+
+        final returnAnchor = SpatialCardAnchor.playerStationAnchor(
+          playerIndex: targetRecipientIdx,
+          totalPlayers: _players.length,
+        );
+
+        final sweepFlights = <CardFlightTrajectory>[];
+        for (final placed in _placedTableCards) {
+          sweepFlights.add(
+            CardFlightTrajectory(
+              id: 'sweep_${placed.card.shortCode}_${DateTime.now().millisecondsSinceEpoch}_${sweepFlights.length}',
+              card: placed.card,
+              startAnchor: SpatialCardAnchor(
+                card: placed.card,
+                offset: placed.offset,
+                rotation: placed.rotation,
+                scale: 1.0,
+              ),
+              targetAnchor: returnAnchor,
+              duration: const Duration(milliseconds: 550),
+              curve: Curves.easeInOutCubic,
+            ),
+          );
+        }
+
+        AudioService().playCardDeal();
+        _triggerCallout(recipientPlayer, '¡Se lleva las últimas!');
+
+        setState(() {
+          _activeTrajectories = sweepFlights;
+        });
+
+        await _safeDelay(const Duration(milliseconds: 580));
+        if (!mounted) return;
+        setState(() {
+          _activeTrajectories = [];
+          _placedTableCards.clear();
+          _tableCards.clear();
+        });
+      } else {
+        _tableCards.clear();
+        _placedTableCards.clear();
+      }
 
       if (_checkGameOver()) return;
 
@@ -1939,13 +1988,22 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
 
     final bool userHadTrivolin = _matchUserTrivilins > 0;
     final bool userHadMesaLimpia = _matchUserLimpias > 0;
-    int trophyDelta = RankProgress.trophyDeltaForResult(
-      won: userWon,
-      trivolin: userHadTrivolin,
-      mesaLimpia: userHadMesaLimpia,
-      isTeams: _isTeams,
-      currentTrophies: previousTrophies,
-    );
+    int trophyDelta;
+    if (_venezuelaRoom != null) {
+      if (userWon) {
+        trophyDelta = _venezuelaRoom!.winTrophies;
+      } else {
+        trophyDelta = -(_venezuelaRoom!.lossTrophies.abs());
+      }
+    } else {
+      trophyDelta = RankProgress.trophyDeltaForResult(
+        won: userWon,
+        trivolin: userHadTrivolin,
+        mesaLimpia: userHadMesaLimpia,
+        isTeams: _isTeams,
+        currentTrophies: previousTrophies,
+      );
+    }
     if (hasLuckyBooster && userWon) {
       trophyDelta += 10; // Comodín de Mesa: +10 trofeos al ganar
     }
@@ -1984,7 +2042,28 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
         }
         vipCoinsWon = baseWinCoins;
         session.rewardCoins(vipCoinsWon, xpGain: xpGained);
-        chestAwarded = session.addChestOnWin();
+        ChestRarity rarity;
+        switch (_venezuelaRoom!.id) {
+          case 1:
+            rarity = ChestRarity.madera;
+            break;
+          case 2:
+            rarity = ChestRarity.bronce;
+            break;
+          case 3:
+          case 4:
+            rarity = ChestRarity.plata;
+            break;
+          case 5:
+          case 6:
+            rarity = ChestRarity.oro;
+            break;
+          case 7:
+          default:
+            rarity = ChestRarity.vip;
+            break;
+        }
+        chestAwarded = session.addChestOnWin(rarity: rarity);
         if (chestAwarded) {
           chestSlotIndex = session.chests.indexWhere((c) => c.getState() == ChestState.unlocking);
           if (chestSlotIndex == -1) chestSlotIndex = 0;
@@ -2000,7 +2079,7 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
         }
         vipCoinsWon = baseWinCoins;
         session.rewardCoins(vipCoinsWon, xpGain: xpGained);
-        chestAwarded = session.addChestOnWin();
+        chestAwarded = session.addChestOnWin(rarity: ChestRarity.vip);
         if (chestAwarded) {
           chestSlotIndex = session.chests.indexWhere((c) => c.getState() == ChestState.unlocking);
           if (chestSlotIndex == -1) chestSlotIndex = 0;
@@ -2016,7 +2095,7 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
         }
         vipCoinsWon = baseWinCoins;
         session.rewardCoins(vipCoinsWon, xpGain: xpGained);
-        chestAwarded = session.addChestOnWin();
+        chestAwarded = session.addChestOnWin(rarity: ChestRarity.madera);
         if (chestAwarded) {
           chestSlotIndex = session.chests.indexWhere((c) => c.getState() == ChestState.unlocking);
           if (chestSlotIndex == -1) chestSlotIndex = 0;
@@ -2176,7 +2255,7 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
       if (mounted) {
         String? customSubtitle;
         if (_venezuelaRoom != null) {
-          final trophyText = userWon ? '+${_venezuelaRoom!.winTrophies} 🏆' : '${_venezuelaRoom!.lossTrophies} 🏆';
+          final trophyText = userWon ? '+${_venezuelaRoom!.winTrophies} Trofeos' : '${_venezuelaRoom!.lossTrophies} Trofeos';
           customSubtitle = userWon
               ? '¡VICTORIA EN ${_venezuelaRoom!.name.toUpperCase()}!\nPremio: +$vipCoinsWon monedas ($trophyText • +$xpGained XP)'
               : '${_venezuelaRoom!.name}: Ganó ${winner.name} con ${winner.score} pts ($trophyText • +$xpGained XP)';
@@ -2652,13 +2731,10 @@ child: Icon(icon, color: iconColor, size: 20),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Text(
-                              _venezuelaRoom!.isFrozenTheme ? '❄️' : '🇻🇪',
-                              style: const TextStyle(fontSize: 11),
-                            ),
+                            const Icon(Icons.stars_rounded, color: Color(0xFFFDE047), size: 13),
                             const SizedBox(width: 4),
                             Text(
-                              '${_venezuelaRoom!.name} • Pozo: ${_vipPrizePool ?? _venezuelaRoom!.getTotalPot(_isTeams ? GameMode.teams2v2 : GameMode.duel1v1)} 🪙',
+                              '${_venezuelaRoom!.name} • Pozo: ${_vipPrizePool ?? _venezuelaRoom!.getTotalPot(_isTeams ? GameMode.teams2v2 : GameMode.duel1v1)} Monedas',
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: const TextStyle(
@@ -3691,6 +3767,7 @@ child: Icon(icon, color: iconColor, size: 20),
             position: PlayerPositionOnTable.top,
             calloutMessage: rival.currentCallout,
             cardsInHandCount: rival.hand.length,
+            cardBackColor: _venezuelaRoom?.primaryColor ?? const Color(0xFF1E3A8A),
             avatarColor: rival.color,
             turnGlowColor: rival.color,
             avatarId: rival.avatarId,
@@ -3719,6 +3796,7 @@ child: Icon(icon, color: iconColor, size: 20),
             position: PlayerPositionOnTable.left,
             calloutMessage: rival1.currentCallout,
             cardsInHandCount: rival1.hand.length,
+            cardBackColor: _venezuelaRoom?.primaryColor ?? const Color(0xFF1E3A8A),
             avatarColor: rival1.color,
             turnGlowColor: rival1.color,
             avatarId: rival1.avatarId,
@@ -3744,6 +3822,7 @@ child: Icon(icon, color: iconColor, size: 20),
             position: PlayerPositionOnTable.right,
             calloutMessage: rival2.currentCallout,
             cardsInHandCount: rival2.hand.length,
+            cardBackColor: _venezuelaRoom?.primaryColor ?? const Color(0xFF1E3A8A),
             avatarColor: rival2.color,
             turnGlowColor: rival2.color,
             avatarId: rival2.avatarId,
@@ -3774,6 +3853,7 @@ child: Icon(icon, color: iconColor, size: 20),
             position: PlayerPositionOnTable.left,
             calloutMessage: rival1.currentCallout,
             cardsInHandCount: rival1.hand.length,
+            cardBackColor: _venezuelaRoom?.primaryColor ?? const Color(0xFF1E3A8A),
             avatarColor: rival1.color,
             turnGlowColor: rival1.color,
             avatarId: rival1.avatarId,
@@ -3799,6 +3879,7 @@ child: Icon(icon, color: iconColor, size: 20),
             position: PlayerPositionOnTable.top,
             calloutMessage: rival2.currentCallout,
             cardsInHandCount: rival2.hand.length,
+            cardBackColor: _venezuelaRoom?.primaryColor ?? const Color(0xFF1E3A8A),
             avatarColor: rival2.color,
             turnGlowColor: rival2.color,
             avatarId: rival2.avatarId,
@@ -3825,6 +3906,7 @@ child: Icon(icon, color: iconColor, size: 20),
             position: PlayerPositionOnTable.right,
             calloutMessage: rival3.currentCallout,
             cardsInHandCount: rival3.hand.length,
+            cardBackColor: _venezuelaRoom?.primaryColor ?? const Color(0xFF1E3A8A),
             avatarColor: rival3.color,
             turnGlowColor: rival3.color,
             avatarId: rival3.avatarId,
@@ -3854,6 +3936,7 @@ child: Icon(icon, color: iconColor, size: 20),
         position: PlayerPositionOnTable.bottom,
         calloutMessage: user.currentCallout,
         cardsInHandCount: user.hand.length,
+        cardBackColor: _venezuelaRoom?.primaryColor ?? const Color(0xFF1E3A8A),
         avatarColor: user.color,
         turnGlowColor: user.color,
         avatarId: user.avatarId,

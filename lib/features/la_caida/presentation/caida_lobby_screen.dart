@@ -4,6 +4,7 @@ import '../../../core/theme/app_palette.dart';
 import '../../../core/presentation/widgets/app_3d_button.dart';
 import '../../../core/presentation/widgets/spanish_card_view.dart';
 import '../../../core/services/user_profile_service.dart';
+import '../../../core/services/patch_notes_service.dart';
 import '../domain/models/caida_match_config.dart';
 import '../economy/daily_challenge_system.dart';
 import '../economy/player_session.dart';
@@ -74,6 +75,14 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
         setState(() {
           _session.regenerateTicketsPassive();
         });
+      }
+    });
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (await PatchNotesService.shouldShowPatchNotes()) {
+        if (mounted) {
+          PatchNotesService.showPatchNotesModal(context);
+        }
       }
     });
   }
@@ -692,9 +701,8 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
   Widget _buildTopBar() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-      decoration: BoxDecoration(
-        color: AppPalette.cartoonBgDark.withValues(alpha: 0.9),
-        border: const Border(bottom: BorderSide(color: AppPalette.cartoonBorder, width: 2)),
+      decoration: const BoxDecoration(
+        color: Colors.transparent,
       ),
       child: Row(
         children: [
@@ -707,7 +715,59 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
             onPressed: _openSettingsDialog,
             child: const Icon(Icons.settings_rounded, color: AppPalette.cartoonCardText, size: 22),
           ),
+          const SizedBox(width: 8),
+          // Botón de Noticias y Actualizaciones
+          CartoonRoundButton(
+            width: 40,
+            height: 40,
+            borderRadius: 12,
+            depth: 2.5,
+            onPressed: () => PatchNotesService.showPatchNotesModal(context),
+            child: const Icon(Icons.campaign_rounded, color: AppPalette.cartoonCardText, size: 22),
+          ),
           const Spacer(),
+
+          // Chip de Trofeos con gradiente Dorado y efecto táctil
+          TactilePressable(
+            depth: 2,
+            onTap: _openStatisticsDialog,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFFEAB308), Color(0xFFCA8A04)],
+                ),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppPalette.cartoonBorder, width: 1.5),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Color(0xFF713F12),
+                    blurRadius: 0,
+                    offset: Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.emoji_events_rounded, color: Colors.white, size: 15),
+                  const SizedBox(width: 4),
+                  AnimatedBuilder(
+                    animation: PlayerStatsModel.shared,
+                    builder: (context, _) => Text(
+                      '${PlayerStatsModel.shared.trophies}',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w900,
+                        fontSize: 12.5,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
 
 // Chip de Tickets con gradiente Cyan y efecto táctil
           TactilePressable(
@@ -971,7 +1031,7 @@ Text(
                       ),
                       const SizedBox(width: 6),
                       Text(
-                        '$trophies 🏆',
+                        '$trophies Trofeos',
                         style: const TextStyle(
                           color: Color(0xFFFBBF24),
                           fontSize: 11,

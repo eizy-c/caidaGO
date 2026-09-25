@@ -84,14 +84,14 @@ class _ChestSlotsViewState extends State<ChestSlotsView> {
   }
 
   void _claimReward(int slotIndex) {
-    final coins = widget.session.claimChestReward(slotIndex);
-    if (coins != null) {
-      widget.onChestClaimed?.call(coins);
-      _showClaimRewardDialog(coins);
+    final reward = widget.session.claimChestReward(slotIndex);
+    if (reward != null) {
+      widget.onChestClaimed?.call(reward.coins);
+      _showClaimRewardDialog(reward);
     }
   }
 
-  void _showClaimRewardDialog(int coins) {
+  void _showClaimRewardDialog(ChestRewardResult reward) {
     showDialog(
       context: context,
       builder: (_) => Dialog(
@@ -125,8 +125,9 @@ class _ChestSlotsViewState extends State<ChestSlotsView> {
                 ),
               ),
               const SizedBox(height: 16),
+              // Recompensa Monedas
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                 decoration: BoxDecoration(
                   color: AppPalette.cartoonCardDark,
                   borderRadius: BorderRadius.circular(16),
@@ -135,24 +136,89 @@ class _ChestSlotsViewState extends State<ChestSlotsView> {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.monetization_on, color: Color(0xFFFDE047), size: 24),
+                    const Icon(Icons.monetization_on, color: Color(0xFFFDE047), size: 22),
                     const SizedBox(width: 8),
                     Text(
-                      '+$coins Monedas',
+                      '+${reward.coins} Monedas',
                       style: const TextStyle(
                         color: Colors.white,
-                        fontSize: 18,
+                        fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 12),
-              const Text(
-                '+ Experiencia (XP) para subir de nivel',
-                style: TextStyle(color: Color(0xFF93C5FD), fontSize: 12, fontWeight: FontWeight.w600),
+              const SizedBox(height: 8),
+              // Recompensa XP y Trofeos
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1E3A8A).withValues(alpha: 0.5),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: const Color(0xFF3B82F6), width: 1.2),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.auto_awesome_rounded, color: Color(0xFF60A5FA), size: 16),
+                        const SizedBox(width: 4),
+                        Text(
+                          '+${reward.xp} XP',
+                          style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (reward.trophies > 0) ...[
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF78350F).withValues(alpha: 0.5),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: const Color(0xFFF59E0B), width: 1.2),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.emoji_events_rounded, color: Color(0xFFFDE047), size: 16),
+                          const SizedBox(width: 4),
+                          Text(
+                            '+${reward.trophies} Trofeos',
+                            style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ],
               ),
+              if (reward.booster != null) ...[
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF581C87).withValues(alpha: 0.5),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: const Color(0xFFA855F7), width: 1.2),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.bolt_rounded, color: Color(0xFFD8B4FE), size: 18),
+                      const SizedBox(width: 6),
+                      Text(
+                        '+ Potenciador: ${reward.booster!.name.toUpperCase()}',
+                        style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
               const SizedBox(height: 20),
               App3dButton(
                 label: '¡EXCELENTE!',
