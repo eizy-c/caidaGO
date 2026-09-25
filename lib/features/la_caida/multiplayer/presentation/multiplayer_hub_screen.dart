@@ -160,7 +160,7 @@ class _MultiplayerHubScreenState extends State<MultiplayerHubScreen> {
 
       final room = client.currentRoom ?? roomInfo;
 
-      Navigator.of(context).push(
+      await Navigator.of(context).push(
         MaterialPageRoute(
           builder: (_) => MultiplayerWaitingRoomScreen(
             roomInfo: room,
@@ -170,6 +170,7 @@ class _MultiplayerHubScreenState extends State<MultiplayerHubScreen> {
           ),
         ),
       );
+      if (mounted) _refreshOnlineRooms();
       return;
     }
 
@@ -252,15 +253,16 @@ class _MultiplayerHubScreenState extends State<MultiplayerHubScreen> {
 
       final joinedRoom = client.currentRoom ?? room;
 
-      Navigator.of(context).push(
+      await Navigator.of(context).push(
         MaterialPageRoute(
           builder: (_) => MultiplayerWaitingRoomScreen(
             roomInfo: joinedRoom,
             client: client,
-            isHost: false,
+            isHost: joinedRoom.hostName.trim().toLowerCase() == _session.name.trim().toLowerCase(),
           ),
         ),
       );
+      if (mounted) _refreshOnlineRooms();
       return;
     }
 
@@ -497,10 +499,12 @@ class _MultiplayerHubScreenState extends State<MultiplayerHubScreen> {
                           builder: (_) => MultiplayerWaitingRoomScreen(
                             roomInfo: r,
                             client: client,
-                            isHost: false,
+                            isHost: r.hostName.trim().toLowerCase() == _session.name.trim().toLowerCase(),
                           ),
                         ),
-                      );
+                      ).then((_) {
+                        if (mounted) _refreshOnlineRooms();
+                      });
                     } else if (mounted) {
                       messenger.showSnackBar(
                         SnackBar(
@@ -1473,6 +1477,8 @@ class _MultiplayerHubScreenState extends State<MultiplayerHubScreen> {
     final roomTitle = regionalRoom?.name ?? room.roomName;
     final potAmount = room.entryFee > 0 ? room.totalPot : 0;
 
+    final isMyRoom = room.hostName.trim().toLowerCase() == _session.name.trim().toLowerCase();
+
     return CartoonCard(
       onTap: () => _joinRoom(room),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
@@ -1480,7 +1486,7 @@ class _MultiplayerHubScreenState extends State<MultiplayerHubScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Fila superior: #ID de 5 dígitos + Badge Pública/Privada + Contador de Jugadores
+          // Fila superior: #ID de 5 dígitos + Badge Pública/Privada + Badge Tu Sala + Contador de Jugadores
           Row(
             children: [
               Text(
@@ -1533,6 +1539,26 @@ class _MultiplayerHubScreenState extends State<MultiplayerHubScreen> {
                   ],
                 ),
               ),
+              if (isMyRoom) ...[
+                const SizedBox(width: 6),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF38BDF8).withValues(alpha: 0.18),
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(color: const Color(0xFF0284C7), width: 1.2),
+                  ),
+                  child: const Text(
+                    'TU SALA',
+                    style: TextStyle(
+                      fontSize: 9.5,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 0.4,
+                      color: Color(0xFF0369A1),
+                    ),
+                  ),
+                ),
+              ],
               const Spacer(),
               // Contador de jugadores (icono de silueta, sin emojis)
               Row(
@@ -1614,6 +1640,34 @@ class _MultiplayerHubScreenState extends State<MultiplayerHubScreen> {
               ),
             ],
           ),
+          if (isMyRoom) ...[
+            const SizedBox(height: 8),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              decoration: BoxDecoration(
+                color: const Color(0xFFE0F2FE),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              alignment: Alignment.center,
+              child: const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.login_rounded, size: 13, color: Color(0xFF0284C7)),
+                  SizedBox(width: 5),
+                  Text(
+                    'SALA ACTIVA: TOCA PARA REANUDAR',
+                    style: TextStyle(
+                      color: Color(0xFF0284C7),
+                      fontSize: 10,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -1903,7 +1957,7 @@ class _MultiplayerHubScreenState extends State<MultiplayerHubScreen> {
 
     if (!mounted) return;
     final room = client.currentRoom!;
-    Navigator.of(context).push(
+    await Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => MultiplayerWaitingRoomScreen(
           roomInfo: room,
@@ -1913,6 +1967,7 @@ class _MultiplayerHubScreenState extends State<MultiplayerHubScreen> {
         ),
       ),
     );
+    if (mounted) _refreshOnlineRooms();
   }
 }
 

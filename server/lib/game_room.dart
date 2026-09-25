@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'models.dart';
 
 /// Callback para notificar cuando la sala queda vacía y deba eliminarse.
@@ -12,6 +13,7 @@ class GameRoom {
 
   bool isMatchStarted = false;
   DateTime lastActivity = DateTime.now();
+  Timer? _emptyGraceTimer;
 
   GameRoom({
     required this.roomInfo,
@@ -65,8 +67,12 @@ class GameRoom {
   }) {
     lastActivity = DateTime.now();
 
-    // 1. Validar PIN si la sala es privada
-    if (roomInfo.isPrivate) {
+    final existingIndex = seats.indexWhere((s) => s.playerId == playerId);
+    final isReconnecting = existingIndex != -1;
+    final isReturningHost = roomInfo.hostName.trim().toLowerCase() == playerName.trim().toLowerCase();
+
+    // 1. Validar PIN si la sala es privada (pero si está reconectando o es el anfitrión, no exigir PIN)
+    if (roomInfo.isPrivate && !isReconnecting && !isReturningHost) {
       if (pinCode == null || pinCode.trim() != roomInfo.pinCode?.trim()) {
         _sendToSocket(
           socket,
@@ -83,16 +89,38 @@ class GameRoom {
     }
 
     // 2. Si el jugador ya estaba en la sala (reconectar)
-    final existingIndex = seats.indexWhere((s) => s.playerId == playerId);
-    if (existingIndex != -1) {
+    if (isReconnecting) {
+      _emptyGraceTimer?.cancel();
+      _emptyGraceTimer = null;
       _clientSockets[playerId] = socket;
       seats[existingIndex] = seats[existingIndex].copyWith(
         name: playerName,
         avatarId: avatarId,
         frameId: frameId,
+        isConnected: true,
       );
       _sendJoinAccepted(socket, existingIndex, playerId);
       broadcastLobbyUpdate();
+      print('[GameRoom] Jugador reconectado a sala ${roomInfo.roomId}: $playerName (asiento $existingIndex)');
+      return true;
+    }
+
+    // Si es el anfitrión que regresa tras salir al menú/fondo
+    if (isReturningHost && (seats.isEmpty || !seats[0].isOccupied || seats[0].isHost)) {
+      _emptyGraceTimer?.cancel();
+      _emptyGraceTimer = null;
+      _clientSockets[playerId] = socket;
+      seats[0] = seats[0].copyWith(
+        playerId: playerId,
+        name: playerName,
+        avatarId: avatarId,
+        frameId: frameId,
+        isHost: true,
+        isConnected: true,
+      );
+      _sendJoinAccepted(socket, 0, playerId);
+      broadcastLobbyUpdate();
+      print('[GameRoom] Anfitrión restablecido en sala ${roomInfo.roomId}: $playerName');
       return true;
     }
 
@@ -113,6 +141,8 @@ class GameRoom {
     }
 
     // 4. Asignar asiento con la personalización completa del jugador
+    _emptyGraceTimer?.cancel();
+    _emptyGraceTimer = null;
     seats[freeSeatIndex] = RoomSeat(
       seatIndex: freeSeatIndex,
       playerId: playerId,
@@ -121,7 +151,8 @@ class GameRoom {
       frameId: frameId,
       isBot: false,
       isReady: false,
-      isHost: false,
+      isHost: freeSeatIndex == 0,
+      isConnected: true,
     );
 
     _clientSockets[playerId] = socket;
@@ -274,7 +305,35 @@ class GameRoom {
     }
   }
 
-  /// Remueve a un jugador cuando se desconecta o sale de la sala
+  /// Se ejecuta cuando se cierra el WebSocket de un cliente (desconexión temporal o salida de pantalla)
+  void handleSocketDisconnected(String playerId) {
+    lastActivity = DateTime.now();
+    _clientSockets.remove(playerId);
+
+    final index = seats.indexWhere((s) => s.playerId == playerId);
+    if (index != -1) {
+      // Marcar como no conectado pero MANTENER el asiento y los datos del jugador
+      seats[index] = seats[index].copyWith(isConnected: false);
+      broadcastLobbyUpdate();
+      print('[GameRoom] Socket desconectado para $playerId en sala ${roomInfo.roomId}. Asiento $index reservado.');
+    }
+
+    // Si ya no queda ningún socket activo conectado a la sala:
+    // NO destruimos la sala inmediatamente. Damos un tiempo de gracia de 10 minutos
+    // para permitir que el jugador vuelva a entrar normalmente.
+    if (_clientSockets.isEmpty) {
+      _emptyGraceTimer?.cancel();
+      print('[GameRoom] Sala ${roomInfo.roomId} sin sockets activos. Iniciando tiempo de gracia de 10 minutos...');
+      _emptyGraceTimer = Timer(const Duration(minutes: 10), () {
+        if (_clientSockets.isEmpty) {
+          print('[GameRoom] Tiempo de gracia expirado para sala ${roomInfo.roomId}. Eliminando por inactividad.');
+          onRoomEmpty?.call(roomInfo.roomId);
+        }
+      });
+    }
+  }
+
+  /// Remueve formalmente a un jugador cuando abandona explícitamente la sala
   void removePlayer(String playerId) {
     lastActivity = DateTime.now();
     _clientSockets.remove(playerId);
@@ -289,9 +348,10 @@ class GameRoom {
         isBot: false,
         isReady: false,
         isHost: false,
+        isConnected: false,
       );
 
-      // Si el anfitrión se fue, ceder el anfitrión al siguiente jugador humano
+      // Si el anfitrión se fue explícitamente, ceder el anfitrión al siguiente jugador humano
       if (wasHost) {
         final nextHumanIndex = seats.indexWhere((s) => s.playerId != null && !s.isBot);
         if (nextHumanIndex != -1) {
@@ -303,10 +363,26 @@ class GameRoom {
       broadcastLobbyUpdate();
     }
 
-    // Si ya no quedan jugadores humanos, notificar para limpieza de sala
+    // Si ya no quedan jugadores humanos asignados a asientos:
     if (humanPlayersCount == 0) {
-      onRoomEmpty?.call(roomInfo.roomId);
+      _emptyGraceTimer?.cancel();
+      _emptyGraceTimer = Timer(const Duration(minutes: 5), () {
+        if (humanPlayersCount == 0) {
+          onRoomEmpty?.call(roomInfo.roomId);
+        }
+      });
     }
+  }
+
+  /// Cierra la sala de inmediato y expulsa a todos los clientes (llamado por el anfitrión)
+  void closeRoom() {
+    _emptyGraceTimer?.cancel();
+    broadcast(const NetworkGameMessage(
+      type: 'ROOM_CLOSED',
+      data: {'message': 'El anfitrión ha cerrado la sala.'},
+    ));
+    _clientSockets.clear();
+    onRoomEmpty?.call(roomInfo.roomId);
   }
 
   /// Envía la lista de asientos actualizada a todos los clientes conectados

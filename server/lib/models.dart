@@ -11,6 +11,7 @@ class RoomSeat {
   final bool isBot;
   final bool isReady;
   final bool isHost;
+  final bool isConnected;
 
   const RoomSeat({
     required this.seatIndex,
@@ -21,6 +22,7 @@ class RoomSeat {
     this.isBot = false,
     this.isReady = false,
     this.isHost = false,
+    this.isConnected = true,
   });
 
   bool get isOccupied => playerId != null || isBot;
@@ -34,6 +36,7 @@ class RoomSeat {
     bool? isBot,
     bool? isReady,
     bool? isHost,
+    bool? isConnected,
   }) {
     return RoomSeat(
       seatIndex: seatIndex ?? this.seatIndex,
@@ -44,6 +47,7 @@ class RoomSeat {
       isBot: isBot ?? this.isBot,
       isReady: isReady ?? this.isReady,
       isHost: isHost ?? this.isHost,
+      isConnected: isConnected ?? this.isConnected,
     );
   }
 
@@ -56,6 +60,7 @@ class RoomSeat {
         'isBot': isBot,
         'isReady': isReady,
         'isHost': isHost,
+        'isConnected': isConnected,
       };
 
   factory RoomSeat.fromJson(Map<String, dynamic> json) => RoomSeat(
@@ -67,6 +72,7 @@ class RoomSeat {
         isBot: json['isBot'] as bool? ?? false,
         isReady: json['isReady'] as bool? ?? false,
         isHost: json['isHost'] as bool? ?? false,
+        isConnected: json['isConnected'] as bool? ?? true,
       );
 }
 

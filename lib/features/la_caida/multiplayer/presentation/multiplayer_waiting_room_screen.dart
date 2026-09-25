@@ -70,12 +70,133 @@ class _MultiplayerWaitingRoomScreenState
 
   void _onHostDisconnected() {
     if (!mounted || _isNavigatingToGame) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('El anfitrión cerró la sala o se perdió la conexión.'),
-        backgroundColor: Color(0xFFEF4444),
-      ),
-    );
+    final errorMsg = widget.client.errorMessageNotifier.value;
+    final isClosedPermanently = errorMsg != null && errorMsg.toLowerCase().contains('cerrada');
+    if (isClosedPermanently) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(errorMsg),
+          backgroundColor: const Color(0xFFEF4444),
+        ),
+      );
+      Navigator.of(context).pop();
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Conexión pausada. Puedes volver a entrar a la sala desde la lista o por ID.'),
+          backgroundColor: Color(0xFFF59E0B),
+          duration: Duration(seconds: 3),
+        ),
+      );
+      Navigator.of(context).pop();
+    }
+  }
+
+  Future<void> _handleBackPressed() async {
+    if (!widget.client.isOnlineMode) {
+      Navigator.of(context).pop();
+      return;
+    }
+
+    if (_isEffectiveHost) {
+      final rawCode = widget.roomInfo.roomId.replaceAll('RM-', '');
+      final displayCode = rawCode.length > 5 ? rawCode.substring(0, 5) : rawCode;
+
+      final action = await showModalBottomSheet<String>(
+        context: context,
+        backgroundColor: Colors.transparent,
+        builder: (ctx) => Container(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 22),
+          decoration: BoxDecoration(
+            color: AppPalette.cartoonBgDark,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+            border: Border.all(color: AppPalette.cartoonBorder, width: 2),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.white24,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 16),
+              const CartoonStrokeText(
+                'SALIR DE LA SALA',
+                fontSize: 18,
+                textColor: AppPalette.cartoonYellow,
+                strokeColor: AppPalette.cartoonCardText,
+                strokeWidth: 3,
+              ),
+              const SizedBox(height: 10),
+              Text(
+                'Puedes salir al menú y tu sala #$displayCode seguirá abierta para que vuelvas a entrar cuando quieras.',
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.white70, fontSize: 13, height: 1.4),
+              ),
+              const SizedBox(height: 20),
+              TactilePressable(
+                depth: 3,
+                onTap: () => Navigator.of(ctx).pop('keep'),
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  decoration: BoxDecoration(
+                    gradient: AppGradients.cyanAccent,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: AppPalette.cartoonBorder, width: 2),
+                  ),
+                  alignment: Alignment.center,
+                  child: const Text(
+                    'SALIR (MANTENER SALA ABIERTA)',
+                    style: TextStyle(
+                      color: Color(0xFF1E1B4B),
+                      fontSize: 13,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+              TactilePressable(
+                depth: 2.5,
+                onTap: () => Navigator.of(ctx).pop('close'),
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 11),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFEF4444).withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: const Color(0xFFEF4444), width: 1.5),
+                  ),
+                  alignment: Alignment.center,
+                  child: const Text(
+                    'CERRAR SALA DEFINITIVAMENTE',
+                    style: TextStyle(
+                      color: Color(0xFFFCA5A5),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+
+      if (action == 'close') {
+        widget.client.closeRoomExplicitly();
+        if (mounted) Navigator.of(context).pop();
+      } else if (action == 'keep') {
+        if (mounted) Navigator.of(context).pop();
+      }
+      return;
+    }
+
     Navigator.of(context).pop();
   }
 
@@ -173,7 +294,7 @@ class _MultiplayerWaitingRoomScreenState
   @override
   void dispose() {
     if (!_isNavigatingToGame) {
-      if (widget.isHost) {
+      if (widget.isHost && widget.host != null) {
         widget.host?.stopServer();
       } else {
         widget.client.disconnect();
@@ -186,23 +307,30 @@ class _MultiplayerWaitingRoomScreenState
   Widget build(BuildContext context) {
     final room = widget.roomInfo;
 
-    return Scaffold(
-      backgroundColor: const Color(0xFF26206D),
-      appBar: AppBar(
-        backgroundColor: AppPalette.cartoonBgDark,
-        elevation: 0,
-        centerTitle: true,
-        leading: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: CartoonRoundButton(
-            width: 38,
-            height: 38,
-            backgroundColor: const Color(0xFFDCE2FD),
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Icon(Icons.arrow_back_rounded, color: Color(0xFF1E1763), size: 20),
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) {
+          _handleBackPressed();
+        }
+      },
+      child: Scaffold(
+        backgroundColor: const Color(0xFF26206D),
+        appBar: AppBar(
+          backgroundColor: AppPalette.cartoonBgDark,
+          elevation: 0,
+          centerTitle: true,
+          leading: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: CartoonRoundButton(
+              width: 38,
+              height: 38,
+              backgroundColor: const Color(0xFFDCE2FD),
+              onPressed: _handleBackPressed,
+              child: const Icon(Icons.arrow_back_rounded, color: Color(0xFF1E1763), size: 20),
+            ),
           ),
-        ),
-        title: Column(
+          title: Column(
           children: [
             Text(
               room.roomName,
@@ -459,8 +587,9 @@ class _MultiplayerWaitingRoomScreenState
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   void _joinTeam(int targetTeam) {
     // Equipo A: Asientos 0 y 2

@@ -195,7 +195,15 @@ void main(List<String> args) async {
         if (currentRoomId != null && assignedPlayerId != null) {
           final room = roomManager.getRoom(currentRoomId!);
           if (room != null) {
-            if (message.type == 'TOGGLE_READY') {
+            if (message.type == 'LEAVE_ROOM') {
+              roomManager.handlePlayerExplicitLeave(assignedPlayerId!);
+              currentRoomId = null;
+              return;
+            } else if (message.type == 'CLOSE_ROOM') {
+              roomManager.handleHostCloseRoom(currentRoomId!);
+              currentRoomId = null;
+              return;
+            } else if (message.type == 'TOGGLE_READY') {
               room.togglePlayerReady(assignedPlayerId!);
             } else if (message.type == 'SWITCH_SEAT') {
               final target = message.data['targetSeatIndex'] as int?;
