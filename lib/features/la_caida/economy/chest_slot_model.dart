@@ -12,11 +12,28 @@ enum ChestRarity {
   bronce,
   plata,
   oro,
+  vip,
+}
+
+/// Resultado estructurado de abrir un cofre
+class ChestRewardResult {
+  final int coins;
+  final int xp;
+  final int trophies;
+  final BoosterType? booster;
+  final ChestRarity rarity;
+
+  const ChestRewardResult({
+    required this.coins,
+    required this.xp,
+    required this.trophies,
+    this.booster,
+    required this.rarity,
+  });
 }
 
 /// Modelo de datos para un slot de cofre en el lobby principal.
 /// Se desbloquea con temporizador de 2 minutos o instantáneamente por 2 tickets.
-/// Entrega entre 50 y 2500 monedas de recompensa al azar.
 class ChestSlotModel {
   final int slotIndex; // 0, 1, 2, 3
   final String? id;
@@ -28,7 +45,7 @@ class ChestSlotModel {
   static const int standardDurationSeconds = 120; // 2 minutos
   static const int instantTicketCost = 2; // 2 tickets para abrir de inmediato
   static const int minRewardCoins = 50;
-  static const int maxRewardCoins = 2500;
+  static const int maxRewardCoins = 5000;
 
   const ChestSlotModel({
     required this.slotIndex,
@@ -91,22 +108,20 @@ class ChestSlotModel {
     return '$minutes:$seconds';
   }
 
-  /// Genera una cantidad de monedas moderada y regulada según la rareza del cofre
+  /// Genera una cantidad de monedas regulada según la rareza del cofre
   int generateRewardCoins({math.Random? random}) {
     final rng = random ?? math.Random();
     switch (rarity) {
       case ChestRarity.madera:
-        // 25 - 120 monedas
-        return 25 + rng.nextInt(96);
+        return 30 + rng.nextInt(121); // 30 - 150
       case ChestRarity.bronce:
-        // 75 - 250 monedas
-        return 75 + rng.nextInt(176);
+        return 100 + rng.nextInt(251); // 100 - 350
       case ChestRarity.plata:
-        // 150 - 450 monedas
-        return 150 + rng.nextInt(301);
+        return 250 + rng.nextInt(551); // 250 - 800
       case ChestRarity.oro:
-        // 300 - 800 monedas
-        return 300 + rng.nextInt(501);
+        return 600 + rng.nextInt(1401); // 600 - 2000
+      case ChestRarity.vip:
+        return 1500 + rng.nextInt(2501); // 1500 - 4000
     }
   }
 
@@ -115,21 +130,55 @@ class ChestSlotModel {
     final rng = random ?? math.Random();
     switch (rarity) {
       case ChestRarity.madera:
-        return 15 + rng.nextInt(26); // 15 - 40
+        return 20 + rng.nextInt(25);
       case ChestRarity.bronce:
-        return 30 + rng.nextInt(31); // 30 - 60
+        return 40 + rng.nextInt(35);
       case ChestRarity.plata:
-        return 50 + rng.nextInt(41); // 50 - 90
+        return 75 + rng.nextInt(50);
       case ChestRarity.oro:
-        return 80 + rng.nextInt(61); // 80 - 140
+        return 120 + rng.nextInt(80);
+      case ChestRarity.vip:
+        return 250 + rng.nextInt(150);
     }
   }
 
-  /// Genera un potenciador aleatorio con 60% de probabilidad
+  /// Genera trofeos de bonificación según la categoría de la sala
+  int generateRewardTrophies({math.Random? random}) {
+    final rng = random ?? math.Random();
+    switch (rarity) {
+      case ChestRarity.madera:
+        return 1 + rng.nextInt(3); // 1 - 3
+      case ChestRarity.bronce:
+        return 3 + rng.nextInt(4); // 3 - 6
+      case ChestRarity.plata:
+        return 6 + rng.nextInt(7); // 6 - 12
+      case ChestRarity.oro:
+        return 12 + rng.nextInt(14); // 12 - 25
+      case ChestRarity.vip:
+        return 25 + rng.nextInt(26); // 25 - 50
+    }
+  }
+
+  /// Genera un potenciador aleatorio escalado según la rareza
   BoosterType? generateRewardBooster({math.Random? random}) {
     final rng = random ?? math.Random();
-    // 60% probabilidad de entregar un booster aleatorio
-    if (rng.nextDouble() < 0.60) {
+    final double chance;
+    switch (rarity) {
+      case ChestRarity.madera:
+        chance = 0.35;
+        break;
+      case ChestRarity.bronce:
+        chance = 0.55;
+        break;
+      case ChestRarity.plata:
+        chance = 0.75;
+        break;
+      case ChestRarity.oro:
+      case ChestRarity.vip:
+        chance = 1.0;
+        break;
+    }
+    if (rng.nextDouble() < chance) {
       const types = BoosterType.values;
       return types[rng.nextInt(types.length)];
     }

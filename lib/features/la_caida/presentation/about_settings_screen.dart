@@ -411,7 +411,7 @@ child: Container(
                           ),
                         ),
                         child: const Text(
-                          '🇻🇪 Creado con Flutter & Pasión Criolla',
+                          ' Creado con Flutter & Pasión Criolla',
                           style: TextStyle(
                             color: AppPalette.cartoonCyan,
                             fontSize: 9.5,

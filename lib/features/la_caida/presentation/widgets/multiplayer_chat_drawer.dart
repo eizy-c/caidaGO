@@ -50,6 +50,7 @@ class _MultiplayerChatDrawerState extends State<MultiplayerChatDrawer> {
   final TextEditingController _textController = TextEditingController();
   final FocusNode _focusNode = FocusNode();
   final ScrollController _scrollController = ScrollController();
+  bool _isRecordingVoice = false;
 
   // Reacciones rápidas curadas (Frases, Emojis y Voces Criollas)
   static const List<String> _quickPhrases = [
@@ -118,6 +119,22 @@ class _MultiplayerChatDrawerState extends State<MultiplayerChatDrawer> {
   void _sendVoice(String label, String soundKey) {
     HapticService.instance.onSelection();
     widget.onSendMessage(label, voiceSoundKey: soundKey);
+  }
+
+  void _toggleVoiceRecording() {
+    HapticService.instance.onSelection();
+    if (_isRecordingVoice) {
+      setState(() => _isRecordingVoice = false);
+      widget.onSendMessage('Mensaje de Voz', voiceSoundKey: 'voice_note');
+    } else {
+      setState(() => _isRecordingVoice = true);
+      Future.delayed(const Duration(seconds: 3), () {
+        if (mounted && _isRecordingVoice) {
+          setState(() => _isRecordingVoice = false);
+          widget.onSendMessage('Mensaje de Voz', voiceSoundKey: 'voice_note');
+        }
+      });
+    }
   }
 
   @override
@@ -522,7 +539,36 @@ class _MultiplayerChatDrawerState extends State<MultiplayerChatDrawer> {
               ),
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 6),
+          TactilePressable(
+            depth: 2.0,
+            onTap: _toggleVoiceRecording,
+            child: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                gradient: _isRecordingVoice
+                    ? AppGradients.redDanger
+                    : const LinearGradient(
+                        colors: [Color(0xFF8B5CF6), Color(0xFF6D28D9)],
+                      ),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: _isRecordingVoice ? const Color(0xFFEF4444) : AppPalette.cartoonBorder,
+                  width: 1.4,
+                ),
+                boxShadow: const [
+                  BoxShadow(color: Color(0xFF0F172A), offset: Offset(0, 1.5)),
+                ],
+              ),
+              child: Icon(
+                _isRecordingVoice ? Icons.mic_rounded : Icons.mic_none_rounded,
+                color: Colors.white,
+                size: 20,
+              ),
+            ),
+          ),
+          const SizedBox(width: 6),
           TactilePressable(
             depth: 2.0,
             onTap: () => _sendTextMessage(_textController.text),

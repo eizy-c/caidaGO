@@ -121,7 +121,7 @@ class LobbyThemeOption {
     ),
     LobbyThemeOption(
       id: 'room_fondo_5',
-      name: 'Mérida • Páramo ❄️',
+      name: 'Mérida • Páramo',
       subtitle: 'Páramo Andino y Baraja Helada',
       backgroundGradient: [Color(0xFF0C4A6E), Color(0xFF082F49)],
       accentColor: Color(0xFFBAE6FD),
@@ -366,7 +366,7 @@ const SizedBox(height: 2),
                     ),
                     const SizedBox(width: 6),
                     Text(
-                      '$trophies 🏆',
+                      '$trophies Trofeos',
                       style: const TextStyle(
                         color: Color(0xFFFBBF24),
                         fontSize: 11.5,
@@ -629,8 +629,8 @@ child: const Icon(Icons.close_rounded, color: Colors.white, size: 18),
                       isUnlocked
                           ? 'Desbloqueado'
                           : (frame.requiredRoomId != null
-                              ? 'Requiere conquistar ${frame.name} (${frame.minTrophies} 🏆)'
-                              : 'Requiere ${frame.minTrophies} Trofeos 🏆'),
+                              ? 'Requiere conquistar ${frame.name} (${frame.minTrophies} trofeos)'
+                              : 'Requiere ${frame.minTrophies} Trofeos'),
                       style: TextStyle(
                         color: isUnlocked ? const Color(0xFF10B981) : const Color(0xFFF87171),
                         fontSize: 10,
@@ -707,7 +707,7 @@ child: const Icon(Icons.close_rounded, color: Colors.white, size: 18),
           isUnlocked = roomTrophies > 0 || isRoomUnlocked || isCompleted;
           effectiveSubtitle = isUnlocked
               ? (theme.subtitle ?? 'Fondo ilustrado oficial de ${room.name}')
-              : '🔒 Gana trofeos en ${room.name} para desbloquear';
+              : 'Gana trofeos en ${room.name} para desbloquear';
         } else {
           isUnlocked = true;
           effectiveSubtitle = theme.subtitle ?? 'Fondo de interfaz y tapete para el Lobby';

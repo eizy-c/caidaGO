@@ -193,13 +193,13 @@ class MatchHistoryModal extends StatelessWidget {
                                           mainAxisSize: MainAxisSize.min,
                                           children: [
                                             Text(
-                                              m.isMultiplayer ? '📶 ' : '🏛️ ',
+                                              m.isMultiplayer ? 'RED ' : 'SALA ',
                                               style: const TextStyle(fontSize: 10),
                                             ),
                                             Text(
                                               m.roomRegion != null
                                                   ? '${m.roomName} (${m.roomRegion})'
-                                                  : (m.roomName ?? (m.isMultiplayer ? 'Multijugador Local' : 'Sala VIP')),
+                                                  : (m.roomName ?? (m.isMultiplayer ? 'RED ' : 'SALA ')),
                                               style: TextStyle(
                                                 color: m.isMultiplayer ? const Color(0xFF7DD3FC) : const Color(0xFFFDE047),
                                                 fontSize: 10,

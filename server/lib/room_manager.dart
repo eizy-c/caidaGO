@@ -34,8 +34,11 @@ class RoomManager {
     int entryFee = 0,
     required dynamic hostSocket,
   }) {
-    // Generar un ID único corto y limpio
-    final roomId = 'ON-${DateTime.now().millisecondsSinceEpoch % 100000}';
+    // Generar un ID único de 5 caracteres alfanuméricos en mayúsculas (ej: K7X9B)
+    String roomId;
+    do {
+      roomId = generateRoomId();
+    } while (_rooms.containsKey(roomId));
 
     final info = OnlineRoomInfo(
       roomId: roomId,
@@ -76,8 +79,25 @@ class RoomManager {
     return room;
   }
 
-  /// Busca una sala por su ID
-  GameRoom? getRoom(String roomId) => _rooms[roomId];
+  /// Genera un ID de sala de 5 caracteres alfanuméricos en mayúsculas (ej: K7X9B)
+  static String generateRoomId() {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    final now = DateTime.now().microsecondsSinceEpoch;
+    final rnd = (now ^ (now >> 7));
+    var n = rnd.abs();
+    final buffer = StringBuffer();
+    for (int i = 0; i < 5; i++) {
+      buffer.write(chars[n % chars.length]);
+      n = (n ~/ chars.length) ^ (DateTime.now().microsecond + i * 31);
+    }
+    return buffer.toString();
+  }
+
+  /// Busca una sala por su ID de 5 caracteres (insensible a mayúsculas/minúsculas)
+  GameRoom? getRoom(String roomId) {
+    final cleanId = roomId.trim().toUpperCase();
+    return _rooms[cleanId];
+  }
 
   /// Busca una sala privada por su PIN de 4 dígitos
   GameRoom? findRoomByPin(String pin) {
@@ -92,16 +112,84 @@ class RoomManager {
     return null;
   }
 
-  /// Retorna la lista de salas públicas disponibles para unirse desde el Lobby
-  List<OnlineRoomInfo> listPublicRooms() {
+  /// Retorna la lista de todas las salas abiertas (públicas y privadas) disponibles para unirse
+  List<OnlineRoomInfo> listOpenRooms() {
     return _rooms.values
         .where((r) =>
-            !r.roomInfo.isPrivate &&
             !r.isFull &&
             !r.isMatchStarted &&
             r.humanPlayersCount > 0)
         .map((r) => r.roomInfo)
         .toList();
+  }
+
+  /// Retorna la lista de salas públicas disponibles para unirse
+  List<OnlineRoomInfo> listPublicRooms() => listOpenRooms();
+
+  /// Emparejamiento Rápido: Encuentra una sala pública abierta o crea una instantánea
+  GameRoom findOrCreateQuickMatch({
+    required String playerId,
+    required String playerName,
+    required int avatarId,
+    required String frameId,
+    int targetPlayers = 2,
+    int? regionalRoomId,
+    int entryFee = 0,
+    required dynamic socket,
+  }) {
+    // 1. Buscar si hay una sala pública abierta que coincida
+    for (final room in _rooms.values) {
+      if (!room.roomInfo.isPrivate &&
+          !room.isFull &&
+          !room.isMatchStarted &&
+          room.roomInfo.targetPlayers == targetPlayers &&
+          (regionalRoomId == null || room.roomInfo.regionalRoomId == regionalRoomId)) {
+        final success = room.addPlayer(
+          playerId: playerId,
+          playerName: playerName,
+          avatarId: avatarId,
+          frameId: frameId,
+          socket: socket,
+        );
+        if (success) {
+          registerPlayerInRoom(playerId, room.roomInfo.roomId);
+          print('[RoomManager] ⚡ Emparejamiento Rápido: $playerName unido a ${room.roomInfo.roomId}');
+
+          if (room.isFull) {
+            room.startMatch();
+          }
+          return room;
+        }
+      }
+    }
+
+    // 2. Si no hay sala disponible, crear una automáticamente
+    final newRoom = createRoom(
+      roomName: 'Partida Rápida',
+      hostPlayerId: playerId,
+      hostName: playerName,
+      hostAvatarId: avatarId,
+      hostFrameId: frameId,
+      targetPlayers: targetPlayers,
+      isPrivate: false,
+      isTeams: targetPlayers == 4,
+      fillWithBots: true,
+      regionalRoomId: regionalRoomId,
+      entryFee: entryFee,
+      hostSocket: socket,
+    );
+
+    // Temporizador de 7 segundos: si nadie más entra, autocompletar con bots y arrancar
+    Timer(const Duration(seconds: 7), () {
+      final currentRoom = _rooms[newRoom.roomInfo.roomId];
+      if (currentRoom != null && !currentRoom.isMatchStarted && currentRoom.humanPlayersCount > 0) {
+        print('[RoomManager] ⚡ Tiempo cumplido para ${newRoom.roomInfo.roomId}. Llenando con bots e iniciando.');
+        currentRoom.fillEmptySeatsWithBots();
+        currentRoom.startMatch();
+      }
+    });
+
+    return newRoom;
   }
 
   /// Registra que un jugador se unió a una sala

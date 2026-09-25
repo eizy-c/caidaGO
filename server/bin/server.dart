@@ -34,10 +34,10 @@ void main(List<String> args) async {
     );
   });
 
-  // 2. Endpoint HTTP para listar salas públicas abiertas
+  // 2. Endpoint HTTP para listar todas las salas abiertas (públicas y privadas)
   app.get('/rooms', (Request request) {
-    final publicRooms = roomManager.listPublicRooms();
-    final jsonList = publicRooms.map((r) => r.toJson(includePin: false)).toList();
+    final openRooms = roomManager.listOpenRooms();
+    final jsonList = openRooms.map((r) => r.toJson(includePin: false)).toList();
     return Response.ok(
       jsonEncode(jsonList),
       headers: {'content-type': 'application/json', 'access-control-allow-origin': '*'},
@@ -80,7 +80,8 @@ void main(List<String> args) async {
 
         // --- CREAR SALA ONLINE ---
         if (message.type == 'CREATE_ONLINE_ROOM') {
-          final pId = message.data['playerId'] as String? ??
+          final pId = message.data['hostPlayerId'] as String? ??
+              message.data['playerId'] as String? ??
               'p_${DateTime.now().millisecondsSinceEpoch}';
           assignedPlayerId = pId;
 
@@ -159,6 +160,34 @@ void main(List<String> args) async {
             currentRoomId = room.roomInfo.roomId;
             roomManager.registerPlayerInRoom(pId, currentRoomId!);
           }
+          return;
+        }
+
+        // --- ⚡ PARTIDA RÁPIDA (EMPAREJAMIENTO AUTOMÁTICO) ---
+        if (message.type == 'QUICK_MATCH') {
+          final pId = message.data['playerId'] as String? ??
+              'p_${DateTime.now().millisecondsSinceEpoch}';
+          assignedPlayerId = pId;
+
+          final playerName = message.data['name'] as String? ?? 'Jugador';
+          final avatarId = message.data['avatarId'] as int? ?? 0;
+          final frameId = message.data['frameId'] as String? ?? 'rank_novato';
+          final targetPlayers = message.data['targetPlayers'] as int? ?? 2;
+          final regionalRoomId = message.data['regionalRoomId'] as int?;
+          final entryFee = message.data['entryFee'] as int? ?? 0;
+
+          final room = roomManager.findOrCreateQuickMatch(
+            playerId: pId,
+            playerName: playerName,
+            avatarId: avatarId,
+            frameId: frameId,
+            targetPlayers: targetPlayers,
+            regionalRoomId: regionalRoomId,
+            entryFee: entryFee,
+            socket: channel,
+          );
+
+          currentRoomId = room.roomInfo.roomId;
           return;
         }
 

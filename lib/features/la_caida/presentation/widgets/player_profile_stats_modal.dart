@@ -563,26 +563,6 @@ backgroundColor: AppPalette.cartoonBgDark,
                     );
                   },
                 ),
-
-                const SizedBox(height: 6),
-
-                // Fila 4: Píldora de Título de Nivel
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: AppPalette.cartoonBgDark,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: AppPalette.cartoonBorder, width: 1),
-                  ),
-                  child: Text(
-                    'Título: "${progress.rankTitle}"',
-                    style: const TextStyle(
-                      color: Colors.white70,
-                      fontSize: 10,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
               ],
             ),
           ),

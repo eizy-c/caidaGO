@@ -5,6 +5,7 @@ import '../../../core/services/debug_logger.dart';
 import 'chest_slot_model.dart';
 import 'user_progress.dart';
 import 'booster_model.dart';
+import 'player_stats_model.dart';
 
 /// Modelo y gestor de sesión local persistente del jugador para La Caída.
 /// Implementa regeneración pasiva por tiempo (1 ticket cada 20 min), personalización (fondos, marcos, avatares),
@@ -515,7 +516,7 @@ class PlayerSession extends ChangeNotifier {
 
   /// Asigna un cofre de recompensa tras ganar una partida.
   /// Regla: solo se asigna si hay un slot libre y ningún otro cofre está en proceso de abrirse (2 min).
-  bool addChestOnWin({DateTime? nowUtc}) {
+  bool addChestOnWin({ChestRarity rarity = ChestRarity.madera, DateTime? nowUtc}) {
     final hasUnlocking = _chests.any((c) => c.getState(nowUtc: nowUtc) == ChestState.unlocking);
     if (hasUnlocking) {
       return false;
@@ -526,7 +527,7 @@ class PlayerSession extends ChangeNotifier {
       return false;
     }
 
-    final newChest = ChestSlotModel.newWonChest(emptyIndex, nowUtc: nowUtc);
+    final newChest = ChestSlotModel.newWonChest(emptyIndex, rarity: rarity, nowUtc: nowUtc);
     _chests[emptyIndex] = newChest;
     notifyListeners();
     save();
@@ -558,8 +559,8 @@ class PlayerSession extends ChangeNotifier {
     return true;
   }
 
-  /// Reclama la recompensa del cofre (entre 50 y 2500 monedas + XP) y vacía el slot.
-  int? claimChestReward(int slotIndex, {DateTime? nowUtc}) {
+  /// Reclama la recompensa del cofre (monedas, XP, potenciador y trofeos) y vacía el slot.
+  ChestRewardResult? claimChestReward(int slotIndex, {DateTime? nowUtc}) {
     if (slotIndex < 0 || slotIndex >= _chests.length) return null;
     final chest = _chests[slotIndex];
     if (chest.getState(nowUtc: nowUtc) != ChestState.ready) return null;
@@ -567,18 +568,29 @@ class PlayerSession extends ChangeNotifier {
     final coinsReward = chest.generateRewardCoins();
     final xpReward = chest.generateRewardXp();
     final boosterReward = chest.generateRewardBooster();
+    final trophiesReward = chest.generateRewardTrophies();
 
     _coins += coinsReward;
     _addXpInternal(xpReward);
-    
+
     if (boosterReward != null) {
       addBooster(boosterReward);
+    }
+
+    if (trophiesReward > 0) {
+      PlayerStatsModel.shared.addTrophies(trophiesReward);
     }
 
     _chests[slotIndex] = ChestSlotModel.empty(slotIndex);
     notifyListeners();
     save();
-    return coinsReward;
+    return ChestRewardResult(
+      coins: coinsReward,
+      xp: xpReward,
+      trophies: trophiesReward,
+      booster: boosterReward,
+      rarity: chest.rarity,
+    );
   }
 
   // --- SERIALIZACIÓN JSON Y PERSISTENCIA ---

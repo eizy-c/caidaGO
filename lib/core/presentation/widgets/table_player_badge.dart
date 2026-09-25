@@ -31,6 +31,7 @@ class TablePlayerBadge extends StatelessWidget {
   final int? playerLevel;
   final VoidCallback? onTap;
   final bool isCompact;
+  final Color? cardBackColor;
 
   const TablePlayerBadge({
     super.key,
@@ -52,6 +53,7 @@ class TablePlayerBadge extends StatelessWidget {
     this.playerLevel,
     this.onTap,
     this.isCompact = false,
+    this.cardBackColor,
   }) : assert(scoreOrCards != null || score != null, 'Debe especificarse score o scoreOrCards');
 
   @override
@@ -450,6 +452,7 @@ class TablePlayerBadge extends StatelessWidget {
 
   Widget _buildMiniFacedownCards() {
     final count = cardsInHandCount.clamp(0, 5);
+    final effectiveBackColor = cardBackColor ?? const Color(0xFF1E3A8A);
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: List.generate(count, (index) {
@@ -459,7 +462,7 @@ class TablePlayerBadge extends StatelessWidget {
             width: 14,
             height: 20,
             decoration: BoxDecoration(
-              color: const Color(0xFF1E3A8A),
+              color: effectiveBackColor,
               borderRadius: BorderRadius.circular(2),
               border: Border.all(color: Colors.white70, width: 0.8),
               boxShadow: const [
@@ -471,7 +474,12 @@ class TablePlayerBadge extends StatelessWidget {
                 width: 8,
                 height: 14,
                 decoration: BoxDecoration(
-                  border: Border.all(color: const Color(0xFFFBBF24), width: 0.5),
+                  border: Border.all(
+                    color: effectiveBackColor.computeLuminance() > 0.4
+                        ? const Color(0xFF1E1B4B)
+                        : const Color(0xFFFBBF24),
+                    width: 0.5,
+                  ),
                 ),
               ),
             ),

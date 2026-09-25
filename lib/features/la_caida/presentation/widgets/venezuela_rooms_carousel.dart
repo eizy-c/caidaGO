@@ -56,9 +56,21 @@ class _VenezuelaRoomsCarouselScreenState extends State<VenezuelaRoomsCarouselScr
   void initState() {
     super.initState();
     _selectedMode = widget.initialMode;
+    final rooms = VenezuelaRoomCatalog.rooms;
+    final coins = PlayerSession.shared.coins;
+    int highestAccessible = 0;
+    for (int i = 0; i < rooms.length; i++) {
+      final r = rooms[i];
+      final isUnlocked = widget.manager.isRoomUnlocked(r.id);
+      final canAfford = coins >= r.entryFee;
+      if (isUnlocked && canAfford) {
+        highestAccessible = i;
+      }
+    }
+    _currentPage = highestAccessible;
     _pageController = PageController(
       viewportFraction: 0.74,
-      initialPage: 0,
+      initialPage: highestAccessible,
     );
   }
 
@@ -92,9 +104,6 @@ class _VenezuelaRoomsCarouselScreenState extends State<VenezuelaRoomsCarouselScr
     return ListenableBuilder(
       listenable: widget.manager,
       builder: (context, _) {
-        final totalTrophies = widget.manager.getTotalTrophies();
-        final currentCoins = PlayerSession.shared.coins;
-
         final screenHeight = MediaQuery.of(context).size.height;
         final carouselHeight = (screenHeight * 0.62).clamp(380.0, 460.0);
 
@@ -176,59 +185,6 @@ class _VenezuelaRoomsCarouselScreenState extends State<VenezuelaRoomsCarouselScr
                                   color: Color(0xFFDCE2FD),
                                   fontSize: 11,
                                   fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        // Píldora de Trofeos Totales
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              colors: [Color(0xFFD97706), Color(0xFFB45309)],
-                            ),
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: const Color(0xFFFDE047), width: 1.2),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Text('🏆', style: TextStyle(fontSize: 12)),
-                              const SizedBox(width: 4),
-                              Text(
-                                '$totalTrophies',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w900,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-
-                        // Píldora de Monedas
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: AppPalette.cartoonCardDark,
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: AppPalette.cartoonBorder, width: 1.5),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Text('🪙', style: TextStyle(fontSize: 12)),
-                              const SizedBox(width: 4),
-                              Text(
-                                '$currentCoins',
-                                style: const TextStyle(
-                                  color: Color(0xFFFDE047),
-                                  fontWeight: FontWeight.w900,
-                                  fontSize: 12,
                                 ),
                               ),
                             ],
@@ -326,7 +282,7 @@ class _VenezuelaRoomsCarouselScreenState extends State<VenezuelaRoomsCarouselScr
         children: [
           Expanded(
             child: _buildModeOptionButton(
-              title: '⚔️ Duelo 1 vs 1',
+              title: 'Duelo 1 vs 1',
               subtitle: 'Mano a Mano (2P)',
               mode: GameMode.duel1v1,
             ),
@@ -334,7 +290,7 @@ class _VenezuelaRoomsCarouselScreenState extends State<VenezuelaRoomsCarouselScr
           const SizedBox(width: 4),
           Expanded(
             child: _buildModeOptionButton(
-              title: '👥 Parejas 2 vs 2',
+              title: 'Parejas 2 vs 2',
               subtitle: 'En Equipo (4P)',
               mode: GameMode.teams2v2,
             ),
@@ -664,7 +620,7 @@ class _VenezuelaRoomsCarouselScreenState extends State<VenezuelaRoomsCarouselScr
                                   ),
                                 ),
                                 Text(
-                                  '🪙 ${room.entryFee}',
+                                  room.entryFeeFormatted,
                                   style: const TextStyle(
                                     color: Colors.white,
                                     fontWeight: FontWeight.w900,
@@ -690,7 +646,7 @@ class _VenezuelaRoomsCarouselScreenState extends State<VenezuelaRoomsCarouselScr
                                   ),
                                 ),
                                 Text(
-                                  '🪙 $totalPot',
+                                  '$totalPot',
                                   style: const TextStyle(
                                     color: Color(0xFFFDE047),
                                     fontWeight: FontWeight.w900,
@@ -716,7 +672,7 @@ class _VenezuelaRoomsCarouselScreenState extends State<VenezuelaRoomsCarouselScr
                                   ),
                                 ),
                                 Text(
-                                  '🪙 $prizePerWinner',
+                                  '$prizePerWinner',
                                   style: const TextStyle(
                                     color: Color(0xFF34D399),
                                     fontWeight: FontWeight.w900,
@@ -742,7 +698,7 @@ class _VenezuelaRoomsCarouselScreenState extends State<VenezuelaRoomsCarouselScr
                             Expanded(
                               child: Row(
                                 children: [
-                                  const Text('🏆', style: TextStyle(fontSize: 11)),
+                                  const Icon(Icons.emoji_events_rounded, color: Color(0xFFFDE047), size: 12),
                                   const SizedBox(width: 4),
                                   Flexible(
                                     child: Text(
@@ -801,7 +757,7 @@ class _VenezuelaRoomsCarouselScreenState extends State<VenezuelaRoomsCarouselScr
                           children: [
                             Flexible(
                               child: Text(
-                                'Victoria: +${room.winTrophies} 🏆',
+                                'Victoria: +${room.winTrophies}',
                                 style: const TextStyle(
                                   color: Color(0xFF4ADE80),
                                   fontSize: 8.5,
@@ -815,8 +771,8 @@ class _VenezuelaRoomsCarouselScreenState extends State<VenezuelaRoomsCarouselScr
                             Flexible(
                               child: Text(
                                 room.lossTrophies == 0
-                                    ? 'Derrota: 0 🏆'
-                                    : 'Derrota: ${room.lossTrophies} 🏆',
+                                    ? 'Derrota: 0'
+                                    : 'Derrota: ${room.lossTrophies}',
                                 style: const TextStyle(
                                   color: Color(0xFFF87171),
                                   fontSize: 8.5,
@@ -867,7 +823,7 @@ class _VenezuelaRoomsCarouselScreenState extends State<VenezuelaRoomsCarouselScr
             const SizedBox(width: 6),
             Flexible(
               child: Text(
-                'Faltan $remaining 🏆 en $prevName',
+                'Faltan $remaining trofeos en $prevName',
                 style: const TextStyle(
                   color: Colors.white70,
                   fontSize: 10.5,
@@ -896,7 +852,7 @@ class _VenezuelaRoomsCarouselScreenState extends State<VenezuelaRoomsCarouselScr
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 6),
               child: Text(
-                '🪙 FICHAS INSUFICIENTES (Entrada: ${room.entryFee})',
+                'MONEDAS INSUFICIENTES (Entrada: ${room.entryFeeFormatted})',
                 style: const TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.w900,
@@ -933,7 +889,7 @@ class _VenezuelaRoomsCarouselScreenState extends State<VenezuelaRoomsCarouselScr
                 setState(() {});
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text('¡Fondo de ${room.name} aplicado al Menú Principal! 🎨'),
+                    content: Text('¡Fondo de ${room.name} aplicado al Menú Principal!'),
                     backgroundColor: room.primaryColor,
                     duration: const Duration(seconds: 2),
                   ),
@@ -964,7 +920,7 @@ class _VenezuelaRoomsCarouselScreenState extends State<VenezuelaRoomsCarouselScr
                     const Icon(Icons.play_arrow_rounded, color: Colors.white, size: 20),
                     const SizedBox(width: 4),
                     Text(
-                      'JUGAR (🪙 ${room.entryFee})',
+                      'JUGAR (${room.entryFeeFormatted})',
                       style: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.w900,

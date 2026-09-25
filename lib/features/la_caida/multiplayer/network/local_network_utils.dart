@@ -46,4 +46,18 @@ class LocalNetworkUtils {
     final pinNum = (now % 9000) + 1000;
     return pinNum.toString();
   }
+
+  /// Genera un ID de sala de 5 caracteres alfanuméricos en mayúsculas (ej: K7X9B)
+  static String generateRoomId() {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    final now = DateTime.now().microsecondsSinceEpoch;
+    final rnd = (now ^ (now >> 7));
+    var n = rnd.abs();
+    final buffer = StringBuffer();
+    for (int i = 0; i < 5; i++) {
+      buffer.write(chars[n % chars.length]);
+      n = (n ~/ chars.length) ^ (DateTime.now().microsecond + i * 31);
+    }
+    return buffer.toString();
+  }
 }

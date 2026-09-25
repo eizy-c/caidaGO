@@ -156,6 +156,7 @@ class LocalGameClient {
           type: 'CREATE_ONLINE_ROOM',
           data: {
             'playerId': _myPlayerId,
+            'hostPlayerId': _myPlayerId,
             'roomName': roomName,
             'hostName': hostName,
             'avatarId': hostAvatarId,
@@ -237,6 +238,65 @@ class LocalGameClient {
       debugPrint('[LocalGameClient] Falló unirse a sala online: $e');
       _setStatus(ClientConnectionStatus.error);
       errorMessageNotifier.value = 'No se pudo conectar con el servidor online. Revisa tu conexión a internet.';
+      return false;
+    }
+  }
+
+  /// Emparejamiento Rápido: Conecta al servidor y solicita unirse a una mesa abierta o crear una automática
+  Future<bool> requestQuickMatch({
+    required String serverUrl,
+    required String playerName,
+    required int avatarId,
+    required String frameId,
+    int targetPlayers = 2,
+    int? regionalRoomId,
+    int entryFee = 0,
+  }) async {
+    await disconnect();
+
+    _isOnlineMode = true;
+    _setStatus(ClientConnectionStatus.connecting);
+    errorMessageNotifier.value = null;
+    _myPlayerId = 'player_${DateTime.now().millisecondsSinceEpoch}';
+
+    try {
+      final wsUrl = _normalizeWsUrl(serverUrl);
+      _socket = await WebSocket.connect(wsUrl).timeout(
+        const Duration(seconds: 6),
+        onTimeout: () {
+          throw TimeoutException('No se pudo conectar al servidor online en $wsUrl');
+        },
+      );
+
+      _socket!.listen(
+        _handleIncomingData,
+        onDone: _handleConnectionClosed,
+        onError: (err) {
+          _setStatus(ClientConnectionStatus.error);
+          errorMessageNotifier.value = 'Error en conexión con el servidor: $err';
+        },
+      );
+
+      sendMessage(
+        NetworkGameMessage(
+          type: 'QUICK_MATCH',
+          data: {
+            'playerId': _myPlayerId,
+            'name': playerName,
+            'avatarId': avatarId,
+            'frameId': frameId,
+            'targetPlayers': targetPlayers,
+            'regionalRoomId': regionalRoomId,
+            'entryFee': entryFee,
+          },
+        ),
+      );
+
+      return true;
+    } catch (e) {
+      debugPrint('[LocalGameClient] Error en emparejamiento rápido: $e');
+      _setStatus(ClientConnectionStatus.error);
+      errorMessageNotifier.value = 'No se pudo conectar al servidor: $e';
       return false;
     }
   }

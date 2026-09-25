@@ -2,17 +2,23 @@ import 'package:flutter/material.dart';
 import '../../economy/booster_model.dart';
 import '../../economy/player_session.dart';
 import '../../economy/player_stats_model.dart';
+import '../../economy/trophy_session_manager.dart';
 import '../../../../core/presentation/widgets/app_3d_button.dart';
 import '../../../../core/presentation/widgets/cartoon_widgets.dart';
 import '../../../../core/theme/app_palette.dart';
 import '../../../../core/services/haptic_service.dart';
+import 'avatar_view.dart';
 import 'chest_slots_view.dart';
+import 'profile_and_level_modal.dart';
 import 'user_frame_view.dart';
 
 /// Modal centralizado de Inventario para CaidaGO:
-/// - Pestaña 1: Potenciadores (Inventario, activos y adquisición)
-/// - Pestaña 2: Marcos (Marcos desbloqueados por trofeos y marco equipado)
-/// - Pestaña 3: Cofres (Slots y recompensas)
+/// Solo muestra elementos que el usuario posee, ha comprado o ha desbloqueado.
+/// - Pestaña 1: Potenciadores (Disponibles y activos)
+/// - Pestaña 2: Marcos (Desbloqueados)
+/// - Pestaña 3: Avatares (Héroes disponibles)
+/// - Pestaña 4: Fondos (Desbloqueados)
+/// - Pestaña 5: Cofres (Slots y recompensas)
 class InventoryModal extends StatefulWidget {
   const InventoryModal({super.key});
 
@@ -36,7 +42,7 @@ class _InventoryModalState extends State<InventoryModal>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 5, vsync: this);
   }
 
   @override
@@ -90,7 +96,7 @@ class _InventoryModalState extends State<InventoryModal>
                   ),
                 ),
 
-                // Cabecera con balances
+                // Cabecera: solo título y botón cerrar (sin balances según requerimiento)
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 4),
                   child: Row(
@@ -126,35 +132,18 @@ class _InventoryModalState extends State<InventoryModal>
                           ),
                         ],
                       ),
-                      // Balances Monedas y Tickets
-                      Row(
-                        children: [
-                          _buildBalanceBadge(
-                            icon: Icons.monetization_on_rounded,
-                            iconColor: const Color(0xFFF59E0B),
-                            text: '${session.coins}',
+                      TactilePressable(
+                        depth: 2.0,
+                        onTap: () => Navigator.of(context).pop(),
+                        child: Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            gradient: AppGradients.redDanger,
+                            shape: BoxShape.circle,
+                            border: Border.all(color: AppPalette.cartoonBorder, width: 1.2),
                           ),
-                          const SizedBox(width: 8),
-                          _buildBalanceBadge(
-                            icon: Icons.confirmation_number_rounded,
-                            iconColor: const Color(0xFF38BDF8),
-                            text: '${session.tickets}/${session.maxTickets}',
-                          ),
-                          const SizedBox(width: 8),
-                          TactilePressable(
-                            depth: 2.0,
-                            onTap: () => Navigator.of(context).pop(),
-                            child: Container(
-                              padding: const EdgeInsets.all(6),
-                              decoration: BoxDecoration(
-                                gradient: AppGradients.redDanger,
-                                shape: BoxShape.circle,
-                                border: Border.all(color: AppPalette.cartoonBorder, width: 1.2),
-                              ),
-                              child: const Icon(Icons.close_rounded, color: Colors.white, size: 18),
-                            ),
-                          ),
-                        ],
+                          child: const Icon(Icons.close_rounded, color: Colors.white, size: 18),
+                        ),
                       ),
                     ],
                   ),
@@ -162,9 +151,9 @@ class _InventoryModalState extends State<InventoryModal>
 
                 const SizedBox(height: 6),
 
-                // Pestañas
+                // Pestañas de categorías
                 Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 16),
+                  margin: const EdgeInsets.symmetric(horizontal: 14),
                   decoration: BoxDecoration(
                     color: AppPalette.cartoonBgDark,
                     borderRadius: BorderRadius.circular(14),
@@ -172,6 +161,8 @@ class _InventoryModalState extends State<InventoryModal>
                   ),
                   child: TabBar(
                     controller: _tabController,
+                    isScrollable: true,
+                    tabAlignment: TabAlignment.center,
                     indicator: BoxDecoration(
                       gradient: AppGradients.cyanAccent,
                       borderRadius: BorderRadius.circular(12),
@@ -179,18 +170,26 @@ class _InventoryModalState extends State<InventoryModal>
                     indicatorSize: TabBarIndicatorSize.tab,
                     labelColor: Colors.white,
                     unselectedLabelColor: Colors.white60,
-                    labelStyle: const TextStyle(fontWeight: FontWeight.w900, fontSize: 13),
+                    labelStyle: const TextStyle(fontWeight: FontWeight.w900, fontSize: 12),
                     tabs: const [
                       Tab(
-                        icon: Icon(Icons.bolt_rounded, size: 18),
+                        icon: Icon(Icons.bolt_rounded, size: 16),
                         text: 'Potenciadores',
                       ),
                       Tab(
-                        icon: Icon(Icons.crop_square_rounded, size: 18),
+                        icon: Icon(Icons.crop_square_rounded, size: 16),
                         text: 'Marcos',
                       ),
                       Tab(
-                        icon: Icon(Icons.inventory_2_rounded, size: 18),
+                        icon: Icon(Icons.face_rounded, size: 16),
+                        text: 'Avatares',
+                      ),
+                      Tab(
+                        icon: Icon(Icons.wallpaper_rounded, size: 16),
+                        text: 'Fondos',
+                      ),
+                      Tab(
+                        icon: Icon(Icons.inventory_2_rounded, size: 16),
                         text: 'Cofres',
                       ),
                     ],
@@ -206,6 +205,8 @@ class _InventoryModalState extends State<InventoryModal>
                     children: [
                       _buildBoostersTab(session),
                       _buildFramesTab(session, stats.trophies),
+                      _buildAvatarsTab(session),
+                      _buildThemesTab(session),
                       _buildChestsTab(session),
                     ],
                   ),
@@ -218,40 +219,37 @@ class _InventoryModalState extends State<InventoryModal>
     );
   }
 
-  Widget _buildBalanceBadge({
-    required IconData icon,
-    required Color iconColor,
-    required String text,
-  }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: AppPalette.cartoonCardDark,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppPalette.cartoonBorder, width: 1.2),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, color: iconColor, size: 14),
-          const SizedBox(width: 4),
-          Text(
-            text,
-            style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-              fontSize: 12,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // --- TAB 1: POTENCIADORES ---
+  // --- TAB 1: POTENCIADORES (Solo adquiridos / disponibles) ---
   Widget _buildBoostersTab(PlayerSession session) {
     final catalog = BoosterDefinition.catalog;
     final active = session.activeBoosters;
+    final owned = catalog.where((def) => session.getBoosterCount(def.type) > 0 || active.contains(def.type)).toList();
+
+    if (owned.isEmpty && active.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(28.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.bolt_outlined, size: 52, color: Colors.white.withValues(alpha: 0.25)),
+              const SizedBox(height: 12),
+              const Text(
+                'No tienes potenciadores en tu inventario.',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                '¡Gánalos al abrir cofres de victoria en las distintas mesas!',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.white.withValues(alpha: 0.6), fontSize: 12),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
 
     return ListView(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -308,7 +306,7 @@ class _InventoryModalState extends State<InventoryModal>
             ),
           ),
         ],
-        ...catalog.map((def) {
+        ...owned.map((def) {
           final count = session.getBoosterCount(def.type);
           final isActive = active.contains(def.type);
 
@@ -411,28 +409,6 @@ class _InventoryModalState extends State<InventoryModal>
                     },
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                     icon: Icons.bolt_rounded,
-                  )
-                else
-                  App3dButton(
-                    label: '${def.coinCost}',
-                    variant: App3dButtonVariant.gold,
-                    depth: 3.5,
-                    onPressed: () {
-                      HapticService.instance.onSelection();
-                      if (session.coins >= def.coinCost) {
-                        session.deductCoinsForVipMatch(def.coinCost);
-                        session.addBooster(def.type, 1);
-                      } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Monedas insuficientes'),
-                            duration: Duration(seconds: 2),
-                          ),
-                        );
-                      }
-                    },
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                    icon: Icons.monetization_on_rounded,
                   ),
               ],
             ),
@@ -442,9 +418,9 @@ class _InventoryModalState extends State<InventoryModal>
     );
   }
 
-  // --- TAB 2: MARCOS ---
+  // --- TAB 2: MARCOS (Solo desbloqueados) ---
   Widget _buildFramesTab(PlayerSession session, int trophies) {
-    final frames = UserFrameItem.allFrames;
+    final unlockedFrames = UserFrameItem.allFrames.where((f) => f.isUnlockedByTrophies(trophies)).toList();
 
     return GridView.builder(
       padding: const EdgeInsets.all(16),
@@ -454,10 +430,9 @@ class _InventoryModalState extends State<InventoryModal>
         mainAxisSpacing: 12,
         childAspectRatio: 0.88,
       ),
-      itemCount: frames.length,
+      itemCount: unlockedFrames.length,
       itemBuilder: (context, index) {
-        final frame = frames[index];
-        final isUnlocked = frame.isUnlockedByTrophies(trophies);
+        final frame = unlockedFrames[index];
         final isEquipped = session.selectedFrameId == frame.id;
 
         return Container(
@@ -473,7 +448,6 @@ class _InventoryModalState extends State<InventoryModal>
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Preview del marco con avatar cuadrado
               SizedBox(
                 width: 64,
                 height: 64,
@@ -496,14 +470,10 @@ class _InventoryModalState extends State<InventoryModal>
                 overflow: TextOverflow.ellipsis,
               ),
               const SizedBox(height: 2),
-              Text(
-                isUnlocked
-                    ? 'Desbloqueado'
-                    : (frame.requiredRoomId != null
-                        ? 'Completar ${frame.name}'
-                        : '${frame.minTrophies} trofeos'),
+              const Text(
+                'Desbloqueado',
                 style: TextStyle(
-                  color: isUnlocked ? Colors.white70 : Colors.white38,
+                  color: Colors.white70,
                   fontSize: 10,
                   fontWeight: FontWeight.w600,
                 ),
@@ -533,7 +503,7 @@ class _InventoryModalState extends State<InventoryModal>
                     ],
                   ),
                 )
-              else if (isUnlocked)
+              else
                 App3dButton(
                   label: 'Equipar',
                   variant: App3dButtonVariant.gold,
@@ -543,18 +513,6 @@ class _InventoryModalState extends State<InventoryModal>
                     session.updateCustomization(frameId: frame.id);
                   },
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                )
-              else
-                const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.lock_rounded, color: Colors.white38, size: 12),
-                    SizedBox(width: 4),
-                    Text(
-                      'Bloqueado',
-                      style: TextStyle(color: Colors.white38, fontSize: 10),
-                    ),
-                  ],
                 ),
             ],
           ),
@@ -563,7 +521,182 @@ class _InventoryModalState extends State<InventoryModal>
     );
   }
 
-  // --- TAB 3: COFRES ---
+  // --- TAB 3: AVATARES (Avatares disponibles) ---
+  Widget _buildAvatarsTab(PlayerSession session) {
+    final heroes = AvatarPreset.allPresets;
+
+    return GridView.builder(
+      padding: const EdgeInsets.all(16),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 3,
+        crossAxisSpacing: 12,
+        mainAxisSpacing: 12,
+        childAspectRatio: 0.85,
+      ),
+      itemCount: heroes.length,
+      itemBuilder: (context, index) {
+        final hero = heroes[index];
+        final isEquipped = session.avatarIndex == hero.id;
+
+        return GestureDetector(
+          onTap: () {
+            HapticService.instance.onSelection();
+            session.updateCustomization(avatarIndex: hero.id);
+          },
+          child: Container(
+            decoration: BoxDecoration(
+              color: AppPalette.cartoonCardDark,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: isEquipped ? const Color(0xFFFDE047) : AppPalette.cartoonBorder,
+                width: isEquipped ? 2.5 : 1.5,
+              ),
+              boxShadow: isEquipped
+                  ? [
+                      const BoxShadow(
+                        color: Color(0x60FDE047),
+                        blurRadius: 8,
+                        spreadRadius: 1,
+                      )
+                    ]
+                  : null,
+            ),
+            padding: const EdgeInsets.all(8),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: Image.asset(
+                      hero.imagePath,
+                      fit: BoxFit.contain,
+                      errorBuilder: (context, error, stackTrace) => const Icon(Icons.person, color: Colors.white54),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  hero.name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: isEquipped ? const Color(0xFFFDE047) : Colors.white,
+                    fontWeight: isEquipped ? FontWeight.w900 : FontWeight.bold,
+                    fontSize: 11,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  isEquipped ? 'Equipado' : 'Tocar para usar',
+                  style: TextStyle(
+                    color: isEquipped ? const Color(0xFF86EFAC) : Colors.white38,
+                    fontSize: 9,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  // --- TAB 4: FONDOS (Solo desbloqueados) ---
+  Widget _buildThemesTab(PlayerSession session) {
+    final unlockedThemes = LobbyThemeOption.allThemes.where((theme) {
+      if (theme.requiredRoomId == null) return true;
+      return TrophySessionManager.shared.isRoomUnlocked(theme.requiredRoomId!);
+    }).toList();
+
+    return GridView.builder(
+      padding: const EdgeInsets.all(16),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 12,
+        mainAxisSpacing: 12,
+        childAspectRatio: 1.1,
+      ),
+      itemCount: unlockedThemes.length,
+      itemBuilder: (context, index) {
+        final theme = unlockedThemes[index];
+        final isEquipped = session.selectedThemeId == theme.id;
+
+        return GestureDetector(
+          onTap: () {
+            HapticService.instance.onSelection();
+            session.updateCustomization(themeId: theme.id);
+          },
+          child: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: theme.backgroundGradient,
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: isEquipped ? const Color(0xFFFDE047) : AppPalette.cartoonBorder,
+                width: isEquipped ? 2.5 : 1.5,
+              ),
+            ),
+            padding: const EdgeInsets.all(10),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Icon(theme.icon, color: theme.accentColor, size: 20),
+                    if (isEquipped)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFDE047),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: const Text(
+                          'Activo',
+                          style: TextStyle(color: Color(0xFF1E1B4B), fontSize: 9, fontWeight: FontWeight.w900),
+                        ),
+                      ),
+                  ],
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      theme.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                      ),
+                    ),
+                    if (theme.subtitle != null) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        theme.subtitle!,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(color: Colors.white70, fontSize: 10),
+                      ),
+                    ],
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  // --- TAB 5: COFRES ---
   Widget _buildChestsTab(PlayerSession session) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -583,7 +716,7 @@ class _InventoryModalState extends State<InventoryModal>
                 SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    'Gana partidas para obtener cofres con monedas, XP y potenciadores.',
+                    'Gana partidas para obtener cofres con monedas, XP, potenciadores y trofeos.',
                     style: TextStyle(color: Colors.white70, fontSize: 12),
                   ),
                 ),
