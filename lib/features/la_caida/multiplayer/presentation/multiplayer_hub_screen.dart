@@ -36,13 +36,17 @@ class _MultiplayerHubScreenState extends State<MultiplayerHubScreen> {
   final TextEditingController _pinController = TextEditingController(text: '1234');
   bool _fillWithBots = true;
   VenezuelaRoomTier? _selectedRegionalRoom;
-  final MultiplayerNetworkMode _createNetworkMode = MultiplayerNetworkMode.localWifi;
+  MultiplayerNetworkMode _networkMode = MultiplayerNetworkMode.online;
+  String _onlineServerUrl = 'ws://127.0.0.1:8080/ws';
+  List<MultiplayerRoomInfo> _onlineRooms = [];
+  bool _isLoadingOnlineRooms = false;
   String? _myLocalIp;
 
   @override
   void initState() {
     super.initState();
     _initNetworkAndScanning();
+    _refreshOnlineRooms();
   }
 
   Future<void> _initNetworkAndScanning() async {
@@ -53,6 +57,18 @@ class _MultiplayerHubScreenState extends State<MultiplayerHubScreen> {
       });
     }
     await _beaconService.startListening();
+  }
+
+  Future<void> _refreshOnlineRooms() async {
+    if (!mounted) return;
+    setState(() => _isLoadingOnlineRooms = true);
+    final rooms = await LocalGameClient.fetchOnlinePublicRoomsHttp(_onlineServerUrl);
+    if (mounted) {
+      setState(() {
+        _onlineRooms = rooms;
+        _isLoadingOnlineRooms = false;
+      });
+    }
   }
 
   @override
@@ -107,10 +123,57 @@ class _MultiplayerHubScreenState extends State<MultiplayerHubScreen> {
       pinCode: pin,
       isTeams: _isTeams && _targetPlayers == 4,
       fillWithBots: _fillWithBots,
-      networkMode: _createNetworkMode,
+      networkMode: _networkMode,
       regionalRoomId: _selectedRegionalRoom?.id,
       entryFee: entryFee,
     );
+
+    if (_networkMode == MultiplayerNetworkMode.online) {
+      final client = LocalGameClient();
+      final created = await client.createOnlineRoom(
+        serverUrl: _onlineServerUrl,
+        roomName: roomName,
+        hostName: _session.name.isNotEmpty ? _session.name : 'Anfitrión',
+        hostAvatarId: _session.avatarIndex,
+        hostFrameId: _session.selectedFrameId,
+        targetPlayers: _targetPlayers,
+        isPrivate: _isPrivate,
+        pinCode: pin,
+        isTeams: _isTeams && _targetPlayers == 4,
+        fillWithBots: _fillWithBots,
+        regionalRoomId: _selectedRegionalRoom?.id,
+        entryFee: entryFee,
+      );
+
+      if (!created) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(client.errorMessageNotifier.value ?? 'No se pudo conectar al servidor online.'),
+              backgroundColor: const Color(0xFFEF4444),
+            ),
+          );
+        }
+        return;
+      }
+
+      await Future.delayed(const Duration(milliseconds: 250));
+      if (!mounted) return;
+
+      final room = client.currentRoom ?? roomInfo;
+
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => MultiplayerWaitingRoomScreen(
+            roomInfo: room,
+            host: null,
+            client: client,
+            isHost: true,
+          ),
+        ),
+      );
+      return;
+    }
 
     final host = LocalGameHost();
     final started = await host.startServer(
@@ -161,6 +224,46 @@ class _MultiplayerHubScreenState extends State<MultiplayerHubScreen> {
     if (room.isPrivate) {
       pinToUse = await EnterPinDialog.show(context, roomName: room.roomName);
       if (pinToUse == null) return; // Cancelado por el usuario
+    }
+
+    if (_networkMode == MultiplayerNetworkMode.online || room.networkMode == MultiplayerNetworkMode.online) {
+      final client = LocalGameClient();
+      final connected = await client.joinOnlineRoom(
+        serverUrl: _onlineServerUrl,
+        playerName: _session.name.isNotEmpty ? _session.name : 'Invitado',
+        avatarId: _session.avatarIndex,
+        frameId: _session.selectedFrameId,
+        roomId: room.roomId,
+        pinCode: pinToUse,
+      );
+
+      if (!connected) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(client.errorMessageNotifier.value ?? 'No se pudo conectar a la sala online.'),
+              backgroundColor: const Color(0xFFEF4444),
+            ),
+          );
+        }
+        return;
+      }
+
+      await Future.delayed(const Duration(milliseconds: 250));
+      if (!mounted) return;
+
+      final joinedRoom = client.currentRoom ?? room;
+
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => MultiplayerWaitingRoomScreen(
+            roomInfo: joinedRoom,
+            client: client,
+            isHost: false,
+          ),
+        ),
+      );
+      return;
     }
 
     final client = LocalGameClient();
@@ -313,6 +416,51 @@ class _MultiplayerHubScreenState extends State<MultiplayerHubScreen> {
                 final pin = pinController.text.trim();
                 final customIp = ipController.text.trim();
                 Navigator.of(ctx).pop();
+
+                if (_networkMode == MultiplayerNetworkMode.online) {
+                  final navigator = Navigator.of(context);
+                  final messenger = ScaffoldMessenger.of(context);
+                  final client = LocalGameClient();
+                  client.joinOnlineRoom(
+                    serverUrl: customIp.isNotEmpty ? customIp : _onlineServerUrl,
+                    playerName: _session.name.isNotEmpty ? _session.name : 'Invitado',
+                    avatarId: _session.avatarIndex,
+                    frameId: _session.selectedFrameId,
+                    pinCode: pin,
+                  ).then((joined) async {
+                    if (joined && mounted) {
+                      await Future.delayed(const Duration(milliseconds: 250));
+                      final r = client.currentRoom ??
+                          MultiplayerRoomInfo(
+                            roomId: 'ONLINE_PIN',
+                            roomName: 'Sala Online',
+                            hostName: 'Anfitrión',
+                            hostIp: _onlineServerUrl,
+                            isPrivate: true,
+                            pinCode: pin,
+                            networkMode: MultiplayerNetworkMode.online,
+                          );
+                      navigator.push(
+                        MaterialPageRoute(
+                          builder: (_) => MultiplayerWaitingRoomScreen(
+                            roomInfo: r,
+                            client: client,
+                            isHost: false,
+                          ),
+                        ),
+                      );
+                    } else if (mounted) {
+                      messenger.showSnackBar(
+                        SnackBar(
+                          content: Text(client.errorMessageNotifier.value ??
+                              'PIN incorrecto o sala online no encontrada.'),
+                          backgroundColor: const Color(0xFFEF4444),
+                        ),
+                      );
+                    }
+                  });
+                  return;
+                }
 
                 final discovered = _beaconService.discoveredRoomsNotifier.value;
                 MultiplayerRoomInfo? matchedRoom;
@@ -963,8 +1111,10 @@ class _MultiplayerHubScreenState extends State<MultiplayerHubScreen> {
                         ],
                       ),
                       alignment: Alignment.center,
-                      child: const CartoonStrokeText(
-                        'ABRIR SALA (SIN INTERNET)',
+                      child: CartoonStrokeText(
+                        _networkMode == MultiplayerNetworkMode.online
+                            ? 'CREAR SALA ONLINE'
+                            : 'ABRIR SALA (SIN INTERNET)',
                         fontSize: 15,
                         textColor: Colors.white,
                       ),
@@ -979,6 +1129,70 @@ class _MultiplayerHubScreenState extends State<MultiplayerHubScreen> {
     );
   }
 
+  void _showServerConfigDialog() {
+    final serverController = TextEditingController(text: _onlineServerUrl);
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppPalette.cartoonBgDark,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: const BorderSide(color: AppPalette.cartoonBorder, width: 2),
+        ),
+        title: const Row(
+          children: [
+            Icon(Icons.dns_rounded, color: AppPalette.cartoonYellow, size: 24),
+            SizedBox(width: 8),
+            Text(
+              'Servidor Online',
+              style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Dirección WebSocket del servidor central (nube o PC local):',
+              style: TextStyle(color: Colors.white70, fontSize: 12),
+            ),
+            const SizedBox(height: 10),
+            TextField(
+              controller: serverController,
+              style: const TextStyle(color: Colors.white, fontSize: 13),
+              decoration: InputDecoration(
+                hintText: 'ws://127.0.0.1:8080/ws',
+                hintStyle: const TextStyle(color: Colors.white30, fontSize: 12),
+                filled: true,
+                fillColor: const Color(0xFF262169),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('CANCELAR', style: TextStyle(color: Colors.white54)),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              final newUrl = serverController.text.trim();
+              if (newUrl.isNotEmpty) {
+                setState(() => _onlineServerUrl = newUrl);
+                _refreshOnlineRooms();
+              }
+              Navigator.of(ctx).pop();
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: AppPalette.cartoonCyan),
+            child: const Text('GUARDAR', style: TextStyle(color: Color(0xFF1E1B4B), fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -986,8 +1200,11 @@ class _MultiplayerHubScreenState extends State<MultiplayerHubScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // Header estilo cartoon: Botón <, Título SALAS, Botón Buscar
+            // Header estilo cartoon: Botón <, Título SALAS, Botón Buscar y Servidor
             _buildHeader(context),
+
+            // Selector de Modo de Red (Online / Wi-Fi Local)
+            _buildNetworkModeSelector(),
 
             // Pestañas cartoon: "PÚBLICAS" y "PRIVADAS" con indicador turquesa
             _buildFilterTabs(),
@@ -1036,14 +1253,137 @@ class _MultiplayerHubScreenState extends State<MultiplayerHubScreen> {
             strokeColor: AppPalette.cartoonCardText,
             strokeWidth: 4,
           ),
-          CartoonRoundButton(
-            onPressed: _showSearchOrJoinPinDialog,
-            width: 44,
-            height: 44,
-            child: const Icon(
-              Icons.search_rounded,
-              color: AppPalette.cartoonCardText,
-              size: 24,
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (_networkMode == MultiplayerNetworkMode.online)
+                Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: CartoonRoundButton(
+                    onPressed: _showServerConfigDialog,
+                    width: 44,
+                    height: 44,
+                    child: const Icon(
+                      Icons.dns_rounded,
+                      color: AppPalette.cartoonCardText,
+                      size: 22,
+                    ),
+                  ),
+                ),
+              CartoonRoundButton(
+                onPressed: _showSearchOrJoinPinDialog,
+                width: 44,
+                height: 44,
+                child: const Icon(
+                  Icons.search_rounded,
+                  color: AppPalette.cartoonCardText,
+                  size: 24,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNetworkModeSelector() {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1E174D),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppPalette.cartoonBorder, width: 1.5),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: GestureDetector(
+              onTap: () {
+                setState(() => _networkMode = MultiplayerNetworkMode.online);
+                _refreshOnlineRooms();
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                decoration: BoxDecoration(
+                  gradient: _networkMode == MultiplayerNetworkMode.online
+                      ? AppGradients.cyanAccent
+                      : null,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                alignment: Alignment.center,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.public_rounded,
+                      size: 16,
+                      color: _networkMode == MultiplayerNetworkMode.online
+                          ? const Color(0xFF1E1B4B)
+                          : Colors.white70,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      'EN LÍNEA (INTERNET)',
+                      style: TextStyle(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w900,
+                        color: _networkMode == MultiplayerNetworkMode.online
+                            ? const Color(0xFF1E1B4B)
+                            : Colors.white70,
+                        letterSpacing: 0.3,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 4),
+          Expanded(
+            child: GestureDetector(
+              onTap: () {
+                setState(() => _networkMode = MultiplayerNetworkMode.localWifi);
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                decoration: BoxDecoration(
+                  gradient: _networkMode == MultiplayerNetworkMode.localWifi
+                      ? const LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [Color(0xFFF97316), Color(0xFFEA580C)],
+                        )
+                      : null,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                alignment: Alignment.center,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.wifi_rounded,
+                      size: 16,
+                      color: _networkMode == MultiplayerNetworkMode.localWifi
+                          ? Colors.white
+                          : Colors.white70,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      'WI-FI LOCAL',
+                      style: TextStyle(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w900,
+                        color: _networkMode == MultiplayerNetworkMode.localWifi
+                            ? Colors.white
+                            : Colors.white70,
+                        letterSpacing: 0.3,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
         ],
@@ -1141,6 +1481,84 @@ class _MultiplayerHubScreenState extends State<MultiplayerHubScreen> {
   }
 
   Widget _buildRoomList() {
+    if (_networkMode == MultiplayerNetworkMode.online) {
+      if (_isLoadingOnlineRooms) {
+        return const Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CircularProgressIndicator(color: AppPalette.cartoonCyan),
+              SizedBox(height: 12),
+              Text(
+                'Consultando salas en el servidor online...',
+                style: TextStyle(color: Colors.white70, fontSize: 13),
+              ),
+            ],
+          ),
+        );
+      }
+
+      final filteredRooms = _selectedFilterIndex == 1
+          ? _onlineRooms.where((r) => r.isPrivate).toList()
+          : _onlineRooms.where((r) => !r.isPrivate).toList();
+
+      if (filteredRooms.isEmpty) {
+        return Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(18),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF332D8C),
+                  shape: BoxShape.circle,
+                  border: Border.all(color: AppPalette.cartoonBorder, width: 2),
+                ),
+                child: const Icon(
+                  Icons.public_rounded,
+                  size: 42,
+                  color: AppPalette.cartoonCyan,
+                ),
+              ),
+              const SizedBox(height: 14),
+              const CartoonStrokeText(
+                'SIN SALAS ONLINE ACTIVAS',
+                fontSize: 15,
+                textColor: Colors.white,
+                strokeColor: AppPalette.cartoonCardText,
+                strokeWidth: 2.5,
+              ),
+              const SizedBox(height: 6),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 40),
+                child: Text(
+                  'Sé el primero en abrir una mesa en Internet o únete con el PIN privado de un amigo.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.white60, fontSize: 11.5),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextButton.icon(
+                onPressed: _refreshOnlineRooms,
+                icon: const Icon(Icons.refresh_rounded, color: AppPalette.cartoonCyan, size: 18),
+                label: const Text('Actualizar salas online', style: TextStyle(color: AppPalette.cartoonCyan, fontSize: 12)),
+              ),
+            ],
+          ),
+        );
+      }
+
+      return ListView.builder(
+        physics: const BouncingScrollPhysics(),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        itemCount: filteredRooms.length,
+        itemBuilder: (context, index) {
+          final room = filteredRooms[index];
+          return _buildRoomCard(room);
+        },
+      );
+    }
+
     return ValueListenableBuilder<List<MultiplayerRoomInfo>>(
       valueListenable: _beaconService.discoveredRoomsNotifier,
       builder: (context, allRooms, _) {

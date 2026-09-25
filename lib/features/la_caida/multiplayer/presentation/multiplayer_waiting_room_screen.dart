@@ -65,6 +65,11 @@ class _MultiplayerWaitingRoomScreenState
   }
 
   void _startMatchAsHost() {
+    if (widget.client.isOnlineMode) {
+      widget.client.requestStartOnlineMatch();
+      return;
+    }
+
     if (widget.host == null) return;
 
     // Rellenar automáticamente con Bots si faltan puestos

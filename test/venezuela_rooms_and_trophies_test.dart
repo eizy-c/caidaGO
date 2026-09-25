@@ -33,7 +33,7 @@ void main() {
       expect(r1.trophyCap, equals(15));
       expect(r1.winTrophies, equals(3));
       expect(r1.lossTrophies, equals(0));
-      expect(r1.frameAsset, equals('assets/Tiers/box/1-SALAS.png'));
+      expect(r1.frameAsset, equals('assets/Tiers/box/1-SALAS.webp'));
 
       // 2. Barquisimeto (Lara)
       final r2 = rooms[1];
@@ -47,7 +47,7 @@ void main() {
       expect(r2.winTrophies, equals(4));
       expect(r2.lossTrophies, equals(-2));
       expect(r2.requiredPrevTrophies, equals(15));
-      expect(r2.frameAsset, equals('assets/Tiers/box/2-SALAS.png'));
+      expect(r2.frameAsset, equals('assets/Tiers/box/2-SALAS.webp'));
 
       // 3. Tucacas (Falcón)
       final r3 = rooms[2];
@@ -61,7 +61,7 @@ void main() {
       expect(r3.winTrophies, equals(6));
       expect(r3.lossTrophies, equals(-4));
       expect(r3.requiredPrevTrophies, equals(30));
-      expect(r3.frameAsset, equals('assets/Tiers/box/3-SALAS.png'));
+      expect(r3.frameAsset, equals('assets/Tiers/box/3-SALAS.webp'));
 
       // 4. Maracaibo (Zulia)
       final r4 = rooms[3];
@@ -75,7 +75,7 @@ void main() {
       expect(r4.winTrophies, equals(8));
       expect(r4.lossTrophies, equals(-6));
       expect(r4.requiredPrevTrophies, equals(60));
-      expect(r4.frameAsset, equals('assets/Tiers/box/4-SALAS.png'));
+      expect(r4.frameAsset, equals('assets/Tiers/box/4-SALAS.webp'));
 
       // 5. Mérida (Páramo Helado ❄️)
       final r5 = rooms[4];
@@ -89,7 +89,7 @@ void main() {
       expect(r5.winTrophies, equals(10));
       expect(r5.lossTrophies, equals(-8));
       expect(r5.requiredPrevTrophies, equals(75));
-      expect(r5.frameAsset, equals('assets/Tiers/box/5-SALAS.png'));
+      expect(r5.frameAsset, equals('assets/Tiers/box/5-SALAS.webp'));
 
       // 6. Caracas (Distrito Capital)
       final r6 = rooms[5];
@@ -103,7 +103,7 @@ void main() {
       expect(r6.winTrophies, equals(12));
       expect(r6.lossTrophies, equals(-10));
       expect(r6.requiredPrevTrophies, equals(100));
-      expect(r6.frameAsset, equals('assets/Tiers/box/6-SALAS.png'));
+      expect(r6.frameAsset, equals('assets/Tiers/box/6-SALAS.webp'));
 
       // 7. Margarita VIP (Nueva Esparta)
       final r7 = rooms[6];
@@ -117,7 +117,7 @@ void main() {
       expect(r7.winTrophies, equals(15));
       expect(r7.lossTrophies, equals(-12));
       expect(r7.requiredPrevTrophies, equals(125));
-      expect(r7.frameAsset, equals('assets/Tiers/box/7-SALAS.png'));
+      expect(r7.frameAsset, equals('assets/Tiers/box/7-SALAS.webp'));
     });
 
     test('Cálculos de Pozos y Premios en 1v1 y 2v2', () {

@@ -119,8 +119,8 @@ void main() {
       await tester.tap(find.text('ABRIR BOTS'));
       await tester.pumpAndSettle();
 
-      await tester.ensureVisible(find.text('🎲 Aleatorio Criollo'));
-      await tester.tap(find.text('🎲 Aleatorio Criollo'), warnIfMissed: false);
+      await tester.ensureVisible(find.text('Aleatorio Criollo'));
+      await tester.tap(find.text('Aleatorio Criollo'), warnIfMissed: false);
       await tester.pumpAndSettle();
 
       await tester.tap(find.text('Guardar Cambios'), warnIfMissed: false);

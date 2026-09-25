@@ -158,7 +158,7 @@ class UserFrameItem {
       borderWidth: 4.0,
       crownIcon: Icons.terrain_rounded,
       description: 'Desbloqueado al conquistar los 15 trofeos de Chivacoa.',
-      imagePath: 'assets/Tiers/box/1-SALAS.png',
+      imagePath: 'assets/Tiers/box/1-SALAS.webp',
     ),
     UserFrameItem(
       id: 'frame_room_2',
@@ -170,7 +170,7 @@ class UserFrameItem {
       borderWidth: 4.0,
       crownIcon: Icons.wb_twilight_rounded,
       description: 'Desbloqueado al conquistar los 30 trofeos de Barquisimeto.',
-      imagePath: 'assets/Tiers/box/2-SALAS.png',
+      imagePath: 'assets/Tiers/box/2-SALAS.webp',
     ),
     UserFrameItem(
       id: 'frame_room_3',
@@ -182,7 +182,7 @@ class UserFrameItem {
       borderWidth: 4.2,
       crownIcon: Icons.waves_rounded,
       description: 'Desbloqueado al conquistar los 60 trofeos de Tucacas.',
-      imagePath: 'assets/Tiers/box/3-SALAS.png',
+      imagePath: 'assets/Tiers/box/3-SALAS.webp',
     ),
     UserFrameItem(
       id: 'frame_room_4',
@@ -194,7 +194,7 @@ class UserFrameItem {
       borderWidth: 4.5,
       crownIcon: Icons.flash_on_rounded,
       description: 'Desbloqueado al conquistar los 75 trofeos de Maracaibo.',
-      imagePath: 'assets/Tiers/box/4-SALAS.png',
+      imagePath: 'assets/Tiers/box/4-SALAS.webp',
     ),
     UserFrameItem(
       id: 'frame_room_5',
@@ -206,7 +206,7 @@ class UserFrameItem {
       borderWidth: 4.5,
       crownIcon: Icons.ac_unit_rounded,
       description: 'Desbloqueado al conquistar los 100 trofeos de Mérida Páramo.',
-      imagePath: 'assets/Tiers/box/5-SALAS.png',
+      imagePath: 'assets/Tiers/box/5-SALAS.webp',
     ),
     UserFrameItem(
       id: 'frame_room_6',
@@ -218,7 +218,7 @@ class UserFrameItem {
       borderWidth: 5.0,
       crownIcon: Icons.location_city_rounded,
       description: 'Desbloqueado al conquistar los 125 trofeos de Caracas.',
-      imagePath: 'assets/Tiers/box/6-SALAS.png',
+      imagePath: 'assets/Tiers/box/6-SALAS.webp',
     ),
     UserFrameItem(
       id: 'frame_room_7',
@@ -230,7 +230,7 @@ class UserFrameItem {
       borderWidth: 5.5,
       crownIcon: Icons.casino_rounded,
       description: 'Desbloqueado al conquistar los 250 trofeos de Margarita VIP.',
-      imagePath: 'assets/Tiers/box/7-SALAS.png',
+      imagePath: 'assets/Tiers/box/7-SALAS.webp',
     ),
   ];
 

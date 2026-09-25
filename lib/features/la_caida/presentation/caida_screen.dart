@@ -175,6 +175,23 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
   bool get _isHostDevice => _host != null;
   bool get _isClientDevice => _client != null && _host == null;
 
+  /// Conversión bidireccional entre el asiento de red global y el índice de jugador local.
+  /// En la pantalla del dispositivo local, _players[0] SIEMPRE representa al usuario local.
+  int _networkSeatToLocalIndex(int networkSeat) {
+    if (_players.isEmpty) return 0;
+    final diff = (networkSeat - _myLocalSeatIndex) % _players.length;
+    return diff < 0 ? diff + _players.length : diff;
+  }
+
+  int _localIndexToNetworkSeat(int localIndex) {
+    if (_players.isEmpty) return 0;
+    return (_myLocalSeatIndex + localIndex) % _players.length;
+  }
+
+  // Historial de chat efímero de la partida (se vacía al terminar la partida)
+  final List<ChatMessageItem> _matchChatHistory = [];
+  bool _isMultiplayerDisconnected = false;
+
   // Sistema de Nivel
   int _userLevel = 1;
 
@@ -293,7 +310,9 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
     WidgetsBinding.instance.addObserver(this);
     _playerCount = _effectivePlayers.clamp(2, 4);
     _botCount = (_playerCount - 1).clamp(1, 3);
-    _hasGameStarted = _effectiveAutoStart;
+    // En dispositivos cliente multijugador, la partida NO inicia automáticamente
+    // de forma local; espera la sincronización y reparto de cartas del host.
+    _hasGameStarted = _isClientDevice ? false : _effectiveAutoStart;
     _isTeams = _effectiveTeams;
 
     if (widget.config?.isMultiplayer == true || _host != null || _client != null) {
@@ -342,7 +361,7 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
       teams: _isTeams,
     );
 
-    if (_hasGameStarted) {
+    if (_hasGameStarted && !_isClientDevice) {
       _initMatch(
         _playerCount,
         _isTeams,
@@ -390,6 +409,9 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
       };
       _client!.onDisconnected = () {
         if (mounted && !_isGameOver) {
+          setState(() {
+            _isMultiplayerDisconnected = true;
+          });
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Conexión con el anfitrión cerrada.'),
@@ -415,23 +437,29 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
 
   void _handleHostClientMessage(NetworkGameMessage msg, String playerId) {
     if (msg.type == 'PLAY_CARD_REQUEST') {
-      final seatIndex = msg.data['seatIndex'] as int?;
+      final netSeat = msg.data['seatIndex'] as int?;
       final cardMap = msg.data['card'] as Map<String, dynamic>?;
-      if (seatIndex != null && cardMap != null && seatIndex == _currentTurnIndex) {
-        final card = SpanishCard.fromJson(cardMap);
-        final player = _players[seatIndex];
-        final matchingCard = player.hand.where((c) => c.shortCode == card.shortCode).firstOrNull;
-        if (matchingCard != null) {
-          _playCard(player, matchingCard);
+      if (netSeat != null && cardMap != null) {
+        final localIdx = _networkSeatToLocalIndex(netSeat);
+        if (localIdx == _currentTurnIndex && localIdx < _players.length) {
+          final card = SpanishCard.fromJson(cardMap);
+          final player = _players[localIdx];
+          final matchingCard = player.hand.where((c) => c.shortCode == card.shortCode).firstOrNull;
+          if (matchingCard != null) {
+            _playCard(player, matchingCard);
+          }
         }
       }
     } else if (msg.type == 'CHAT_MESSAGE') {
-      final seatIndex = msg.data['seatIndex'] as int?;
+      final netSeat = msg.data['seatIndex'] as int?;
       final chatMsg = msg.data['message'] as String?;
       final voiceKey = msg.data['voiceSoundKey'] as String?;
-      if (seatIndex != null && chatMsg != null) {
-        _showPlayerChatCallout(seatIndex, chatMsg, voiceSoundKey: voiceKey, broadcast: false);
-        _host?.broadcastMessage(msg);
+      if (netSeat != null && chatMsg != null) {
+        final localIdx = _networkSeatToLocalIndex(netSeat);
+        if (localIdx >= 0 && localIdx < _players.length) {
+          _showPlayerChatCallout(localIdx, chatMsg, voiceSoundKey: voiceKey, broadcast: false);
+          _host?.broadcastMessage(msg);
+        }
       }
     }
   }
@@ -443,14 +471,17 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
       final mano = msg.data['manoIndex'] as int? ?? 0;
       final dirName = msg.data['cantoDirection'] as String? ?? 'ascending';
 
-      _manoIndex = mano;
+      _hasGameStarted = true;
+      _manoIndex = _networkSeatToLocalIndex(mano);
+      _currentTurnIndex = _manoIndex;
       _cantoDirection = dirName == 'descending' ? DealDirection.descending : DealDirection.ascending;
 
       if (handsMap != null) {
-        for (int i = 0; i < _players.length; i++) {
-          final rawCards = handsMap[i.toString()] as List?;
-          if (rawCards != null) {
-            _players[i].hand = rawCards
+        for (int netSeat = 0; netSeat < _players.length; netSeat++) {
+          final localIdx = _networkSeatToLocalIndex(netSeat);
+          final rawCards = handsMap[netSeat.toString()] as List?;
+          if (rawCards != null && localIdx >= 0 && localIdx < _players.length) {
+            _players[localIdx].hand = rawCards
                 .map((c) => SpanishCard.fromJson(c as Map<String, dynamic>))
                 .toList();
           }
@@ -467,32 +498,48 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
         }
       }
 
+      _resetTurnTimer();
       _onDealingCompleted();
       if (mounted) setState(() {});
+    } else if (msg.type == 'TURN_CHANGED') {
+      final turnSeat = msg.data['turnSeatIndex'] as int? ?? 0;
+      _currentTurnIndex = _networkSeatToLocalIndex(turnSeat);
+      _selectedCard = null;
+      _resetTurnTimer();
+      if (mounted) setState(() {});
     } else if (msg.type == 'CARD_PLAYED') {
-      final seatIndex = msg.data['seatIndex'] as int?;
+      final netSeat = msg.data['seatIndex'] as int?;
       final cardMap = msg.data['card'] as Map<String, dynamic>?;
-      if (seatIndex != null && cardMap != null && seatIndex < _players.length) {
-        final card = SpanishCard.fromJson(cardMap);
-        final player = _players[seatIndex];
-        final matchingCard = player.hand.where((c) => c.shortCode == card.shortCode).firstOrNull ?? card;
-        if (!player.hand.contains(matchingCard)) {
-          player.hand.add(matchingCard);
+      if (netSeat != null && cardMap != null) {
+        final localIdx = _networkSeatToLocalIndex(netSeat);
+        if (localIdx >= 0 && localIdx < _players.length) {
+          final card = SpanishCard.fromJson(cardMap);
+          final player = _players[localIdx];
+          final matchingCard = player.hand.where((c) => c.shortCode == card.shortCode).firstOrNull ?? card;
+          if (!player.hand.contains(matchingCard)) {
+            player.hand.add(matchingCard);
+          }
+          _playCard(player, matchingCard);
         }
-        _playCard(player, matchingCard);
       }
     } else if (msg.type == 'CANTO_DECLARED') {
-      final seatIndex = msg.data['seatIndex'] as int?;
+      final netSeat = msg.data['seatIndex'] as int?;
       final cantoText = msg.data['canto'] as String?;
-      if (seatIndex != null && cantoText != null && seatIndex < _players.length) {
-        _triggerCallout(_players[seatIndex], cantoText);
+      if (netSeat != null && cantoText != null) {
+        final localIdx = _networkSeatToLocalIndex(netSeat);
+        if (localIdx >= 0 && localIdx < _players.length) {
+          _triggerCallout(_players[localIdx], cantoText);
+        }
       }
     } else if (msg.type == 'CHAT_MESSAGE') {
-      final seatIndex = msg.data['seatIndex'] as int?;
+      final netSeat = msg.data['seatIndex'] as int?;
       final chatMsg = msg.data['message'] as String?;
       final voiceKey = msg.data['voiceSoundKey'] as String?;
-      if (seatIndex != null && chatMsg != null) {
-        _showPlayerChatCallout(seatIndex, chatMsg, voiceSoundKey: voiceKey, broadcast: false);
+      if (netSeat != null && chatMsg != null) {
+        final localIdx = _networkSeatToLocalIndex(netSeat);
+        if (localIdx >= 0 && localIdx < _players.length) {
+          _showPlayerChatCallout(localIdx, chatMsg, voiceSoundKey: voiceKey, broadcast: false);
+        }
       }
     }
   }
@@ -515,8 +562,11 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
       t.cancel();
     }
     _pendingAsyncTimers.clear();
+    _timerController.stop();
     _timerController.dispose();
+    _dealingController.stop();
     _dealingController.dispose();
+    _chatSlideController.stop();
     _chatSlideController.dispose();
     _botTimer?.cancel();
     _finishTimer?.cancel();
@@ -525,6 +575,7 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
     }
     _cantoAudioTimers.clear();
     _clearAllCallouts();
+    _matchChatHistory.clear();
     super.dispose();
   }
 
@@ -581,7 +632,9 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
 
       if (_manoIndex == 0) {
         // Si el usuario es la Mano, permitirle elegir cómo comenzar el conteo (1..4 o 4..1)
-        await Future<void>.delayed(const Duration(milliseconds: 150));
+        if (shouldAnimate) {
+          await _safeDelay(const Duration(milliseconds: 150));
+        }
         if (!mounted) return;
         final dir = await TableCantoDialog.show(context);
         if (dir != null && mounted) {
@@ -799,50 +852,18 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
     final primary = room.primaryColor;
     final accent = room.accentColor;
 
-    final Color rivalPrimary;
-    final Color rivalAccent;
-
-    switch (room.id) {
-      case 1: // Chivacoa (Esmeralda) -> Rival Fuego Coral & Ámbar
-        rivalPrimary = const Color(0xFFF43F5E);
-        rivalAccent = const Color(0xFFFB923C);
-        break;
-      case 2: // Barquisimeto (Atardecer Crepuscular) -> Rival Morado & Cian
-        rivalPrimary = const Color(0xFFA855F7);
-        rivalAccent = const Color(0xFF06B6D4);
-        break;
-      case 3: // Tucacas (Turquesa Costero) -> Rival Coral & Rosa Intenso
-        rivalPrimary = const Color(0xFFF43F5E);
-        rivalAccent = const Color(0xFFFB7185);
-        break;
-      case 4: // Maracaibo (Rojo Fuego Zuliano) -> Rival Azul Eléctrico & Cian
-        rivalPrimary = const Color(0xFF3B82F6);
-        rivalAccent = const Color(0xFF38BDF8);
-        break;
-      case 5: // Mérida (Azul Escarcha Andino ❄️) -> Rival Ámbar Cálido & Naranja
-        rivalPrimary = const Color(0xFFF59E0B);
-        rivalAccent = const Color(0xFFFB923C);
-        break;
-      case 6: // Caracas (Morado Imperial) -> Rival Esmeralda & Verde Lima
-        rivalPrimary = const Color(0xFF10B981);
-        rivalAccent = const Color(0xFF84CC16);
-        break;
-      case 7: // Margarita VIP (Oro Casino) -> Rival Océano Índigo & Turquesa
-      default:
-        rivalPrimary = const Color(0xFF3B82F6);
-        rivalAccent = const Color(0xFF06B6D4);
-        break;
-    }
-
+    // En salas VIP regionales de Venezuela, todos los jugadores en mesa usan
+    // uniformemente la paleta temática oficial de la sala (primario y acento).
     if (isTeams && totalPlayers == 4) {
-      // 0: User (Team 1), 1: Rival 1 (Team 2), 2: Teammate (Team 1), 3: Rival 2 (Team 2)
-      return [primary, rivalPrimary, accent, rivalAccent];
+      // Asiento 0: Usuario (Primario), Asiento 1: Rival 1 (Acento),
+      // Asiento 2: Compañero (Primario), Asiento 3: Rival 2 (Acento)
+      return [primary, accent, primary, accent];
     } else if (totalPlayers == 2) {
-      return [primary, rivalPrimary];
+      return [primary, accent];
     } else if (totalPlayers == 3) {
-      return [primary, rivalPrimary, rivalAccent];
+      return [primary, accent, primary];
     } else {
-      return [primary, rivalPrimary, accent, rivalAccent];
+      return [primary, accent, primary, accent];
     }
   }
 
@@ -1189,10 +1210,10 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
           'round': _roundNumber,
           'hands': {
             for (int i = 0; i < _players.length; i++)
-              i.toString(): _players[i].hand.map((c) => c.toJson()).toList(),
+              _localIndexToNetworkSeat(i).toString(): _players[i].hand.map((c) => c.toJson()).toList(),
           },
           'tableCards': _tableCards.map((c) => c.toJson()).toList(),
-          'manoIndex': _manoIndex,
+          'manoIndex': _localIndexToNetworkSeat(_manoIndex),
           'cantoDirection': _cantoDirection.name,
         },
       ));
@@ -1217,6 +1238,14 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
     setState(() {});
 
     _resetTurnTimer();
+
+    // Sincronizar el primer turno tras el reparto con los clientes conectados
+    if (_isHostDevice) {
+      _host?.broadcastMessage(NetworkGameMessage(
+        type: 'TURN_CHANGED',
+        data: {'turnSeatIndex': _localIndexToNetworkSeat(_currentTurnIndex)},
+      ));
+    }
 
     if (activePlayer.isBot) {
       _botTimer?.cancel();
@@ -1474,20 +1503,18 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
 
     // Si la app está minimizada en segundo plano cuando le toca el turno al usuario local,
     // programar auto-jugada para no congelar la partida a los rivales
-    final isMyTurn = _isMultiplayerNetwork
-        ? _currentTurnIndex == _myLocalSeatIndex
-        : _currentTurnIndex == 0;
+    final isMyTurn = _currentTurnIndex == 0;
     if (_isAppInBackground && isMyTurn) {
-      Timer(const Duration(seconds: 3), () {
+      late Timer bgTimer;
+      bgTimer = Timer(const Duration(seconds: 3), () {
+        _pendingAsyncTimers.remove(bgTimer);
         if (mounted && _isAppInBackground && !_isGameOver && !_isProcessingPlay) {
-          final currentIsMyTurn = _isMultiplayerNetwork
-              ? _currentTurnIndex == _myLocalSeatIndex
-              : _currentTurnIndex == 0;
-          if (currentIsMyTurn) {
+          if (_currentTurnIndex == 0) {
             _onTurnTimeout();
           }
         }
       });
+      _pendingAsyncTimers.add(bgTimer);
     }
   }
 
@@ -1521,9 +1548,7 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
   /// 2. Si ya estaba seleccionada: confirma y la juega a la mesa.
   void _onUserCardTap(SpanishCard card) {
     if (_isGameOver || _isDealing || _isChoosingMano || _isProcessingPlay) return;
-    final isMyTurn = _isMultiplayerNetwork
-        ? _currentTurnIndex == _myLocalSeatIndex
-        : _currentTurnIndex == 0;
+    final isMyTurn = _currentTurnIndex == 0;
     if (!isMyTurn) return;
 
     if (_selectedCard == card) {
@@ -1541,7 +1566,7 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
           _selectedCard = null;
         });
       } else {
-        _playCard(_players[_myLocalSeatIndex], card);
+        _playCard(_players[0], card);
       }
     } else {
       // Primer toque -> Seleccionar únicamente esta carta
@@ -1567,7 +1592,7 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
       _host?.broadcastMessage(NetworkGameMessage(
         type: 'CARD_PLAYED',
         data: {
-          'seatIndex': playerIdx,
+          'seatIndex': _localIndexToNetworkSeat(playerIdx),
           'card': card.toJson(),
         },
       ));
@@ -1819,6 +1844,14 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
     _currentTurnIndex = (_currentTurnIndex + 1) % _players.length;
     _selectedCard = null;
     _resetTurnTimer();
+
+    // Sincronizar avance de turno con clientes en la red
+    if (_isHostDevice) {
+      _host?.broadcastMessage(NetworkGameMessage(
+        type: 'TURN_CHANGED',
+        data: {'turnSeatIndex': _localIndexToNetworkSeat(_currentTurnIndex)},
+      ));
+    }
 
     final nextPlayer = _players[_currentTurnIndex];
     if (nextPlayer.hand.isEmpty) {
@@ -2705,10 +2738,211 @@ child: Icon(icon, color: iconColor, size: 20),
         body: WoodTableBackground(
           backgroundImage: _venezuelaRoom?.backgroundAsset,
           child: SafeArea(
-            child: !_hasGameStarted
-                ? _buildPreGameLobby()
-                : (user == null ? const SizedBox() : _buildGameTable(user)),
+            child: _isMultiplayerDisconnected
+                ? _buildMultiplayerDisconnectedOverlay()
+                : (_isClientDevice && !_hasGameStarted
+                    ? _buildClientWaitingOverlay()
+                    : (!_hasGameStarted
+                        ? _buildPreGameLobby()
+                        : (user == null ? const SizedBox() : _buildGameTable(user)))),
           ),
+        ),
+      ),
+    );
+  }
+
+  /// Overlay de espera interactivo para dispositivos cliente en multijugador
+  Widget _buildClientWaitingOverlay() {
+    final roomName = _venezuelaRoom?.name ?? 'MESA MULTIJUGADOR';
+    final accentColor = _venezuelaRoom?.accentColor ?? const Color(0xFF38BDF8);
+    final primaryColor = _venezuelaRoom?.primaryColor ?? const Color(0xFF6366F1);
+
+    return Center(
+      child: Container(
+        constraints: const BoxConstraints(maxWidth: 380),
+        margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Color(0xFF2E1960), Color(0xFF140D30)],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: accentColor, width: 2),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.65),
+              blurRadius: 24,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 68,
+              height: 68,
+              decoration: BoxDecoration(
+                color: primaryColor.withValues(alpha: 0.25),
+                shape: BoxShape.circle,
+                border: Border.all(color: accentColor, width: 1.5),
+                boxShadow: [
+                  BoxShadow(color: accentColor.withValues(alpha: 0.35), blurRadius: 16),
+                ],
+              ),
+              child: Center(
+                child: SizedBox(
+                  width: 32,
+                  height: 32,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 3.2,
+                    valueColor: AlwaysStoppedAnimation<Color>(accentColor),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 18),
+            const CartoonStrokeText(
+              'ESPERANDO AL ANFITRIÓN',
+              fontSize: 16,
+              textColor: AppPalette.cartoonYellow,
+              strokeColor: AppPalette.cartoonCardText,
+              strokeWidth: 2.8,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              roomName,
+              style: TextStyle(
+                color: accentColor,
+                fontSize: 12,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 0.6,
+              ),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              'Conectado exitosamente. La partida comenzará en cuanto el anfitrión elija mano y reparta.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.75),
+                fontSize: 11.5,
+                height: 1.4,
+              ),
+            ),
+            const SizedBox(height: 22),
+            TactilePressable(
+              depth: 2.5,
+              onTap: _confirmAbandonMatch,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFEF4444).withValues(alpha: 0.25),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: const Color(0xFFEF4444), width: 1.2),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.arrow_back_rounded, color: Colors.white, size: 16),
+                    SizedBox(width: 8),
+                    Text(
+                      'Salir de la Sala',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Overlay ante pérdida de conexión en multijugador
+  Widget _buildMultiplayerDisconnectedOverlay() {
+    return Center(
+      child: Container(
+        constraints: const BoxConstraints(maxWidth: 380),
+        margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 26),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Color(0xFF3B121A), Color(0xFF1E0A10)],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: const Color(0xFFEF4444), width: 2),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.7),
+              blurRadius: 24,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: const BoxDecoration(
+                color: Color(0x35EF4444),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.wifi_off_rounded,
+                color: Color(0xFFEF4444),
+                size: 38,
+              ),
+            ),
+            const SizedBox(height: 14),
+            const CartoonStrokeText(
+              'CONEXIÓN PERDIDA',
+              fontSize: 16,
+              textColor: Color(0xFFFCA5A5),
+              strokeColor: AppPalette.cartoonCardText,
+              strokeWidth: 2.8,
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Se ha perdido la conexión con el anfitrión o la red local.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Colors.white70,
+                fontSize: 12,
+                height: 1.4,
+              ),
+            ),
+            const SizedBox(height: 20),
+            TactilePressable(
+              depth: 2.5,
+              onTap: () => Navigator.of(context).pop(),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+                decoration: BoxDecoration(
+                  gradient: AppGradients.redDanger,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: AppPalette.cartoonBorder, width: 1.5),
+                ),
+                child: const Text(
+                  'Volver al Menú',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -3301,9 +3535,10 @@ child: Icon(icon, color: iconColor, size: 20),
                     child: SlideTransition(
                       position: _chatSlideAnimation,
                       child: MultiplayerChatDrawer(
+                        messages: _matchChatHistory,
                         onSendMessage: (msg, {voiceSoundKey}) {
                           _showPlayerChatCallout(
-                            _myLocalSeatIndex,
+                            0, // El usuario local siempre es el asiento 0 en su pantalla
                             msg,
                             voiceSoundKey: voiceSoundKey,
                             broadcast: true,
@@ -3351,6 +3586,17 @@ child: Icon(icon, color: iconColor, size: 20),
       }
     });
 
+    // Guardar en el historial de chat efímero de la partida
+    _matchChatHistory.add(ChatMessageItem(
+      senderName: player.name,
+      senderAvatarId: player.avatarId,
+      senderColor: player.color,
+      message: message,
+      voiceSoundKey: voiceSoundKey,
+      isUser: playerIndex == 0,
+      timestamp: DateTime.now(),
+    ));
+
     if (voiceSoundKey != null) {
       AudioService().playCanto(voiceSoundKey);
     } else {
@@ -3358,10 +3604,11 @@ child: Icon(icon, color: iconColor, size: 20),
     }
     HapticService.instance.onSelection();
 
-    // Reenviar a la red si estamos en partida multijugador
+    // Reenviar a la red si estamos en partida multijugador con el asiento global
     if (broadcast && _isMultiplayerNetwork) {
+      final netSeat = _localIndexToNetworkSeat(playerIndex);
       final netData = <String, dynamic>{
-        'seatIndex': playerIndex,
+        'seatIndex': netSeat,
         'message': message,
       };
       if (voiceSoundKey != null) {
@@ -3378,7 +3625,7 @@ child: Icon(icon, color: iconColor, size: 20),
       }
     }
 
-    setState(() {});
+    if (mounted) setState(() {});
   }
 
   Widget _buildDiscreetChatToggleButton() {

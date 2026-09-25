@@ -38,6 +38,11 @@ class AppPalette {
   static const Color cartoonYellowDark = Color(0xFFD97706);
   static const Color cartoonRed = Color(0xFFEF4444);
   static const Color cartoonGreen = Color(0xFF10B981);
+  static const Color cartoonDeepIndigo = Color(0xFF1E1B4B);
+  static const Color cartoonDarkSlate = Color(0xFF0F172A);
+  static const Color cartoonShadow3d = Color(0xFF1B165E);
+  static const Color goldGlow = Color(0xFFFDE047);
+  static const Color goldDarkText = Color(0xFF713F12);
 
   /// Gradiente de fondo principal que unifica todas las vistas
   static const LinearGradient mainBackground = LinearGradient(

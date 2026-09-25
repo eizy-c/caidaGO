@@ -86,7 +86,7 @@ class LobbyThemeOption {
       backgroundGradient: [Color(0xFF064E3B), Color(0xFF022C22)],
       accentColor: Color(0xFF34D399),
       icon: Icons.eco_rounded,
-      imageAsset: 'assets/Tiers/backgrounds/1-FONDO.png',
+      imageAsset: 'assets/Tiers/backgrounds/1-FONDO.webp',
       requiredRoomId: 1,
     ),
     LobbyThemeOption(
@@ -96,7 +96,7 @@ class LobbyThemeOption {
       backgroundGradient: [Color(0xFF78350F), Color(0xFF451A03)],
       accentColor: Color(0xFFFBBF24),
       icon: Icons.wb_sunny_rounded,
-      imageAsset: 'assets/Tiers/backgrounds/2-FONDO.png',
+      imageAsset: 'assets/Tiers/backgrounds/2-FONDO.webp',
       requiredRoomId: 2,
     ),
     LobbyThemeOption(
@@ -106,7 +106,7 @@ class LobbyThemeOption {
       backgroundGradient: [Color(0xFF164E63), Color(0xFF083344)],
       accentColor: Color(0xFF22D3EE),
       icon: Icons.waves_rounded,
-      imageAsset: 'assets/Tiers/backgrounds/3-FONDO.png',
+      imageAsset: 'assets/Tiers/backgrounds/3-FONDO.webp',
       requiredRoomId: 3,
     ),
     LobbyThemeOption(
@@ -116,7 +116,7 @@ class LobbyThemeOption {
       backgroundGradient: [Color(0xFF7F1D1D), Color(0xFF450A0A)],
       accentColor: Color(0xFFF87171),
       icon: Icons.bolt_rounded,
-      imageAsset: 'assets/Tiers/backgrounds/4-FONDO.png',
+      imageAsset: 'assets/Tiers/backgrounds/4-FONDO.webp',
       requiredRoomId: 4,
     ),
     LobbyThemeOption(
@@ -126,7 +126,7 @@ class LobbyThemeOption {
       backgroundGradient: [Color(0xFF0C4A6E), Color(0xFF082F49)],
       accentColor: Color(0xFFBAE6FD),
       icon: Icons.ac_unit_rounded,
-      imageAsset: 'assets/Tiers/backgrounds/5-FONDO.png',
+      imageAsset: 'assets/Tiers/backgrounds/5-FONDO.webp',
       requiredRoomId: 5,
     ),
     LobbyThemeOption(
@@ -136,7 +136,7 @@ class LobbyThemeOption {
       backgroundGradient: [Color(0xFF581C87), Color(0xFF3B0764)],
       accentColor: Color(0xFFC084FC),
       icon: Icons.location_city_rounded,
-      imageAsset: 'assets/Tiers/backgrounds/6-FONDO.png',
+      imageAsset: 'assets/Tiers/backgrounds/6-FONDO.webp',
       requiredRoomId: 6,
     ),
     LobbyThemeOption(
@@ -146,7 +146,7 @@ class LobbyThemeOption {
       backgroundGradient: [Color(0xFF713F12), Color(0xFF422006)],
       accentColor: Color(0xFFFDE047),
       icon: Icons.workspace_premium_rounded,
-      imageAsset: 'assets/Tiers/backgrounds/7-FONDO.png',
+      imageAsset: 'assets/Tiers/backgrounds/7-FONDO.webp',
       requiredRoomId: 7,
     ),
   ];

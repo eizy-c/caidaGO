@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import '../domain/multiplayer_models.dart';
@@ -20,11 +21,14 @@ class LocalGameClient {
   MultiplayerRoomInfo? _currentRoom;
   int _mySeatIndex = -1;
   String _myPlayerId = '';
+  bool _isOnlineMode = false;
 
   final ValueNotifier<ClientConnectionStatus> statusNotifier =
       ValueNotifier<ClientConnectionStatus>(ClientConnectionStatus.disconnected);
   final ValueNotifier<List<RoomSeat>> seatsNotifier =
       ValueNotifier<List<RoomSeat>>([]);
+  final ValueNotifier<List<MultiplayerRoomInfo>> onlineRoomsNotifier =
+      ValueNotifier<List<MultiplayerRoomInfo>>([]);
   final ValueNotifier<String?> errorMessageNotifier = ValueNotifier<String?>(null);
   final ValueNotifier<int> pingMsNotifier = ValueNotifier<int>(25);
 
@@ -45,7 +49,9 @@ class LocalGameClient {
   String get myPlayerId => _myPlayerId;
   bool get isConnected => _status == ClientConnectionStatus.connected;
 
-  /// Conecta al WebSocket del Host e intenta unirse a la sala con PIN opcional
+  bool get isOnlineMode => _isOnlineMode;
+
+  /// Conecta al WebSocket del Host e intenta unirse a la sala local con PIN opcional
   Future<bool> connectAndJoin({
     required String hostIp,
     required int port,
@@ -56,6 +62,7 @@ class LocalGameClient {
   }) async {
     await disconnect();
 
+    _isOnlineMode = false;
     _setStatus(ClientConnectionStatus.connecting);
     errorMessageNotifier.value = null;
     _myPlayerId = 'player_${DateTime.now().millisecondsSinceEpoch}';
@@ -96,19 +103,209 @@ class LocalGameClient {
 
       return true;
     } catch (e) {
-      debugPrint('[LocalGameClient] Falló la conexión: $e');
+      debugPrint('[LocalGameClient] Falló la conexión local: $e');
       _setStatus(ClientConnectionStatus.error);
       errorMessageNotifier.value = 'No se pudo conectar con la sala. Revisa que estén en el mismo Wi-Fi.';
       return false;
     }
   }
 
+  /// Crea una sala en el servidor online remoto
+  Future<bool> createOnlineRoom({
+    required String serverUrl,
+    required String roomName,
+    required String hostName,
+    required int hostAvatarId,
+    required String hostFrameId,
+    int targetPlayers = 2,
+    bool isPrivate = false,
+    String? pinCode,
+    bool isTeams = false,
+    bool fillWithBots = true,
+    int? regionalRoomId,
+    int entryFee = 0,
+  }) async {
+    await disconnect();
+
+    _isOnlineMode = true;
+    _setStatus(ClientConnectionStatus.connecting);
+    errorMessageNotifier.value = null;
+    _myPlayerId = 'player_${DateTime.now().millisecondsSinceEpoch}';
+    _currentPinCode = pinCode?.trim();
+
+    try {
+      final wsUrl = _normalizeWsUrl(serverUrl);
+      _socket = await WebSocket.connect(wsUrl).timeout(
+        const Duration(seconds: 6),
+        onTimeout: () {
+          throw TimeoutException('No se pudo conectar al servidor online en $wsUrl');
+        },
+      );
+
+      _socket!.listen(
+        _handleIncomingData,
+        onDone: _handleConnectionClosed,
+        onError: (err) {
+          _setStatus(ClientConnectionStatus.error);
+          errorMessageNotifier.value = 'Error en conexión con el servidor: $err';
+        },
+      );
+
+      sendMessage(
+        NetworkGameMessage(
+          type: 'CREATE_ONLINE_ROOM',
+          data: {
+            'playerId': _myPlayerId,
+            'roomName': roomName,
+            'hostName': hostName,
+            'avatarId': hostAvatarId,
+            'frameId': hostFrameId,
+            'targetPlayers': targetPlayers,
+            'isPrivate': isPrivate,
+            'pinCode': pinCode?.trim(),
+            'isTeams': isTeams,
+            'fillWithBots': fillWithBots,
+            'regionalRoomId': regionalRoomId,
+            'entryFee': entryFee,
+          },
+        ),
+        isHandshake: true,
+      );
+
+      return true;
+    } catch (e) {
+      debugPrint('[LocalGameClient] Falló creación de sala online: $e');
+      _setStatus(ClientConnectionStatus.error);
+      errorMessageNotifier.value = 'No se pudo conectar con el servidor online. Revisa tu conexión a internet.';
+      return false;
+    }
+  }
+
+  /// Se une a una sala en el servidor online remoto (por roomId o por PIN)
+  Future<bool> joinOnlineRoom({
+    required String serverUrl,
+    required String playerName,
+    required int avatarId,
+    required String frameId,
+    String? roomId,
+    String? pinCode,
+  }) async {
+    await disconnect();
+
+    _isOnlineMode = true;
+    _setStatus(ClientConnectionStatus.connecting);
+    errorMessageNotifier.value = null;
+    _myPlayerId = 'player_${DateTime.now().millisecondsSinceEpoch}';
+    _currentPinCode = pinCode?.trim();
+    _currentRoomId = roomId;
+
+    try {
+      final wsUrl = _normalizeWsUrl(serverUrl);
+      _socket = await WebSocket.connect(wsUrl).timeout(
+        const Duration(seconds: 6),
+        onTimeout: () {
+          throw TimeoutException('No se pudo conectar al servidor online en $wsUrl');
+        },
+      );
+
+      _socket!.listen(
+        _handleIncomingData,
+        onDone: _handleConnectionClosed,
+        onError: (err) {
+          _setStatus(ClientConnectionStatus.error);
+          errorMessageNotifier.value = 'Error en conexión con el servidor: $err';
+        },
+      );
+
+      sendMessage(
+        NetworkGameMessage(
+          type: 'JOIN_ONLINE_ROOM',
+          data: {
+            'playerId': _myPlayerId,
+            'name': playerName,
+            'avatarId': avatarId,
+            'frameId': frameId,
+            'roomId': roomId,
+            'pinCode': pinCode?.trim(),
+          },
+        ),
+        isHandshake: true,
+      );
+
+      return true;
+    } catch (e) {
+      debugPrint('[LocalGameClient] Falló unirse a sala online: $e');
+      _setStatus(ClientConnectionStatus.error);
+      errorMessageNotifier.value = 'No se pudo conectar con el servidor online. Revisa tu conexión a internet.';
+      return false;
+    }
+  }
+
+  static String _normalizeWsUrl(String url) {
+    var trimmed = url.trim();
+    if (trimmed.startsWith('https://')) {
+      trimmed = trimmed.replaceFirst('https://', 'wss://');
+    } else if (trimmed.startsWith('http://')) {
+      trimmed = trimmed.replaceFirst('http://', 'ws://');
+    } else if (!trimmed.startsWith('ws://') && !trimmed.startsWith('wss://')) {
+      trimmed = 'ws://$trimmed';
+    }
+    if (!trimmed.endsWith('/ws') && !trimmed.contains('/ws?')) {
+      if (trimmed.endsWith('/')) {
+        trimmed = '${trimmed}ws';
+      } else {
+        trimmed = '$trimmed/ws';
+      }
+    }
+    return trimmed;
+  }
+
+  /// Consulta la lista de salas públicas disponibles en el servidor online vía HTTP
+  static Future<List<MultiplayerRoomInfo>> fetchOnlinePublicRoomsHttp(String serverBaseUrl) async {
+    try {
+      var httpUrl = serverBaseUrl.trim();
+      if (httpUrl.startsWith('wss://')) {
+        httpUrl = httpUrl.replaceFirst('wss://', 'https://');
+      } else if (httpUrl.startsWith('ws://')) {
+        httpUrl = httpUrl.replaceFirst('ws://', 'http://');
+      } else if (!httpUrl.startsWith('http://') && !httpUrl.startsWith('https://')) {
+        httpUrl = 'http://$httpUrl';
+      }
+      if (httpUrl.endsWith('/ws')) {
+        httpUrl = httpUrl.substring(0, httpUrl.length - 3);
+      }
+      if (httpUrl.endsWith('/')) {
+        httpUrl = '${httpUrl}rooms';
+      } else {
+        httpUrl = '$httpUrl/rooms';
+      }
+
+      final uri = Uri.parse(httpUrl);
+      final client = HttpClient()..connectionTimeout = const Duration(seconds: 4);
+      final request = await client.getUrl(uri);
+      final response = await request.close();
+      if (response.statusCode == 200) {
+        final body = await response.transform(utf8.decoder).join();
+        final list = jsonDecode(body) as List;
+        return list
+            .map((json) => MultiplayerRoomInfo.fromJson(json as Map<String, dynamic>))
+            .toList();
+      }
+      return [];
+    } catch (e) {
+      debugPrint('[LocalGameClient] Error al consultar salas online HTTP: $e');
+      return [];
+    }
+  }
+
   void _handleIncomingData(dynamic raw) {
-    final msg = NetworkGameMessage.deserialize(
-      raw.toString(),
-      pinCode: _currentPinCode,
-      roomId: _currentRoomId,
-    );
+    final msg = _isOnlineMode
+        ? NetworkGameMessage.deserialize(raw.toString())
+        : NetworkGameMessage.deserialize(
+            raw.toString(),
+            pinCode: _currentPinCode,
+            roomId: _currentRoomId,
+          );
     if (msg == null) return;
 
     switch (msg.type) {
@@ -143,9 +340,12 @@ class LocalGameClient {
         break;
 
       case 'LOBBY_UPDATE':
+        if (msg.data['roomInfo'] != null) {
+          _currentRoom = MultiplayerRoomInfo.fromJson(msg.data['roomInfo']);
+          _currentRoomId = _currentRoom?.roomId;
+        }
         if (msg.data['seats'] != null) {
           _updateSeatsFromJson(msg.data['seats'] as List);
-          // Actualizar mi índice de asiento si cambié de lugar/equipo
           final mySeat = seatsNotifier.value.firstWhere(
             (s) => s.playerId == _myPlayerId,
             orElse: () => RoomSeat(seatIndex: _mySeatIndex, name: ''),
@@ -153,6 +353,16 @@ class LocalGameClient {
           if (mySeat.playerId == _myPlayerId && mySeat.seatIndex != _mySeatIndex) {
             _mySeatIndex = mySeat.seatIndex;
           }
+        }
+        break;
+
+      case 'PUBLIC_ROOMS_UPDATE':
+        final list = msg.data['rooms'] as List?;
+        if (list != null) {
+          final rooms = list
+              .map((r) => MultiplayerRoomInfo.fromJson(r as Map<String, dynamic>))
+              .toList();
+          onlineRoomsNotifier.value = List.unmodifiable(rooms);
         }
         break;
 
@@ -189,13 +399,25 @@ class LocalGameClient {
     ));
   }
 
+  /// Solicitar inicio de partida en el servidor online (anfitrión)
+  void requestStartOnlineMatch() {
+    sendMessage(const NetworkGameMessage(
+      type: 'START_MATCH_REQUEST',
+      data: {},
+    ));
+  }
+
   void sendMessage(NetworkGameMessage message, {bool isHandshake = false}) {
     if (_socket != null && _socket!.readyState == WebSocket.open) {
       try {
-        _socket!.add(message.serializeSecure(
-          pinCode: isHandshake ? null : _currentPinCode,
-          roomId: isHandshake ? null : _currentRoomId,
-        ));
+        if (_isOnlineMode) {
+          _socket!.add(message.serialize());
+        } else {
+          _socket!.add(message.serializeSecure(
+            pinCode: isHandshake ? null : _currentPinCode,
+            roomId: isHandshake ? null : _currentRoomId,
+          ));
+        }
       } catch (_) {}
     }
   }

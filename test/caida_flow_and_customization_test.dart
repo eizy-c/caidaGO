@@ -29,7 +29,7 @@ void main() {
 
       // Avanzar animación hasta completar el 100%
       await tester.pump(const Duration(milliseconds: 2000));
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(milliseconds: 300));
 
       // Al ser usuario nuevo por defecto, se abre el modal de personalización de perfil
       expect(find.text('OPCIONES DEL PERFIL'), findsOneWidget);
@@ -83,7 +83,7 @@ void main() {
       expect(find.text('Estadística'), findsOneWidget);
       expect(find.text('Desafíos'), findsOneWidget);
       expect(find.text('JUGAR'), findsOneWidget);
-      expect(find.text('TUTORIAL'), findsOneWidget);
+      expect(find.textContaining('TUTORIAL'), findsOneWidget);
       expect(find.text('MULTIJUGADOR'), findsOneWidget);
     });
 
@@ -95,8 +95,8 @@ void main() {
       );
       await tester.pump();
 
-      // Tocar "JUGAR" para entrar al sub-menú de modos
-      await tester.tap(find.text('JUGAR'));
+      // Tocar "PRÁCTICA BOT" para entrar al sub-menú de modos
+      await tester.tap(find.text('PRÁCTICA BOT'));
       await tester.pumpAndSettle();
 
       expect(find.text('Vs Bot'), findsOneWidget);

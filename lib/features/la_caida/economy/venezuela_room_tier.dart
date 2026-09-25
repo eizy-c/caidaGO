@@ -48,8 +48,8 @@ class VenezuelaRoomTier {
     this.simulatedActivePlayers = 120,
   });
 
-  /// Ruta del asset de fondo temático de la sala en alta definición (1080x2340).
-  String get backgroundAsset => 'assets/Tiers/backgrounds/$id-FONDO.png';
+  /// Ruta del asset de fondo temático de la sala en formato WebP optimizado.
+  String get backgroundAsset => 'assets/Tiers/backgrounds/$id-FONDO.webp';
 
   /// Pozo total acumulado en la mesa según la modalidad de juego.
   /// 1v1: Entrada * 2
@@ -114,7 +114,7 @@ class VenezuelaRoomCatalog {
       winTrophies: 3,
       lossTrophies: 0,
       requiredPrevTrophies: 0,
-      frameAsset: 'assets/Tiers/box/1-SALAS.png',
+      frameAsset: 'assets/Tiers/box/1-SALAS.webp',
       primaryColor: Color(0xFF10B981), // Esmeralda / Selva
       accentColor: Color(0xFF34D399),
       gradientColors: [Color(0xFF064E3B), Color(0xFF022C22)],
@@ -133,7 +133,7 @@ class VenezuelaRoomCatalog {
       winTrophies: 5,
       lossTrophies: -2,
       requiredPrevTrophies: 15,
-      frameAsset: 'assets/Tiers/box/2-SALAS.png',
+      frameAsset: 'assets/Tiers/box/2-SALAS.webp',
       primaryColor: Color(0xFFF59E0B), // Atardecer crepuscular
       accentColor: Color(0xFFFBBF24),
       gradientColors: [Color(0xFF78350F), Color(0xFF451A03)],
@@ -152,7 +152,7 @@ class VenezuelaRoomCatalog {
       winTrophies: 8,
       lossTrophies: -3,
       requiredPrevTrophies: 30,
-      frameAsset: 'assets/Tiers/box/3-SALAS.png',
+      frameAsset: 'assets/Tiers/box/3-SALAS.webp',
       primaryColor: Color(0xFF06B6D4), // Turquesa costero
       accentColor: Color(0xFF22D3EE),
       gradientColors: [Color(0xFF164E63), Color(0xFF083344)],
@@ -171,7 +171,7 @@ class VenezuelaRoomCatalog {
       winTrophies: 10,
       lossTrophies: -4,
       requiredPrevTrophies: 60,
-      frameAsset: 'assets/Tiers/box/4-SALAS.png',
+      frameAsset: 'assets/Tiers/box/4-SALAS.webp',
       primaryColor: Color(0xFFEF4444), // Fuego / Relámpago
       accentColor: Color(0xFFF87171),
       gradientColors: [Color(0xFF7F1D1D), Color(0xFF450A0A)],
@@ -190,7 +190,7 @@ class VenezuelaRoomCatalog {
       winTrophies: 12,
       lossTrophies: -5,
       requiredPrevTrophies: 75,
-      frameAsset: 'assets/Tiers/box/5-SALAS.png',
+      frameAsset: 'assets/Tiers/box/5-SALAS.webp',
       primaryColor: Color(0xFF38BDF8), // Azul escarcha
       accentColor: Color(0xFFBAE6FD),
       gradientColors: [Color(0xFF0C4A6E), Color(0xFF082F49)],
@@ -210,7 +210,7 @@ class VenezuelaRoomCatalog {
       winTrophies: 16,
       lossTrophies: -6,
       requiredPrevTrophies: 100,
-      frameAsset: 'assets/Tiers/box/6-SALAS.png',
+      frameAsset: 'assets/Tiers/box/6-SALAS.webp',
       primaryColor: Color(0xFFA855F7), // Morado imperial
       accentColor: Color(0xFFC084FC),
       gradientColors: [Color(0xFF581C87), Color(0xFF3B0764)],
@@ -229,7 +229,7 @@ class VenezuelaRoomCatalog {
       winTrophies: 20,
       lossTrophies: -8,
       requiredPrevTrophies: 125,
-      frameAsset: 'assets/Tiers/box/7-SALAS.png',
+      frameAsset: 'assets/Tiers/box/7-SALAS.webp',
       primaryColor: Color(0xFFEAB308), // Oro Casino
       accentColor: Color(0xFFFDE047),
       gradientColors: [Color(0xFF713F12), Color(0xFF422006)],

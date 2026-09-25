@@ -96,7 +96,7 @@ class TablePlayerBadge extends StatelessWidget {
                         width: avatarSize + 6,
                         height: avatarSize + 6,
                         decoration: BoxDecoration(
-                          shape: BoxShape.circle,
+                          borderRadius: BorderRadius.circular(16),
                           border: Border.all(
                             color: effectiveGlowColor,
                             width: isCurrentTurn ? 2.8 : 1.8,
@@ -111,11 +111,14 @@ class TablePlayerBadge extends StatelessWidget {
                             ),
                           ],
                         ),
-                        child: UserFrameView(
-                          avatarIndex: avatarId!,
-                          frameId: frameId ?? 'rank_novato',
-                          size: avatarSize,
-                          showLevelBadge: false,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(14),
+                          child: UserFrameView(
+                            avatarIndex: avatarId!,
+                            frameId: frameId ?? 'rank_novato',
+                            size: avatarSize,
+                            showLevelBadge: false,
+                          ),
                         ),
                       )
                     else

@@ -34,6 +34,12 @@ class AppGradients {
     colors: [Color(0xFF22D3EE), Color(0xFF0284C7)],
   );
 
+  static const LinearGradient orangeAction = LinearGradient(
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+    colors: [Color(0xFFF97316), Color(0xFFEA580C)],
+  );
+
   // Gradientes específicos de Rango por Trofeos
   static const LinearGradient rankNovato = LinearGradient(
     begin: Alignment.topLeft,
