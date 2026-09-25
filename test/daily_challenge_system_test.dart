@@ -39,13 +39,13 @@ void main() {
   });
 
   group('AchievementCatalog tests', () {
-    test('catalog contains 49 achievements across 3 categories with strict Bronce -> Plata -> Oro progression', () {
-      expect(AchievementCatalog.allAchievements.length, 49);
+    test('catalog contains 42 achievements across 3 categories with strict Bronce -> Plata -> Oro progression', () {
+      expect(AchievementCatalog.allAchievements.length, 42);
       final partidas = AchievementCatalog.allAchievements.where((a) => a.category == AchievementCategory.partidas);
       final jugadas = AchievementCatalog.allAchievements.where((a) => a.category == AchievementCategory.jugadas);
       final economia = AchievementCatalog.allAchievements.where((a) => a.category == AchievementCategory.economia);
 
-      expect(partidas.length, 16);
+      expect(partidas.length, 9);
       expect(jugadas.length, 21);
       expect(economia.length, 12);
 
