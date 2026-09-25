@@ -20,6 +20,7 @@ class CaidaMatchConfig {
   final int? vipWinnerReward;
   final bool isMatandoCantos;
   final bool isMultiplayer;
+  final bool isHost;
   final List<String>? playerNames;
   final List<int>? playerAvatarIds;
   final List<String>? playerFrameIds;
@@ -43,6 +44,7 @@ class CaidaMatchConfig {
     this.vipWinnerReward,
     this.isMatandoCantos = true,
     this.isMultiplayer = false,
+    this.isHost = false,
     this.playerNames,
     this.playerAvatarIds,
     this.playerFrameIds,
@@ -136,6 +138,8 @@ class CaidaMatchConfig {
     int? vipPrizePool,
     int? vipWinnerReward,
     bool? isMatandoCantos,
+    bool? isMultiplayer,
+    bool? isHost,
     List<String>? playerNames,
     List<int>? playerAvatarIds,
     List<String>? playerFrameIds,
@@ -158,6 +162,8 @@ class CaidaMatchConfig {
       vipPrizePool: vipPrizePool ?? this.vipPrizePool,
       vipWinnerReward: vipWinnerReward ?? this.vipWinnerReward,
       isMatandoCantos: isMatandoCantos ?? this.isMatandoCantos,
+      isMultiplayer: isMultiplayer ?? this.isMultiplayer,
+      isHost: isHost ?? this.isHost,
       playerNames: playerNames ?? this.playerNames,
       playerAvatarIds: playerAvatarIds ?? this.playerAvatarIds,
       playerFrameIds: playerFrameIds ?? this.playerFrameIds,

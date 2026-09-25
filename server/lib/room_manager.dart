@@ -153,7 +153,7 @@ class RoomManager {
         );
         if (success) {
           registerPlayerInRoom(playerId, room.roomInfo.roomId);
-          print('[RoomManager] ⚡ Emparejamiento Rápido: $playerName unido a ${room.roomInfo.roomId}');
+          print('[RoomManager] Emparejamiento Rápido: $playerName unido a ${room.roomInfo.roomId}');
 
           if (room.isFull) {
             room.startMatch();
@@ -183,7 +183,7 @@ class RoomManager {
     Timer(const Duration(seconds: 7), () {
       final currentRoom = _rooms[newRoom.roomInfo.roomId];
       if (currentRoom != null && !currentRoom.isMatchStarted && currentRoom.humanPlayersCount > 0) {
-        print('[RoomManager] ⚡ Tiempo cumplido para ${newRoom.roomInfo.roomId}. Llenando con bots e iniciando.');
+        print('[RoomManager] Tiempo cumplido para ${newRoom.roomInfo.roomId}. Llenando con bots e iniciando.');
         currentRoom.fillEmptySeatsWithBots();
         currentRoom.startMatch();
       }
@@ -204,12 +204,31 @@ class RoomManager {
     return _rooms[roomId];
   }
 
-  /// Desconecta y remueve a un jugador de su sala actual
+  /// Desconecta el socket de un jugador (mantiene la sala viva con gracia de 10 min)
   void handlePlayerDisconnect(String playerId) {
+    final roomId = _playerRoomMap[playerId];
+    if (roomId != null) {
+      final room = _rooms[roomId];
+      room?.handleSocketDisconnected(playerId);
+    }
+  }
+
+  /// Abandono explícito de un jugador de la sala
+  void handlePlayerExplicitLeave(String playerId) {
     final roomId = _playerRoomMap.remove(playerId);
     if (roomId != null) {
       final room = _rooms[roomId];
       room?.removePlayer(playerId);
+    }
+  }
+
+  /// Cierre explícito de la sala por el anfitrión
+  void handleHostCloseRoom(String roomId) {
+    final room = _rooms[roomId];
+    if (room != null) {
+      room.closeRoom();
+      _rooms.remove(roomId);
+      _playerRoomMap.removeWhere((_, rId) => rId == roomId);
     }
   }
 

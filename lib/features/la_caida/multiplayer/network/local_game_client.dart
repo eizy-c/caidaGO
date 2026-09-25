@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import '../domain/multiplayer_models.dart';
+import '../../economy/player_session.dart';
 
 /// Estado de la conexión del cliente con el host
 enum ClientConnectionStatus {
@@ -59,13 +60,14 @@ class LocalGameClient {
     required int avatarId,
     required String frameId,
     String? pinCode,
+    String? playerId,
   }) async {
     await disconnect();
 
     _isOnlineMode = false;
     _setStatus(ClientConnectionStatus.connecting);
     errorMessageNotifier.value = null;
-    _myPlayerId = 'player_${DateTime.now().millisecondsSinceEpoch}';
+    _myPlayerId = playerId ?? (PlayerSession.shared.id.isNotEmpty ? PlayerSession.shared.id : 'player_${DateTime.now().millisecondsSinceEpoch}');
     _currentPinCode = pinCode?.trim();
 
     try {
@@ -124,13 +126,14 @@ class LocalGameClient {
     bool fillWithBots = true,
     int? regionalRoomId,
     int entryFee = 0,
+    String? hostPlayerId,
   }) async {
     await disconnect();
 
     _isOnlineMode = true;
     _setStatus(ClientConnectionStatus.connecting);
     errorMessageNotifier.value = null;
-    _myPlayerId = 'player_${DateTime.now().millisecondsSinceEpoch}';
+    _myPlayerId = hostPlayerId ?? (PlayerSession.shared.id.isNotEmpty ? PlayerSession.shared.id : 'player_${DateTime.now().millisecondsSinceEpoch}');
     _currentPinCode = pinCode?.trim();
 
     try {
@@ -190,13 +193,14 @@ class LocalGameClient {
     required String frameId,
     String? roomId,
     String? pinCode,
+    String? playerId,
   }) async {
     await disconnect();
 
     _isOnlineMode = true;
     _setStatus(ClientConnectionStatus.connecting);
     errorMessageNotifier.value = null;
-    _myPlayerId = 'player_${DateTime.now().millisecondsSinceEpoch}';
+    _myPlayerId = playerId ?? (PlayerSession.shared.id.isNotEmpty ? PlayerSession.shared.id : 'player_${DateTime.now().millisecondsSinceEpoch}');
     _currentPinCode = pinCode?.trim();
     _currentRoomId = roomId;
 
@@ -251,13 +255,14 @@ class LocalGameClient {
     int targetPlayers = 2,
     int? regionalRoomId,
     int entryFee = 0,
+    String? playerId,
   }) async {
     await disconnect();
 
     _isOnlineMode = true;
     _setStatus(ClientConnectionStatus.connecting);
     errorMessageNotifier.value = null;
-    _myPlayerId = 'player_${DateTime.now().millisecondsSinceEpoch}';
+    _myPlayerId = playerId ?? (PlayerSession.shared.id.isNotEmpty ? PlayerSession.shared.id : 'player_${DateTime.now().millisecondsSinceEpoch}');
 
     try {
       final wsUrl = _normalizeWsUrl(serverUrl);
@@ -431,6 +436,14 @@ class LocalGameClient {
         onMessageReceived?.call(msg);
         break;
 
+      case 'ROOM_CLOSED':
+        _setStatus(ClientConnectionStatus.disconnected);
+        final msgText = msg.data['message'] as String? ?? 'La sala fue cerrada por el anfitrión.';
+        errorMessageNotifier.value = msgText;
+        disconnect();
+        onDisconnected?.call();
+        break;
+
       default:
         onMessageReceived?.call(msg);
         break;
@@ -465,6 +478,24 @@ class LocalGameClient {
       type: 'START_MATCH_REQUEST',
       data: {},
     ));
+  }
+
+  /// Abandona explícitamente la sala liberando el asiento
+  void leaveRoomExplicitly() {
+    sendMessage(NetworkGameMessage(
+      type: 'LEAVE_ROOM',
+      data: {'playerId': _myPlayerId},
+    ));
+    disconnect();
+  }
+
+  /// Cierra explícitamente la sala si es anfitrión y expulsa a todos
+  void closeRoomExplicitly() {
+    sendMessage(NetworkGameMessage(
+      type: 'CLOSE_ROOM',
+      data: {'playerId': _myPlayerId},
+    ));
+    disconnect();
   }
 
   void sendMessage(NetworkGameMessage message, {bool isHandshake = false}) {
