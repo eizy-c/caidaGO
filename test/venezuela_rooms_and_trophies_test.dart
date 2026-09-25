@@ -44,7 +44,7 @@ void main() {
       expect(r2.entryFee, equals(200));
       expect(r2.basePrize, equals(400));
       expect(r2.trophyCap, equals(30));
-      expect(r2.winTrophies, equals(4));
+      expect(r2.winTrophies, equals(5));
       expect(r2.lossTrophies, equals(-2));
       expect(r2.requiredPrevTrophies, equals(15));
       expect(r2.frameAsset, equals('assets/Tiers/box/2-SALAS.webp'));

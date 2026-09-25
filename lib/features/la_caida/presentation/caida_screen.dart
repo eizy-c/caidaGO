@@ -146,7 +146,7 @@ class CaidaScreen extends StatefulWidget {
 }
 
 class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin, WidgetsBindingObserver {
-  late SpanishDeck _deck;
+  SpanishDeck _deck = SpanishDeck();
   late List<_PlayerState> _players;
   final List<SpanishCard> _tableCards = [];
   final List<PlacedTableCard> _placedTableCards = [];
@@ -362,13 +362,17 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
     );
 
     if (_hasGameStarted && !_isClientDevice) {
-      _initMatch(
-        _playerCount,
-        _isTeams,
-        initialUserName,
-        animate: _effectiveAnimateDealing,
-        startWithManoSelection: _effectiveChooseMano && !_isClientDevice,
-      );
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          _initMatch(
+            _playerCount,
+            _isTeams,
+            initialUserName,
+            animate: _effectiveAnimateDealing,
+            startWithManoSelection: _effectiveChooseMano && !_isClientDevice,
+          );
+        }
+      });
     }
   }
 
@@ -630,11 +634,9 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
       });
       final shouldAnimate = animate ?? widget.animateDealing;
 
-      if (_manoIndex == 0) {
+      if (_manoIndex == 0 && shouldAnimate) {
         // Si el usuario es la Mano, permitirle elegir cómo comenzar el conteo (1..4 o 4..1)
-        if (shouldAnimate) {
-          await _safeDelay(const Duration(milliseconds: 150));
-        }
+        await _safeDelay(const Duration(milliseconds: 150));
         if (!mounted) return;
         final dir = await TableCantoDialog.show(context);
         if (dir != null && mounted) {
