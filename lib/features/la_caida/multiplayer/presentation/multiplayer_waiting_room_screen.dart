@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../../../core/presentation/widgets/app_3d_button.dart';
 import '../../../../core/presentation/widgets/cartoon_widgets.dart';
 import '../../../../core/theme/app_palette.dart';
@@ -331,6 +332,49 @@ class _MultiplayerWaitingRoomScreenState
               child: const Icon(Icons.arrow_back_rounded, color: Color(0xFF1E1763), size: 20),
             ),
           ),
+          actions: [
+            Padding(
+              padding: const EdgeInsets.only(right: 10.0),
+              child: InkWell(
+                onTap: () {
+                  final code = room.roomId.replaceAll('RM-', '').toUpperCase();
+                  Clipboard.setData(ClipboardData(text: code));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Código de sala #$code copiado.'),
+                      backgroundColor: const Color(0xFF10B981),
+                      duration: const Duration(seconds: 2),
+                    ),
+                  );
+                },
+                borderRadius: BorderRadius.circular(10),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF0F172A),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: const Color(0xFF38BDF8), width: 1.5),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        '#${room.roomId.replaceAll('RM-', '').toUpperCase()}',
+                        style: const TextStyle(
+                          color: Color(0xFF38BDF8),
+                          fontWeight: FontWeight.w900,
+                          fontSize: 13,
+                          letterSpacing: 1.0,
+                        ),
+                      ),
+                      const SizedBox(width: 5),
+                      const Icon(Icons.copy_rounded, color: Color(0xFF38BDF8), size: 14),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
           title: Column(
           children: [
             Text(
@@ -400,9 +444,24 @@ class _MultiplayerWaitingRoomScreenState
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    'Modo: ${room.targetPlayers} Jugadores ${room.isTeams ? "(Parejas)" : "(Individual)"}',
-                    style: const TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'ID: #${room.roomId.replaceAll('RM-', '').toUpperCase()}',
+                        style: const TextStyle(
+                          color: Color(0xFF38BDF8),
+                          fontSize: 12,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 0.8,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        '• Modo: ${room.targetPlayers} Jugadores ${room.isTeams ? "(Parejas)" : "(Individual)"}',
+                        style: const TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold),
+                      ),
+                    ],
                   ),
                   Text(
                     widget.isHost ? 'Eres el Anfitrión' : 'Esperando al Anfitrión...',

@@ -289,7 +289,7 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
   bool _isChatDrawerOpen = false;
   late AnimationController _chatSlideController;
   late Animation<Offset> _chatSlideAnimation;
-  int _currentPingMs = 28;
+  final ValueNotifier<int> _currentPingNotifier = ValueNotifier<int>(28);
 
   Future<void> _safeDelay(Duration duration) {
     if (!mounted) return Future.value();
@@ -401,7 +401,7 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
   void _setupMultiplayerNetwork() {
     if (_isHostDevice) {
       if (_host != null) {
-        _currentPingMs = _host!.pingMsNotifier.value;
+        _currentPingNotifier.value = _host!.pingMsNotifier.value;
         _host!.pingMsNotifier.addListener(_onPingUpdated);
 
         _host!.onClientMessageReceived = (msg, playerId) {
@@ -419,7 +419,7 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
         };
       } else if (_client != null) {
         // Anfitrión en sala Online (conectado por WebSocket al servidor en la nube)
-        _currentPingMs = _client!.pingMsNotifier.value;
+        _currentPingNotifier.value = _client!.pingMsNotifier.value;
         _client!.pingMsNotifier.addListener(_onPingUpdated);
 
         _client!.onMessageReceived = (msg) {
@@ -441,7 +441,7 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
         };
       }
     } else if (_isClientDevice) {
-      _currentPingMs = _client?.pingMsNotifier.value ?? 25;
+      _currentPingNotifier.value = _client?.pingMsNotifier.value ?? 25;
       _client?.pingMsNotifier.addListener(_onPingUpdated);
 
       _client?.onMessageReceived = (msg) {
@@ -468,10 +468,8 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
     final newPing = _isHostDevice
         ? (_host?.pingMsNotifier.value ?? _client?.pingMsNotifier.value ?? 5)
         : (_client?.pingMsNotifier.value ?? 30);
-    if (_currentPingMs != newPing) {
-      setState(() {
-        _currentPingMs = newPing;
-      });
+    if (_currentPingNotifier.value != newPing) {
+      _currentPingNotifier.value = newPing;
     }
   }
 
@@ -616,6 +614,7 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
     _cantoAudioTimers.clear();
     _clearAllCallouts();
     _matchChatHistory.clear();
+    _currentPingNotifier.dispose();
     super.dispose();
   }
 
@@ -2847,7 +2846,7 @@ child: Icon(icon, color: iconColor, size: 20),
           playerLevel: null,
           // Los ms SOLO se muestran en partidas por internet o red local
           showPing: _isMultiplayerNetwork,
-          pingMs: _currentPingMs,
+          pingNotifier: _currentPingNotifier,
         ),
         body: WoodTableBackground(
           backgroundImage: _venezuelaRoom?.backgroundAsset,

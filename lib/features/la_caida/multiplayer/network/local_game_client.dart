@@ -23,6 +23,9 @@ class LocalGameClient {
   int _mySeatIndex = -1;
   String _myPlayerId = '';
   bool _isOnlineMode = false;
+  Completer<bool>? _handshakeCompleter;
+  bool _isAwaitingPong = false;
+  int _lastPingSentTime = 0;
 
   final ValueNotifier<ClientConnectionStatus> statusNotifier =
       ValueNotifier<ClientConnectionStatus>(ClientConnectionStatus.disconnected);
@@ -79,12 +82,17 @@ class LocalGameClient {
         },
       );
 
+      _handshakeCompleter = Completer<bool>();
+
       _socket!.listen(
         _handleIncomingData,
         onDone: _handleConnectionClosed,
         onError: (err) {
           _setStatus(ClientConnectionStatus.error);
           errorMessageNotifier.value = 'Error en conexión: $err';
+          if (_handshakeCompleter != null && !_handshakeCompleter!.isCompleted) {
+            _handshakeCompleter!.complete(false);
+          }
         },
       );
 
@@ -102,6 +110,19 @@ class LocalGameClient {
         ),
         isHandshake: true,
       );
+
+      final accepted = await _handshakeCompleter!.future.timeout(
+        const Duration(seconds: 6),
+        onTimeout: () => false,
+      );
+
+      if (!accepted && _status != ClientConnectionStatus.connected) {
+        if (errorMessageNotifier.value == null) {
+          errorMessageNotifier.value = 'El anfitrión no respondió a la solicitud de unión.';
+        }
+        await disconnect();
+        return false;
+      }
 
       return true;
     } catch (e) {
@@ -145,12 +166,17 @@ class LocalGameClient {
         },
       );
 
+      _handshakeCompleter = Completer<bool>();
+
       _socket!.listen(
         _handleIncomingData,
         onDone: _handleConnectionClosed,
         onError: (err) {
           _setStatus(ClientConnectionStatus.error);
           errorMessageNotifier.value = 'Error en conexión con el servidor: $err';
+          if (_handshakeCompleter != null && !_handshakeCompleter!.isCompleted) {
+            _handshakeCompleter!.complete(false);
+          }
         },
       );
 
@@ -175,6 +201,19 @@ class LocalGameClient {
         ),
         isHandshake: true,
       );
+
+      final accepted = await _handshakeCompleter!.future.timeout(
+        const Duration(seconds: 8),
+        onTimeout: () => false,
+      );
+
+      if (!accepted && _status != ClientConnectionStatus.connected) {
+        if (errorMessageNotifier.value == null) {
+          errorMessageNotifier.value = 'El servidor no confirmó la creación de la sala.';
+        }
+        await disconnect();
+        return false;
+      }
 
       return true;
     } catch (e) {
@@ -213,15 +252,21 @@ class LocalGameClient {
         },
       );
 
+      _handshakeCompleter = Completer<bool>();
+
       _socket!.listen(
         _handleIncomingData,
         onDone: _handleConnectionClosed,
         onError: (err) {
           _setStatus(ClientConnectionStatus.error);
           errorMessageNotifier.value = 'Error en conexión con el servidor: $err';
+          if (_handshakeCompleter != null && !_handshakeCompleter!.isCompleted) {
+            _handshakeCompleter!.complete(false);
+          }
         },
       );
 
+      final cleanRoomId = roomId?.replaceAll('RM-', '').trim().toUpperCase();
       sendMessage(
         NetworkGameMessage(
           type: 'JOIN_ONLINE_ROOM',
@@ -230,12 +275,25 @@ class LocalGameClient {
             'name': playerName,
             'avatarId': avatarId,
             'frameId': frameId,
-            'roomId': roomId,
+            'roomId': cleanRoomId,
             'pinCode': pinCode?.trim(),
           },
         ),
         isHandshake: true,
       );
+
+      final accepted = await _handshakeCompleter!.future.timeout(
+        const Duration(seconds: 8),
+        onTimeout: () => false,
+      );
+
+      if (!accepted && _status != ClientConnectionStatus.connected) {
+        if (errorMessageNotifier.value == null) {
+          errorMessageNotifier.value = 'No se pudo unir a la sala. Verifica el código.';
+        }
+        await disconnect();
+        return false;
+      }
 
       return true;
     } catch (e) {
@@ -273,12 +331,17 @@ class LocalGameClient {
         },
       );
 
+      _handshakeCompleter = Completer<bool>();
+
       _socket!.listen(
         _handleIncomingData,
         onDone: _handleConnectionClosed,
         onError: (err) {
           _setStatus(ClientConnectionStatus.error);
           errorMessageNotifier.value = 'Error en conexión con el servidor: $err';
+          if (_handshakeCompleter != null && !_handshakeCompleter!.isCompleted) {
+            _handshakeCompleter!.complete(false);
+          }
         },
       );
 
@@ -296,6 +359,16 @@ class LocalGameClient {
           },
         ),
       );
+
+      final accepted = await _handshakeCompleter!.future.timeout(
+        const Duration(seconds: 8),
+        onTimeout: () => false,
+      );
+
+      if (!accepted && _status != ClientConnectionStatus.connected) {
+        await disconnect();
+        return false;
+      }
 
       return true;
     } catch (e) {
@@ -346,7 +419,9 @@ class LocalGameClient {
       }
 
       final uri = Uri.parse(httpUrl);
-      final client = HttpClient()..connectionTimeout = const Duration(seconds: 4);
+      final client = HttpClient()
+        ..connectionTimeout = const Duration(seconds: 4)
+        ..badCertificateCallback = ((cert, host, port) => true);
       final request = await client.getUrl(uri);
       final response = await request.close();
       if (response.statusCode == 200) {
@@ -384,15 +459,19 @@ class LocalGameClient {
         if (msg.data['seats'] != null) {
           _updateSeatsFromJson(msg.data['seats'] as List);
         }
+        if (_handshakeCompleter != null && !_handshakeCompleter!.isCompleted) {
+          _handshakeCompleter!.complete(true);
+        }
         _startPingLoop();
         break;
 
       case 'PONG':
+        _isAwaitingPong = false;
         final clientTime = msg.data['clientTime'] as int?;
         if (clientTime != null) {
           final now = DateTime.now().millisecondsSinceEpoch;
-          final rtt = (now - clientTime).clamp(2, 999);
-          _smoothedPing = (_smoothedPing * 0.65 + rtt * 0.35).round().clamp(2, 999);
+          final rtt = (now - clientTime).clamp(5, 999);
+          _smoothedPing = (_smoothedPing * 0.80 + rtt * 0.20).round().clamp(5, 999);
           pingMsNotifier.value = _smoothedPing;
         }
         break;
@@ -401,6 +480,9 @@ class LocalGameClient {
         _setStatus(ClientConnectionStatus.rejected);
         final reason = msg.data['message'] as String? ?? 'No se pudo unir a la sala.';
         errorMessageNotifier.value = reason;
+        if (_handshakeCompleter != null && !_handshakeCompleter!.isCompleted) {
+          _handshakeCompleter!.complete(false);
+        }
         disconnect();
         break;
 
@@ -517,11 +599,18 @@ class LocalGameClient {
 
   void _startPingLoop() {
     _pingTimer?.cancel();
-    _pingTimer = Timer.periodic(const Duration(milliseconds: 2200), (_) {
+    _isAwaitingPong = false;
+    _pingTimer = Timer.periodic(const Duration(milliseconds: 3500), (_) {
       if (isConnected) {
+        if (_isAwaitingPong) {
+          _smoothedPing = (_smoothedPing * 1.25).round().clamp(10, 999);
+          pingMsNotifier.value = _smoothedPing;
+        }
+        _isAwaitingPong = true;
+        _lastPingSentTime = DateTime.now().millisecondsSinceEpoch;
         sendMessage(NetworkGameMessage(
           type: 'PING',
-          data: {'clientTime': DateTime.now().millisecondsSinceEpoch},
+          data: {'clientTime': _lastPingSentTime},
         ));
       }
     });
@@ -544,6 +633,10 @@ class LocalGameClient {
   Future<void> disconnect() async {
     _pingTimer?.cancel();
     _pingTimer = null;
+    _isAwaitingPong = false;
+    if (_handshakeCompleter != null && !_handshakeCompleter!.isCompleted) {
+      _handshakeCompleter!.complete(false);
+    }
     if (_socket != null) {
       try {
         await _socket!.close();

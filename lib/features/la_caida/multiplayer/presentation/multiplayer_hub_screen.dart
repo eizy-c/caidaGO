@@ -526,9 +526,22 @@ class _MultiplayerHubScreenState extends State<MultiplayerHubScreen> {
                   ).firstOrNull;
                 }
 
+                if (matchedRoom == null && customIp.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        'No se detectó la sala #$targetId por Wi-Fi. Abre "Opciones avanzadas" y escribe la IP local del anfitrión (ej: 192.168.1.X).',
+                      ),
+                      backgroundColor: const Color(0xFFEF4444),
+                      duration: const Duration(seconds: 4),
+                    ),
+                  );
+                  return;
+                }
+
                 final effectiveIp = customIp.isNotEmpty
                     ? customIp
-                    : (matchedRoom?.hostIp ?? _myLocalIp ?? '127.0.0.1');
+                    : matchedRoom!.hostIp;
 
                 _joinRoom(MultiplayerRoomInfo(
                   roomId: matchedRoom?.roomId ?? targetId,

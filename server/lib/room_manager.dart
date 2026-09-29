@@ -93,10 +93,10 @@ class RoomManager {
     return buffer.toString();
   }
 
-  /// Busca una sala por su ID de 5 caracteres (insensible a mayúsculas/minúsculas)
+  /// Busca una sala por su ID de 5 caracteres (insensible a mayúsculas/minúsculas y prefijo RM-)
   GameRoom? getRoom(String roomId) {
-    final cleanId = roomId.trim().toUpperCase();
-    return _rooms[cleanId];
+    final cleanId = roomId.replaceAll('RM-', '').trim().toUpperCase();
+    return _rooms[cleanId] ?? _rooms[roomId.trim().toUpperCase()];
   }
 
   /// Busca una sala privada por su PIN de 4 dígitos

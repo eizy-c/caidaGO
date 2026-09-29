@@ -67,7 +67,9 @@ class GameRoom {
   }) {
     lastActivity = DateTime.now();
 
-    final existingIndex = seats.indexWhere((s) => s.playerId == playerId);
+    final existingIndex = seats.indexWhere((s) =>
+        (s.playerId != null && s.playerId == playerId) ||
+        (!s.isConnected && s.name.trim().toLowerCase() == playerName.trim().toLowerCase()));
     final isReconnecting = existingIndex != -1;
     final isReturningHost = roomInfo.hostName.trim().toLowerCase() == playerName.trim().toLowerCase();
 
@@ -94,6 +96,7 @@ class GameRoom {
       _emptyGraceTimer = null;
       _clientSockets[playerId] = socket;
       seats[existingIndex] = seats[existingIndex].copyWith(
+        playerId: playerId,
         name: playerName,
         avatarId: avatarId,
         frameId: frameId,
