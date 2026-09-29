@@ -118,7 +118,7 @@ class WebPages {
 
     <h2>6. Contacto</h2>
     <p>Si tienes alguna pregunta o inquietud acerca de esta Política de Privacidad o del tratamiento de tus datos, puedes ponerte en contacto con nosotros a través de:</p>
-    <p><strong>Correo electrónico:</strong> <a href="mailto:yoangeleizaga@gmail.com">yoangeleizaga@gmail.com</a></p>
+    <p><strong>Correo electrónico:</strong> <a href="mailto:eizycast5@gmail.com">eizycast5@gmail.com</a></p>
 
     <div class="footer">
       &copy; 2026 CaidaGO. Todos los derechos reservados.
@@ -228,7 +228,7 @@ class WebPages {
     <h2>Opción 2: Solicitud de eliminación manual completa</h2>
     <p>Si deseas que eliminemos definitivamente de nuestros servidores todo tu historial de juego, saldo virtual de monedas, trofeos y registros asociados a tu identificador de Facebook, puedes solicitarlo por correo electrónico:</p>
     <div class="step-box">
-      <p>Envía un correo a: <a href="mailto:yoangeleizaga@gmail.com"><strong>yoangeleizaga@gmail.com</strong></a> con la siguiente información:</p>
+      <p>Envía un correo a: <a href="mailto:eizycast5@gmail.com"><strong>eizycast5@gmail.com</strong></a> con la siguiente información:</p>
       <ul>
         <li><strong>Asunto:</strong> Solicitud de eliminación de datos de CaidaGO</li>
         <li><strong>Cuerpo del mensaje:</strong> Tu nombre de usuario en el juego o el enlace de tu perfil de Facebook para localizar tu registro.</li>
@@ -239,7 +239,7 @@ class WebPages {
     <p style="margin-top: 24px;">Para más información, puedes consultar nuestra <a href="/privacy">Política de Privacidad</a>.</p>
 
     <div class="footer">
-      &copy; 2026 CaidaGO. Soporte técnico: yoangeleizaga@gmail.com
+      &copy; 2026 CaidaGO. Soporte técnico: eizycast5@gmail.com
     </div>
   </div>
 </body>
