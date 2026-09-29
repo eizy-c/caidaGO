@@ -1,4 +1,4 @@
-package com.compendio.juegos.gme
+package com.caidago.app
 
 import io.flutter.embedding.android.FlutterActivity
 
