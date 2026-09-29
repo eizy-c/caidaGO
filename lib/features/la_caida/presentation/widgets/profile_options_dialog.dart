@@ -324,20 +324,10 @@ class _ProfileOptionsDialogState extends State<ProfileOptionsDialog> {
                       const SizedBox(height: 10),
 
                       // Galería de Héroes
-                      Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: AppPalette.cartoonCardDark,
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: AppPalette.cartoonBorder,
-                            width: 1.5,
-                          ),
-                        ),
-                        child: Wrap(
-                          spacing: 12,
-                          runSpacing: 12,
-                          alignment: WrapAlignment.center,
+                      Wrap(
+                        spacing: 12,
+                        runSpacing: 12,
+                        alignment: WrapAlignment.center,
                           children: heroes.map((hero) {
                             final isSel = hero.id == _selectedAvatarId;
                             return GestureDetector(
@@ -429,8 +419,7 @@ class _ProfileOptionsDialogState extends State<ProfileOptionsDialog> {
                             );
                           }).toList(),
                         ),
-                      ),
-                    ],
+                      ],
                   ),
                 ),
               ),

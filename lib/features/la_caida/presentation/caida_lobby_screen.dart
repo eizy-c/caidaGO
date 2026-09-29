@@ -9,15 +9,12 @@ import '../../../core/services/facebook_auth_service.dart';
 import '../domain/models/caida_match_config.dart';
 import '../economy/daily_challenge_system.dart';
 import '../economy/player_session.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'widgets/game_toast_queue.dart';
 import 'widgets/boosters_upgrades_modal.dart';
 import 'caida_screen.dart';
-import 'widgets/booster_selector_widget.dart';
 import 'widgets/bot_customization_modal.dart';
 import 'widgets/buy_tickets_modal.dart';
 import 'widgets/chest_slots_view.dart';
-import 'widgets/four_aces_display_view.dart';
 import 'widgets/inventory_modal.dart';
 import 'widgets/match_history_modal.dart';
 import 'widgets/player_profile_stats_modal.dart';
@@ -105,6 +102,7 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    precacheImage(const AssetImage('assets/app/logo-cartas-caidago.png'), context);
     precacheImage(const AssetImage('assets/app/logo-caidago.png'), context);
     SpanishCardView.precacheAllCards(context);
     UserFrameView.precacheAllAssets(context);
@@ -134,15 +132,6 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
       session: _session,
       onOpenShop: () => _openBuyTicketsModal(initialTab: 1),
     );
-  }
-
-  Future<void> _openOfficialWebsite() async {
-    final uri = Uri.parse('https://eizy-c.github.io/caidaGO/');
-    try {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    } catch (e) {
-      debugPrint('[CaidaLobbyScreen] Error abriendo sitio web oficial: $e');
-    }
   }
 
   Future<void> _handleFacebookLoginFromLobby() async {
@@ -970,18 +959,7 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
           ),
           const SizedBox(width: 8),
 
-          // Botón de Sitio Web Oficial CaidaGO
-          CartoonRoundButton(
-            width: 40,
-            height: 40,
-            borderRadius: 12,
-            depth: 2.5,
-            onPressed: _openOfficialWebsite,
-            child: const Icon(Icons.language_rounded, color: Color(0xFF38BDF8), size: 22),
-          ),
-          const SizedBox(width: 8),
-
-          // Botón de Mejoras (Cohete) inspirado en la referencia del usuario
+          // Botón de Mejoras / Potenciadores (Rayo)
           CartoonRoundButton(
             width: 40,
             height: 40,
@@ -992,7 +970,7 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
               alignment: Alignment.center,
               clipBehavior: Clip.none,
               children: [
-                const Icon(Icons.rocket_launch_rounded, color: Color(0xFFF97316), size: 22),
+                const Icon(Icons.bolt_rounded, color: Color(0xFFF59E0B), size: 25),
                 if (_session.activeBoosters.isNotEmpty)
                   Positioned(
                     top: -2,
@@ -1009,17 +987,6 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
                   ),
               ],
             ),
-          ),
-          const SizedBox(width: 8),
-
-          // Botón de Noticias y Actualizaciones
-          CartoonRoundButton(
-            width: 40,
-            height: 40,
-            borderRadius: 12,
-            depth: 2.5,
-            onPressed: () => PatchNotesService.showPatchNotesModal(context),
-            child: const Icon(Icons.campaign_rounded, color: AppPalette.cartoonCardText, size: 22),
           ),
           if (!_session.isFacebookLinked) ...[
             const SizedBox(width: 8),
@@ -1309,13 +1276,6 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
           _buildNavigationCardsRow(),
           const SizedBox(height: 12),
 
-          // 5. Barra de Potenciadores (Abre modal de Mejoras)
-          BoosterSelectorWidget(
-            session: _session,
-            onOpenShop: () => _openBuyTicketsModal(initialTab: 1),
-            onTap: _openBoostersUpgradesModal,
-          ),
-          const SizedBox(height: 12),
 
           // 6. Fila de 4 Ranuras de Cofres de Recompensa
           ChestSlotsView(
@@ -1619,40 +1579,17 @@ Text(
     );
   }
 
-  /// Área Hero Central con Logotipo Oficial de Caída, 4 Ases y Gran Botón 3D de JUGAR
+  /// Área Hero Central con Logotipo Oficial de Caída y Cartas y Gran Botón 3D de JUGAR
   Widget _buildHeroPlaySection() {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // Logotipo oficial 3D de La Caída (optimizado)
+        // Logotipo oficial 3D de La Caída con Cartas integrado (optimizado)
         Image.asset(
-          'assets/app/logo-caidago.png',
-          height: 64,
+          'assets/app/logo-cartas-caidago.png',
+          height: 135,
           fit: BoxFit.contain,
           filterQuality: FilterQuality.medium,
-        ),
-        const SizedBox(height: 8),
-
-        // Resplandor de rayos y Abanico de los 4 Ases
-        Stack(
-          alignment: Alignment.center,
-          children: [
-            // Resplandor azul detrás de las cartas
-            Container(
-              width: 220,
-              height: 90,
-              decoration: BoxDecoration(
-                gradient: RadialGradient(
-                  colors: [
-                    const Color(0xFF38BDF8).withValues(alpha: 0.35),
-                    const Color(0xFF0284C7).withValues(alpha: 0.1),
-                    Colors.transparent,
-                  ],
-                ),
-              ),
-            ),
-            const FourAcesDisplayView(cardWidth: 58),
-          ],
         ),
         const SizedBox(height: 12),
 
