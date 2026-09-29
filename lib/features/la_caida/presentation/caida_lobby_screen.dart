@@ -9,7 +9,9 @@ import '../../../core/services/facebook_auth_service.dart';
 import '../domain/models/caida_match_config.dart';
 import '../economy/daily_challenge_system.dart';
 import '../economy/player_session.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'widgets/game_toast_queue.dart';
+import 'widgets/boosters_upgrades_modal.dart';
 import 'caida_screen.dart';
 import 'widgets/booster_selector_widget.dart';
 import 'widgets/bot_customization_modal.dart';
@@ -123,6 +125,23 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
   Future<void> _openProfileAndLevelModal({int initialTabIndex = 0}) async {
     await ProfileAndLevelModal.show(context, session: _session, initialTabIndex: initialTabIndex);
     if (mounted) setState(() {});
+  }
+
+  void _openBoostersUpgradesModal() {
+    BoostersUpgradesModal.show(
+      context,
+      session: _session,
+      onOpenShop: () => _openBuyTicketsModal(initialTab: 1),
+    );
+  }
+
+  Future<void> _openOfficialWebsite() async {
+    final uri = Uri.parse('https://eizy-c.github.io/caidaGO/');
+    try {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } catch (e) {
+      debugPrint('[CaidaLobbyScreen] Error abriendo sitio web oficial: $e');
+    }
   }
 
   Future<void> _handleFacebookLoginFromLobby() async {
@@ -949,6 +968,49 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
             child: const Icon(Icons.settings_rounded, color: AppPalette.cartoonCardText, size: 22),
           ),
           const SizedBox(width: 8),
+
+          // Botón de Sitio Web Oficial CaidaGO
+          CartoonRoundButton(
+            width: 40,
+            height: 40,
+            borderRadius: 12,
+            depth: 2.5,
+            onPressed: _openOfficialWebsite,
+            child: const Icon(Icons.language_rounded, color: Color(0xFF38BDF8), size: 22),
+          ),
+          const SizedBox(width: 8),
+
+          // Botón de Mejoras (Cohete) inspirado en la referencia del usuario
+          CartoonRoundButton(
+            width: 40,
+            height: 40,
+            borderRadius: 12,
+            depth: 2.5,
+            onPressed: _openBoostersUpgradesModal,
+            child: Stack(
+              alignment: Alignment.center,
+              clipBehavior: Clip.none,
+              children: [
+                const Icon(Icons.rocket_launch_rounded, color: Color(0xFFF97316), size: 22),
+                if (_session.activeBoosters.isNotEmpty)
+                  Positioned(
+                    top: -2,
+                    right: -2,
+                    child: Container(
+                      width: 9,
+                      height: 9,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF22C55E),
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 1.2),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+
           // Botón de Noticias y Actualizaciones
           CartoonRoundButton(
             width: 40,
@@ -1246,10 +1308,11 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
           _buildNavigationCardsRow(),
           const SizedBox(height: 12),
 
-          // 5. Barra de Potenciadores
+          // 5. Barra de Potenciadores (Abre modal de Mejoras)
           BoosterSelectorWidget(
             session: _session,
             onOpenShop: () => _openBuyTicketsModal(initialTab: 1),
+            onTap: _openBoostersUpgradesModal,
           ),
           const SizedBox(height: 12),
 

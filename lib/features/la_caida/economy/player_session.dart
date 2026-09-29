@@ -561,6 +561,16 @@ class PlayerSession extends ChangeNotifier {
     save();
   }
 
+  bool isBoosterActive(BoosterType type) => _activeBoosters.contains(type);
+
+  bool toggleBooster(BoosterType type) {
+    if (isBoosterActive(type)) {
+      return deactivateBooster(type);
+    } else {
+      return activateBooster(type);
+    }
+  }
+
   bool activateBooster(BoosterType type) {
     if (_activeBoosters.length >= 3) return false;
     if (getBoosterCount(type) <= 0) return false;

@@ -693,6 +693,13 @@ child: Container(
             ),
           ],
         ),
+        const SizedBox(height: 10),
+        _buildInfoTile(
+          icon: Icons.language_rounded,
+          title: 'SITIO WEB OFICIAL',
+          subtitle: 'eizy-c.github.io/caidaGO • Novedades, reglas y descargas',
+          onTap: () => _launchUrl('https://eizy-c.github.io/caidaGO/'),
+        ),
       ],
     );
   }

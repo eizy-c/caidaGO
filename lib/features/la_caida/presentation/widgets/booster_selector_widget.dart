@@ -7,11 +7,13 @@ import '../../../../core/presentation/widgets/app_3d_button.dart';
 class BoosterSelectorWidget extends StatelessWidget {
   final PlayerSession session;
   final VoidCallback onOpenShop;
+  final VoidCallback? onTap;
 
   const BoosterSelectorWidget({
     super.key,
     required this.session,
     required this.onOpenShop,
+    this.onTap,
   });
 
   @override
@@ -22,7 +24,7 @@ class BoosterSelectorWidget extends StatelessWidget {
         final active = session.activeBoosters;
 
         return GestureDetector(
-          onTap: () => _openManagementSheet(context),
+          onTap: onTap ?? () => _openManagementSheet(context),
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
             decoration: BoxDecoration(
