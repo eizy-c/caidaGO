@@ -1045,7 +1045,44 @@ Text(
             ),
             const SizedBox(width: 6),
 
-            // Derecha: Botón de personalización / perfil
+            // Derecha: Botón de personalización / perfil y regalo FB si no está vinculado
+            if (!_session.isFacebookLinked) ...[
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF1877F2), Color(0xFF0D5BBF)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: const Color(0xFF60A5FA), width: 1.2),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Color(0x551877F2),
+                      blurRadius: 4,
+                      offset: Offset(0, 1),
+                    ),
+                  ],
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.facebook, color: Colors.white, size: 14),
+                    SizedBox(width: 4),
+                    Text(
+                      '+2500',
+                      style: TextStyle(
+                        color: Color(0xFFFDE047),
+                        fontSize: 10,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 6),
+            ],
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
               decoration: BoxDecoration(

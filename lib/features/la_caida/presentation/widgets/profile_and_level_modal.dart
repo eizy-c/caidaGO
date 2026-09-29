@@ -244,7 +244,7 @@ class _ProfileAndLevelModalState extends State<ProfileAndLevelModal>
 
       if (res.isSuccess && res.userData != null) {
         final user = res.userData!;
-        widget.session.linkFacebook(
+        final rewarded = widget.session.linkFacebook(
           id: user.id,
           name: user.name,
           avatarUrl: user.avatarUrl,
@@ -254,15 +254,19 @@ class _ProfileAndLevelModalState extends State<ProfileAndLevelModal>
           _nameController.text = user.name;
           _tempUseFacebookAvatar = (user.avatarUrl != null && user.avatarUrl!.isNotEmpty);
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            backgroundColor: const Color(0xFF1877F2),
-            content: Text(
-              'Cuenta de Facebook vinculada con exito: ${user.name}',
-              style: const TextStyle(fontWeight: FontWeight.bold),
+        if (rewarded && mounted) {
+          _showFacebookRewardCelebrationDialog(context);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              backgroundColor: const Color(0xFF1877F2),
+              content: Text(
+                'Cuenta de Facebook vinculada con exito: ${user.name}',
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
             ),
-          ),
-        );
+          );
+        }
       } else if (res.isCancelled) {
         // Cancelado por el usuario
       } else {
@@ -344,6 +348,181 @@ class _ProfileAndLevelModalState extends State<ProfileAndLevelModal>
         ),
       );
     }
+  }
+
+  void _showFacebookRewardCelebrationDialog(BuildContext context) {
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 360),
+          padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Color(0xFF1E1B4B), Color(0xFF0F172A)],
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+            ),
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: const Color(0xFF38BDF8), width: 2.2),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x6638BDF8),
+                blurRadius: 20,
+                offset: Offset(0, 8),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 60,
+                height: 60,
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Color(0xFF38BDF8), Color(0xFF1877F2)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Color(0x661877F2),
+                      blurRadius: 12,
+                      offset: Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: const Icon(
+                  Icons.card_giftcard_rounded,
+                  color: Colors.white,
+                  size: 32,
+                ),
+              ),
+              const SizedBox(height: 14),
+              const Text(
+                '¡BIENVENIDO A CAIDAGO!',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Color(0xFFFDE047),
+                  fontWeight: FontWeight.w900,
+                  fontSize: 16,
+                  letterSpacing: 0.8,
+                ),
+              ),
+              const SizedBox(height: 6),
+              const Text(
+                'Has vinculado tu cuenta con Facebook y desbloqueado tu paquete de bienvenida exclusivo:',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Colors.white70,
+                  fontSize: 12,
+                  height: 1.3,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                decoration: BoxDecoration(
+                  color: AppPalette.cartoonBgDark,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: AppPalette.cartoonBorder, width: 1.5),
+                ),
+                child: Column(
+                  children: [
+                    _buildRewardItemRow(
+                      icon: Icons.monetization_on_rounded,
+                      iconColor: const Color(0xFFFBBF24),
+                      title: '+2,500 Monedas',
+                      subtitle: 'Para jugar partidas y mesas VIP',
+                    ),
+                    const Divider(color: Colors.white12, height: 16),
+                    _buildRewardItemRow(
+                      icon: Icons.stars_rounded,
+                      iconColor: const Color(0xFF34D399),
+                      title: '+5 Chapas',
+                      subtitle: 'Moneda escasa para la tienda',
+                    ),
+                    const Divider(color: Colors.white12, height: 16),
+                    _buildRewardItemRow(
+                      icon: Icons.bolt_rounded,
+                      iconColor: const Color(0xFFC084FC),
+                      title: '+200 XP',
+                      subtitle: 'Progreso de rango acelerado',
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
+              App3dButton(
+                onPressed: () => Navigator.of(ctx).pop(),
+                expand: true,
+                height: 44,
+                depth: 4,
+                borderRadius: 12,
+                variant: App3dButtonVariant.gold,
+                label: '¡RECLAMAR Y CONTINUAR!',
+                textStyle: const TextStyle(
+                  color: Color(0xFF0F172A),
+                  fontWeight: FontWeight.w900,
+                  fontSize: 13,
+                  letterSpacing: 0.6,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRewardItemRow({
+    required IconData icon,
+    required Color iconColor,
+    required String title,
+    required String subtitle,
+  }) {
+    return Row(
+      children: [
+        Container(
+          width: 34,
+          height: 34,
+          decoration: BoxDecoration(
+            color: iconColor.withValues(alpha: 0.15),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: iconColor.withValues(alpha: 0.4)),
+          ),
+          child: Icon(icon, color: iconColor, size: 20),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w900,
+                  fontSize: 13,
+                ),
+              ),
+              Text(
+                subtitle,
+                style: const TextStyle(
+                  color: Colors.white54,
+                  fontSize: 10,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
   }
 
   @override
@@ -712,26 +891,46 @@ child: const Icon(Icons.close_rounded, color: Colors.white, size: 18),
               ),
             ),
             const SizedBox(width: 10),
-            const Expanded(
+            Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
-                    'Vincular con Facebook',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w900,
-                      fontSize: 12.5,
-                    ),
+                  Row(
+                    children: [
+                      const Text(
+                        'Vincular con Facebook',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w900,
+                          fontSize: 12,
+                        ),
+                      ),
+                      const SizedBox(width: 5),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFDE047),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: const Text(
+                          'REGALO',
+                          style: TextStyle(
+                            color: Color(0xFF0F172A),
+                            fontWeight: FontWeight.w900,
+                            fontSize: 7.5,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                  SizedBox(height: 1),
-                  Text(
-                    'Respalda progreso y usa tu foto real',
+                  const SizedBox(height: 1),
+                  const Text(
+                    '¡Recibe +2,500 Monedas y +5 Chapas!',
                     style: TextStyle(
-                      color: Colors.white70,
-                      fontSize: 10.5,
-                      fontWeight: FontWeight.w500,
+                      color: Color(0xFFFDE047),
+                      fontSize: 10,
+                      fontWeight: FontWeight.w800,
                     ),
                   ),
                 ],
@@ -868,6 +1067,21 @@ child: const Icon(Icons.close_rounded, color: Colors.white, size: 18),
                       ),
                       overflow: TextOverflow.ellipsis,
                     ),
+                    if (widget.session.hasClaimedFacebookReward)
+                      const Row(
+                        children: [
+                          Icon(Icons.check_circle_rounded, color: Color(0xFF34D399), size: 10),
+                          SizedBox(width: 3),
+                          Text(
+                            'Regalo reclamado (+2,500 Monedas)',
+                            style: TextStyle(
+                              color: Color(0xFF34D399),
+                              fontSize: 9,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
                   ],
                 ),
               ),

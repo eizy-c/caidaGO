@@ -116,7 +116,7 @@ void main() {
       expect(session.activeAvatarUrl, equals('https://graph.facebook.com/m.jpg'));
     });
 
-    test('unlinkFacebook clears all Facebook data', () {
+    test('unlinkFacebook clears all Facebook data but retains earned rewards', () {
       final session = PlayerSession.createDefault();
       session.linkFacebook(
         id: 'fb_1',
@@ -134,9 +134,47 @@ void main() {
       expect(session.facebookEmail, isNull);
       expect(session.useFacebookAvatar, isFalse);
       expect(session.activeAvatarUrl, isNull);
+      expect(session.hasClaimedFacebookReward, isTrue);
+      expect(session.coins, equals(PlayerSession.facebookRewardCoins));
+      expect(session.chapas, equals(PlayerSession.facebookRewardChapas));
     });
 
-    test('toJson and fromJson preserve Facebook session state', () {
+    test('linkFacebook grants welcome reward exactly once preventing re-claim exploits', () {
+      final session = PlayerSession.createDefault(coins: 0);
+      expect(session.coins, equals(0));
+      expect(session.chapas, equals(0));
+      expect(session.xp, equals(0));
+      expect(session.hasClaimedFacebookReward, isFalse);
+
+      // Primer link: otorga recompensa
+      final firstRewardResult = session.linkFacebook(
+        id: 'fb_100',
+        name: 'Carlos',
+        avatarUrl: 'https://graph.facebook.com/c.jpg',
+      );
+      expect(firstRewardResult, isTrue);
+      expect(session.coins, equals(PlayerSession.facebookRewardCoins));
+      expect(session.chapas, equals(PlayerSession.facebookRewardChapas));
+      expect(session.xp, equals(PlayerSession.facebookRewardXp));
+      expect(session.hasClaimedFacebookReward, isTrue);
+
+      // Desvincula
+      session.unlinkFacebook();
+      expect(session.isFacebookLinked, isFalse);
+      expect(session.coins, equals(PlayerSession.facebookRewardCoins));
+
+      // Segundo link: NO otorga duplicados
+      final secondRewardResult = session.linkFacebook(
+        id: 'fb_100',
+        name: 'Carlos',
+        avatarUrl: 'https://graph.facebook.com/c.jpg',
+      );
+      expect(secondRewardResult, isFalse);
+      expect(session.coins, equals(PlayerSession.facebookRewardCoins));
+      expect(session.chapas, equals(PlayerSession.facebookRewardChapas));
+    });
+
+    test('toJson and fromJson preserve Facebook session state and claimed reward flag', () {
       final session = PlayerSession.createDefault();
       session.linkFacebook(
         id: 'fb_8899',
@@ -156,6 +194,9 @@ void main() {
       expect(restored.facebookEmail, equals('pedro@caidago.com'));
       expect(restored.useFacebookAvatar, isTrue);
       expect(restored.activeAvatarUrl, equals('https://graph.facebook.com/pedro.jpg'));
+      expect(restored.hasClaimedFacebookReward, isTrue);
+      expect(restored.coins, equals(PlayerSession.facebookRewardCoins));
+      expect(restored.chapas, equals(PlayerSession.facebookRewardChapas));
     });
   });
 }

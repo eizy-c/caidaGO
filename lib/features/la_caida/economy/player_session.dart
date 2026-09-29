@@ -42,6 +42,11 @@ class PlayerSession extends ChangeNotifier {
   String? _facebookAvatarUrl;
   String? _facebookEmail;
   bool _useFacebookAvatar;
+  bool _hasClaimedFacebookReward;
+
+  static const int facebookRewardCoins = 2500;
+  static const int facebookRewardChapas = 5;
+  static const int facebookRewardXp = 200;
 
   PlayerSession({
     required this._id,
@@ -68,6 +73,7 @@ class PlayerSession extends ChangeNotifier {
     this._facebookAvatarUrl,
     this._facebookEmail,
     this._useFacebookAvatar = true,
+    this._hasClaimedFacebookReward = false,
   })  : _tickets = tickets.clamp(0, _maxTickets),
         _lastTicketRegen = (lastTicketRegen ?? DateTime.now()).toUtc(),
         _chests = chests ?? List.generate(4, (i) => ChestSlotModel.empty(i)),
@@ -157,9 +163,12 @@ class PlayerSession extends ChangeNotifier {
       _isFacebookLinked &&
       (_facebookAvatarUrl != null && _facebookAvatarUrl!.trim().isNotEmpty);
   String? get activeAvatarUrl => useFacebookAvatar ? _facebookAvatarUrl : null;
+  bool get hasClaimedFacebookReward => _hasClaimedFacebookReward;
 
-  /// Vincula la cuenta del jugador con Facebook
-  void linkFacebook({
+  /// Vincula la cuenta del jugador con Facebook y otorga automáticamente
+  /// la recompensa de bienvenida (+2500 monedas, +5 chapas, +200 XP) si no ha sido reclamada.
+  /// Retorna true si se acaba de otorgar la recompensa.
+  bool linkFacebook({
     required String id,
     required String name,
     String? avatarUrl,
@@ -174,8 +183,33 @@ class PlayerSession extends ChangeNotifier {
     if (name.trim().isNotEmpty) {
       _name = name.trim();
     }
+    bool rewardAwarded = false;
+    if (!_hasClaimedFacebookReward) {
+      _hasClaimedFacebookReward = true;
+      _coins += facebookRewardCoins;
+      _chapas += facebookRewardChapas;
+      _addXpInternal(facebookRewardXp);
+      rewardAwarded = true;
+      DebugLogger.instance.log(
+        'Recompensa de bienvenida de Facebook otorgada: +$facebookRewardCoins monedas, +$facebookRewardChapas chapas, +$facebookRewardXp XP.',
+        category: 'Economía',
+      );
+    }
     notifyListeners();
     save();
+    return rewardAwarded;
+  }
+
+  /// Otorga manualmente la recompensa de bienvenida de Facebook si no fue reclamada previamente.
+  bool claimFacebookReward() {
+    if (_hasClaimedFacebookReward) return false;
+    _hasClaimedFacebookReward = true;
+    _coins += facebookRewardCoins;
+    _chapas += facebookRewardChapas;
+    _addXpInternal(facebookRewardXp);
+    notifyListeners();
+    save();
+    return true;
   }
 
   /// Desvincula la cuenta de Facebook
@@ -690,6 +724,7 @@ class PlayerSession extends ChangeNotifier {
       'facebookAvatarUrl': _facebookAvatarUrl,
       'facebookEmail': _facebookEmail,
       'useFacebookAvatar': _useFacebookAvatar,
+      'hasClaimedFacebookReward': _hasClaimedFacebookReward,
     };
   }
 
@@ -765,6 +800,7 @@ class PlayerSession extends ChangeNotifier {
       facebookAvatarUrl: json['facebookAvatarUrl'] as String?,
       facebookEmail: json['facebookEmail'] as String?,
       useFacebookAvatar: json['useFacebookAvatar'] as bool? ?? true,
+      hasClaimedFacebookReward: json['hasClaimedFacebookReward'] as bool? ?? false,
     );
   }
 
