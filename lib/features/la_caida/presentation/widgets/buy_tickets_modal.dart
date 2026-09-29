@@ -230,29 +230,62 @@ class _BuyTicketsModalState extends State<BuyTicketsModal> {
                     ),
                     const SizedBox(width: 10),
 
-                    // Contador de monedas del jugador
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF1E1B4B),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: const Color(0xFF2E2E2E), width: 1),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(Icons.monetization_on_rounded, size: 14, color: Color(0xFFFBBF24)),
-                          const SizedBox(width: 5),
-                          Text(
-                            '${session.coins}',
-                            style: const TextStyle(
-                              color: Color(0xFFFDE047),
-                              fontSize: 13,
-                              fontWeight: FontWeight.w900,
-                            ),
+                    // Contadores de monedas y chapas del jugador
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF1E1B4B),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(color: const Color(0xFF2E2E2E), width: 1),
                           ),
-                        ],
-                      ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.monetization_on_rounded, size: 14, color: Color(0xFFFBBF24)),
+                              const SizedBox(width: 4),
+                              Text(
+                                '${session.coins}',
+                                style: const TextStyle(
+                                  color: Color(0xFFFDE047),
+                                  fontSize: 12.5,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFFE11D48), Color(0xFF881337)],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(color: const Color(0xFFFDA4AF), width: 1),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.stars_rounded, size: 14, color: Color(0xFFFDE047)),
+                              const SizedBox(width: 4),
+                              Text(
+                                '${session.chapas}',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12.5,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),

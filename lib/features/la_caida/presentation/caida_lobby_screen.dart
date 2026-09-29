@@ -814,10 +814,9 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
 // Chip de Monedas con gradiente Dorado y efecto táctil
           TactilePressable(
             depth: 2,
-
             onTap: () => _openBuyTicketsModal(initialTab: 1),
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
               decoration: BoxDecoration(
                 gradient: AppGradients.goldReward,
                 borderRadius: BorderRadius.circular(12),
@@ -833,8 +832,8 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.monetization_on_rounded, color: Color(0xFF1E1B4B), size: 16),
-                  const SizedBox(width: 5),
+                  const Icon(Icons.monetization_on_rounded, color: Color(0xFF1E1B4B), size: 15),
+                  const SizedBox(width: 4),
                   Text(
                     '${_session.coins}',
                     style: const TextStyle(
@@ -843,14 +842,66 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
                       fontSize: 12.5,
                     ),
                   ),
-                  const SizedBox(width: 5),
+                  const SizedBox(width: 4),
                   Container(
                     padding: const EdgeInsets.all(1.5),
                     decoration: const BoxDecoration(
                       color: Color(0xFF1E1B4B),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.add, size: 10, color: Colors.white),
+                    child: const Icon(Icons.add, size: 9, color: Colors.white),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(width: 6),
+
+          // Chip de Chapas con gradiente Rubí Metálico y efecto táctil
+          TactilePressable(
+            depth: 2,
+            onTap: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  backgroundColor: AppPalette.cartoonBgDark,
+                  duration: const Duration(seconds: 2),
+                  content: Text(
+                    'Tienes ${_session.chapas} Chapas (moneda exclusiva de nivel y recompensas)',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
+              );
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFFE11D48), Color(0xFFBE123C), Color(0xFF881337)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppPalette.cartoonBorder, width: 1.5),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Color(0xFF4C0519),
+                    blurRadius: 0,
+                    offset: Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.stars_rounded, color: Color(0xFFFDE047), size: 15),
+                  const SizedBox(width: 4),
+                  Text(
+                    '${_session.chapas}',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w900,
+                      fontSize: 12.5,
+                    ),
                   ),
                 ],
               ),
