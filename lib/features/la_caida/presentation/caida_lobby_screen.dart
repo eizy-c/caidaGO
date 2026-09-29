@@ -1032,47 +1032,7 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
           ],
           const Spacer(),
 
-          // Chip de Trofeos con gradiente Dorado y efecto táctil
-          TactilePressable(
-            depth: 2,
-            onTap: _openStatisticsDialog,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFFEAB308), Color(0xFFCA8A04)],
-                ),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppPalette.cartoonBorder, width: 1.5),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Color(0xFF713F12),
-                    blurRadius: 0,
-                    offset: Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.emoji_events_rounded, color: Colors.white, size: 15),
-                  const SizedBox(width: 4),
-                  AnimatedBuilder(
-                    animation: PlayerStatsModel.shared,
-                    builder: (context, _) => Text(
-                      '${PlayerStatsModel.shared.trophies}',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w900,
-                        fontSize: 12.5,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
+
 
 // Chip de Tickets con gradiente Cyan y efecto táctil
           TactilePressable(
@@ -1181,7 +1141,7 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [Color(0xFFE11D48), Color(0xFFBE123C), Color(0xFF881337)],
+                  colors: [Color(0xFF8B5CF6), Color(0xFF7C3AED), Color(0xFF6D28D9)],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
@@ -1189,7 +1149,7 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
                 border: Border.all(color: AppPalette.cartoonBorder, width: 1.5),
                 boxShadow: const [
                   BoxShadow(
-                    color: Color(0xFF4C0519),
+                    color: Color(0xFF2E1065),
                     blurRadius: 0,
                     offset: Offset(0, 2),
                   ),
@@ -1309,35 +1269,7 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
         ),
         child: Row(
           children: [
-            // Badge con gradiente del Rango actual (CAIDAGO)
-            Container(
-              width: 52,
-              height: 48,
-              decoration: BoxDecoration(
-                gradient: rank.gradient,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: const [
-                  BoxShadow(color: Colors.black26, blurRadius: 4, offset: Offset(0, 2)),
-                ],
-              ),
-              child: const Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.style_rounded, color: Colors.white, size: 17),
-                  SizedBox(height: 2),
-                  Text(
-                    'CAIDAGO',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w900,
-                      fontSize: 8.5,
-                      letterSpacing: 0.6,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 8),
+
 
             // Avatar con Marco cosmético (sin indicador numérico de nivel)
             UserFrameView(

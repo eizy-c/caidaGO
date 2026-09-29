@@ -190,13 +190,13 @@ class _BuyTicketsModalState extends State<BuyTicketsModal> {
                           Container(
                             padding: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF242424),
+                              color: AppPalette.cartoonCardDark,
                               borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: const Color(0xFF2E2E2E), width: 1.0),
+                              border: Border.all(color: AppPalette.cartoonBorder, width: 1.5),
                             ),
                             child: const Icon(
                               Icons.confirmation_num_rounded,
-                              color: Colors.white70,
+                              color: AppPalette.cartoonCyan,
                               size: 22,
                             ),
                           ),
@@ -208,7 +208,7 @@ class _BuyTicketsModalState extends State<BuyTicketsModal> {
                                 Text(
                                   'TIENDA DE TICKETS',
                                   style: TextStyle(
-                                    color: Colors.white70,
+                                    color: AppPalette.cartoonCyan,
                                     fontSize: 11,
                                     fontWeight: FontWeight.w900,
                                     letterSpacing: 1.2,
@@ -237,9 +237,9 @@ class _BuyTicketsModalState extends State<BuyTicketsModal> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF1E1B4B),
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: const Color(0xFF2E2E2E), width: 1),
+                            color: AppPalette.cartoonCardDark,
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(color: AppPalette.cartoonBorder, width: 1.5),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
@@ -262,12 +262,12 @@ class _BuyTicketsModalState extends State<BuyTicketsModal> {
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
                           decoration: BoxDecoration(
                             gradient: const LinearGradient(
-                              colors: [Color(0xFFE11D48), Color(0xFF881337)],
+                              colors: [Color(0xFF8B5CF6), Color(0xFF7C3AED), Color(0xFF6D28D9)],
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
                             ),
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: const Color(0xFFFDA4AF), width: 1),
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(color: AppPalette.cartoonBorder, width: 1.5),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
@@ -299,15 +299,17 @@ class _BuyTicketsModalState extends State<BuyTicketsModal> {
                       child: GestureDetector(
                         onTap: () => setState(() => _selectedTab = 0),
                         child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          padding: const EdgeInsets.symmetric(vertical: 9),
                           decoration: BoxDecoration(
                             color: _selectedTab == 0
-                                ? const Color(0xFF2E2E2E)
-                                : Colors.white.withValues(alpha: 0.05),
-                            borderRadius: BorderRadius.circular(12),
+                                ? AppPalette.cartoonCardDark
+                                : AppPalette.cartoonBgDark.withValues(alpha: 0.5),
+                            borderRadius: BorderRadius.circular(14),
                             border: Border.all(
-                              color: const Color(0xFF2E2E2E),
-                              width: 1.0,
+                              color: _selectedTab == 0
+                                  ? AppPalette.cartoonCyan
+                                  : AppPalette.cartoonBorder,
+                              width: _selectedTab == 0 ? 2.0 : 1.2,
                             ),
                           ),
                           child: Row(
@@ -317,7 +319,7 @@ class _BuyTicketsModalState extends State<BuyTicketsModal> {
                                 Icons.confirmation_num_rounded,
                                 size: 16,
                                 color: _selectedTab == 0
-                                    ? Colors.white
+                                    ? AppPalette.cartoonCyan
                                     : Colors.white54,
                               ),
                               const SizedBox(width: 6),
@@ -326,7 +328,7 @@ class _BuyTicketsModalState extends State<BuyTicketsModal> {
                                 style: TextStyle(
                                   color: _selectedTab == 0
                                       ? Colors.white
-                                      : Colors.white54,
+                                      : Colors.white60,
                                   fontWeight: FontWeight.w900,
                                   fontSize: 13,
                                 ),
@@ -341,15 +343,17 @@ class _BuyTicketsModalState extends State<BuyTicketsModal> {
                       child: GestureDetector(
                         onTap: () => setState(() => _selectedTab = 1),
                         child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          padding: const EdgeInsets.symmetric(vertical: 9),
                           decoration: BoxDecoration(
                             color: _selectedTab == 1
-                                ? const Color(0xFF2E2E2E)
-                                : Colors.white.withValues(alpha: 0.05),
-                            borderRadius: BorderRadius.circular(12),
+                                ? AppPalette.cartoonCardDark
+                                : AppPalette.cartoonBgDark.withValues(alpha: 0.5),
+                            borderRadius: BorderRadius.circular(14),
                             border: Border.all(
-                              color: const Color(0xFF2E2E2E),
-                              width: 1.0,
+                              color: _selectedTab == 1
+                                  ? AppPalette.cartoonCyan
+                                  : AppPalette.cartoonBorder,
+                              width: _selectedTab == 1 ? 2.0 : 1.2,
                             ),
                           ),
                           child: Row(
@@ -371,7 +375,7 @@ class _BuyTicketsModalState extends State<BuyTicketsModal> {
                                     style: TextStyle(
                                       color: _selectedTab == 1
                                           ? Colors.white
-                                          : Colors.white54,
+                                          : Colors.white60,
                                       fontWeight: FontWeight.w900,
                                       fontSize: 13,
                                     ),
@@ -414,9 +418,16 @@ class _BuyTicketsModalState extends State<BuyTicketsModal> {
                   Container(
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF222222),
+                      color: AppPalette.cartoonCardDark,
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: const Color(0xFF2E2E2E), width: 1),
+                      border: Border.all(color: AppPalette.cartoonBorder, width: 1.8),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Color(0xFF1B165E),
+                          blurRadius: 0,
+                          offset: Offset(0, 3),
+                        ),
+                      ],
                     ),
                     child: Column(
                       children: [
@@ -459,7 +470,7 @@ class _BuyTicketsModalState extends State<BuyTicketsModal> {
                           child: LinearProgressIndicator(
                             value: session.tickets / session.maxTickets,
                             minHeight: 8,
-                            backgroundColor: Colors.white10,
+                            backgroundColor: const Color(0xFF1E1763),
                             valueColor: AlwaysStoppedAnimation<Color>(
                               isMaxTickets
                                   ? const Color(0xFF10B981)
@@ -603,22 +614,20 @@ class _BuyTicketsModalState extends State<BuyTicketsModal> {
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: isHighlighted
-            ? AppPalette.cartoonCardDark
-            : AppPalette.cartoonBgDark,
+            ? const Color(0xFF382F8F)
+            : const Color(0xFF2C2479),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: AppPalette.cartoonBorder,
-          width: 1.5,
+          color: isHighlighted ? AppPalette.cartoonCyan : AppPalette.cartoonBorder,
+          width: isHighlighted ? 2.0 : 1.5,
         ),
-        boxShadow: isHighlighted
-            ? const [
-                BoxShadow(
-                  color: Colors.black26,
-                  blurRadius: 8,
-                  offset: Offset(0, 2),
-                ),
-              ]
-            : null,
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0xFF1B165E),
+            blurRadius: 0,
+            offset: Offset(0, 2.5),
+          ),
+        ],
       ),
       child: Row(
         children: [
@@ -626,9 +635,9 @@ class _BuyTicketsModalState extends State<BuyTicketsModal> {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.05),
+              color: AppPalette.cartoonCardDark,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFF2E2E2E), width: 1),
+              border: Border.all(color: AppPalette.cartoonBorder, width: 1.5),
             ),
             child: Icon(icon, color: iconColor, size: 24),
           ),

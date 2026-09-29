@@ -118,8 +118,8 @@ class _App3dButtonState extends State<App3dButton> {
   bool get _isEnabled => widget.onPressed != null;
 
   Color get _resolvedBgColor {
-    if (!_isEnabled) return const Color(0xFFDCDCDC);
     if (widget.backgroundColor != null) return widget.backgroundColor!;
+    if (!_isEnabled) return const Color(0xFF332D8C);
 
     switch (widget.variant) {
       case App3dButtonVariant.cyan:
@@ -203,8 +203,8 @@ class _App3dButtonState extends State<App3dButton> {
   }
 
   Color get _resolvedTextColor {
-    if (!_isEnabled) return const Color(0xFF7E7E7E);
     if (widget.textColor != null) return widget.textColor!;
+    if (!_isEnabled) return Colors.white38;
 
     switch (widget.variant) {
       case App3dButtonVariant.cyan:

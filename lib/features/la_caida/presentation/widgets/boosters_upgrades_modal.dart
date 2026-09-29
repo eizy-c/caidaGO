@@ -359,7 +359,7 @@ class _BoostersUpgradesModalState extends State<BoostersUpgradesModal> {
                     decoration: BoxDecoration(
                       color: isActive
                           ? const Color(0xFF15803D) // Verde si está activo
-                          : const Color(0xFFE11D48), // Rojo de la referencia
+                          : const Color(0xFF2563EB), // Azul cartoon oficial
                       borderRadius: BorderRadius.circular(10),
                       border: Border.all(color: Colors.white, width: 1.5),
                       boxShadow: const [
