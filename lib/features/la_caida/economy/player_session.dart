@@ -36,6 +36,12 @@ class PlayerSession extends ChangeNotifier {
   Map<BoosterType, int> _boosterInventory;
   List<BoosterType> _activeBoosters;
   int _chapas;
+  bool _isFacebookLinked;
+  String? _facebookId;
+  String? _facebookName;
+  String? _facebookAvatarUrl;
+  String? _facebookEmail;
+  bool _useFacebookAvatar;
 
   PlayerSession({
     required this._id,
@@ -56,6 +62,12 @@ class PlayerSession extends ChangeNotifier {
     List<String>? botNames,
     Map<BoosterType, int>? boosterInventory,
     List<BoosterType>? activeBoosters,
+    this._isFacebookLinked = false,
+    this._facebookId,
+    this._facebookName,
+    this._facebookAvatarUrl,
+    this._facebookEmail,
+    this._useFacebookAvatar = true,
   })  : _tickets = tickets.clamp(0, _maxTickets),
         _lastTicketRegen = (lastTicketRegen ?? DateTime.now()).toUtc(),
         _chests = chests ?? List.generate(4, (i) => ChestSlotModel.empty(i)),
@@ -134,6 +146,57 @@ class PlayerSession extends ChangeNotifier {
   List<BoosterType> get activeBoosters => List.unmodifiable(_activeBoosters);
   int getBoosterCount(BoosterType type) => _boosterInventory[type] ?? 0;
 
+  // Getters de Facebook
+  bool get isFacebookLinked => _isFacebookLinked;
+  String? get facebookId => _facebookId;
+  String? get facebookName => _facebookName;
+  String? get facebookAvatarUrl => _facebookAvatarUrl;
+  String? get facebookEmail => _facebookEmail;
+  bool get useFacebookAvatar =>
+      _useFacebookAvatar &&
+      _isFacebookLinked &&
+      (_facebookAvatarUrl != null && _facebookAvatarUrl!.trim().isNotEmpty);
+  String? get activeAvatarUrl => useFacebookAvatar ? _facebookAvatarUrl : null;
+
+  /// Vincula la cuenta del jugador con Facebook
+  void linkFacebook({
+    required String id,
+    required String name,
+    String? avatarUrl,
+    String? email,
+  }) {
+    _isFacebookLinked = true;
+    _facebookId = id;
+    _facebookName = name;
+    _facebookAvatarUrl = avatarUrl;
+    _facebookEmail = email;
+    _useFacebookAvatar = (avatarUrl != null && avatarUrl.trim().isNotEmpty);
+    if (name.trim().isNotEmpty) {
+      _name = name.trim();
+    }
+    notifyListeners();
+    save();
+  }
+
+  /// Desvincula la cuenta de Facebook
+  void unlinkFacebook() {
+    _isFacebookLinked = false;
+    _facebookId = null;
+    _facebookName = null;
+    _facebookAvatarUrl = null;
+    _facebookEmail = null;
+    _useFacebookAvatar = false;
+    notifyListeners();
+    save();
+  }
+
+  /// Alterna el uso de la foto de perfil de Facebook como avatar
+  void setUseFacebookAvatar(bool value) {
+    _useFacebookAvatar = value;
+    notifyListeners();
+    save();
+  }
+
   /// Añade Chapas al inventario del usuario (moneda escasa)
   void addChapas(int amount) {
     if (amount <= 0) return;
@@ -165,18 +228,24 @@ class PlayerSession extends ChangeNotifier {
     int? avatarIndex,
     String? frameId,
     String? themeId,
+    bool? useFacebookAvatar,
   }) {
     if (name != null) _name = name;
     if (avatarIndex != null) _avatarIndex = avatarIndex;
     if (frameId != null) _selectedFrameId = frameId;
     if (themeId != null) _selectedThemeId = themeId;
+    if (useFacebookAvatar != null) _useFacebookAvatar = useFacebookAvatar;
     _isFirstTime = false;
     notifyListeners();
     save();
   }
 
-  void updateProfile({String? name, int? avatarIndex}) {
-    updateCustomization(name: name, avatarIndex: avatarIndex);
+  void updateProfile({String? name, int? avatarIndex, bool? useFacebookAvatar}) {
+    updateCustomization(
+      name: name,
+      avatarIndex: avatarIndex,
+      useFacebookAvatar: useFacebookAvatar,
+    );
   }
 
   /// Actualiza los nombres de los 3 bots IA.
@@ -615,6 +684,12 @@ class PlayerSession extends ChangeNotifier {
       'botNames': _botNames,
       'boosterInventory': _boosterInventory.map((k, v) => MapEntry(k.name, v)),
       'activeBoosters': _activeBoosters.map((e) => e.name).toList(),
+      'isFacebookLinked': _isFacebookLinked,
+      'facebookId': _facebookId,
+      'facebookName': _facebookName,
+      'facebookAvatarUrl': _facebookAvatarUrl,
+      'facebookEmail': _facebookEmail,
+      'useFacebookAvatar': _useFacebookAvatar,
     };
   }
 
@@ -684,6 +759,12 @@ class PlayerSession extends ChangeNotifier {
       botNames: parsedBotNames,
       boosterInventory: parsedInventory,
       activeBoosters: parsedActive,
+      isFacebookLinked: json['isFacebookLinked'] as bool? ?? false,
+      facebookId: json['facebookId'] as String?,
+      facebookName: json['facebookName'] as String?,
+      facebookAvatarUrl: json['facebookAvatarUrl'] as String?,
+      facebookEmail: json['facebookEmail'] as String?,
+      useFacebookAvatar: json['useFacebookAvatar'] as bool? ?? true,
     );
   }
 

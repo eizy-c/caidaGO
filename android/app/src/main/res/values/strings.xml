@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">CaidaGO</string>
+    <string name="facebook_app_id">1738830017177672</string>
+    <string name="fb_login_protocol_scheme">fb1738830017177672</string>
+    <string name="facebook_client_token">8f4fdb0373b2aaf867192ec315ba5229</string>
+</resources>

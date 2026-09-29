@@ -140,6 +140,7 @@ class AvatarPreset {
 /// Widget ilustrado para renderizar cualquier avatar seleccionado.
 class AvatarView extends StatelessWidget {
   final int avatarId;
+  final String? imageUrl;
   final double size;
   final bool showBorder;
   final bool isSelected;
@@ -148,6 +149,7 @@ class AvatarView extends StatelessWidget {
   const AvatarView({
     super.key,
     required this.avatarId,
+    this.imageUrl,
     this.size = 54,
     this.showBorder = true,
     this.isSelected = false,
@@ -157,6 +159,48 @@ class AvatarView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final preset = AvatarPreset.getById(avatarId);
+
+    Widget imageChild;
+    if (imageUrl != null && imageUrl!.trim().isNotEmpty) {
+      imageChild = Image.network(
+        imageUrl!,
+        width: size,
+        height: size,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) => preset.imagePath.isNotEmpty
+            ? Image.asset(
+                preset.imagePath,
+                width: size,
+                height: size,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) => _buildProceduralStack(preset),
+              )
+            : _buildProceduralStack(preset),
+        loadingBuilder: (context, child, loadingProgress) {
+          if (loadingProgress == null) return child;
+          return Center(
+            child: SizedBox(
+              width: size * 0.4,
+              height: size * 0.4,
+              child: const CircularProgressIndicator(
+                strokeWidth: 2,
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.white70),
+              ),
+            ),
+          );
+        },
+      );
+    } else if (preset.imagePath.isNotEmpty) {
+      imageChild = Image.asset(
+        preset.imagePath,
+        width: size,
+        height: size,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) => _buildProceduralStack(preset),
+      );
+    } else {
+      imageChild = _buildProceduralStack(preset);
+    }
 
     Widget avatarContent = Container(
       width: size,
@@ -182,15 +226,7 @@ class AvatarView extends StatelessWidget {
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(size * 0.18 - 1),
-        child: preset.imagePath.isNotEmpty
-            ? Image.asset(
-                preset.imagePath,
-                width: size,
-                height: size,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) => _buildProceduralStack(preset),
-              )
-            : _buildProceduralStack(preset),
+        child: imageChild,
       ),
     );
 

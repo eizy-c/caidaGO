@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'avatar_view.dart';
 import '../../economy/user_progress.dart';
 import '../../economy/trophy_session_manager.dart';
+import '../../economy/player_session.dart';
 
 /// Definición de un marco cosmético para el avatar del usuario.
 class UserFrameItem {
@@ -243,6 +244,7 @@ class UserFrameItem {
 /// e insignia de Nivel en forma de escudo.
 class UserFrameView extends StatelessWidget {
   final int avatarIndex;
+  final String? avatarUrl;
   final String frameId;
   final int level;
   final double size;
@@ -252,6 +254,7 @@ class UserFrameView extends StatelessWidget {
   const UserFrameView({
     super.key,
     required this.avatarIndex,
+    this.avatarUrl,
     this.frameId = 'rank_novato',
     this.level = 0,
     this.size = 64,
@@ -284,6 +287,10 @@ class UserFrameView extends StatelessWidget {
     final frame = UserFrameItem.getById(frameId);
     final badgeSize = size * 0.38;
     final borderRadius = BorderRadius.circular(size * 0.22);
+    final effectiveAvatarUrl = avatarUrl ??
+        ((avatarIndex == PlayerSession.shared.avatarIndex)
+            ? PlayerSession.shared.activeAvatarUrl
+            : null);
 
     Widget content = SizedBox(
       width: size + 8,
@@ -318,6 +325,7 @@ class UserFrameView extends StatelessWidget {
                 children: [
                   AvatarView(
                     avatarId: avatarIndex,
+                    imageUrl: effectiveAvatarUrl,
                     size: size * 0.78,
                     showBorder: false,
                   ),
@@ -353,6 +361,7 @@ class UserFrameView extends StatelessWidget {
                   borderRadius: BorderRadius.circular(size * 0.18),
                   child: AvatarView(
                     avatarId: avatarIndex,
+                    imageUrl: effectiveAvatarUrl,
                     size: size - (frame.borderWidth * 2),
                   ),
                 ),

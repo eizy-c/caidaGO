@@ -10,6 +10,7 @@ import '../../economy/trophy_session_manager.dart';
 import '../../economy/venezuela_room_tier.dart';
 import 'avatar_view.dart';
 import 'user_frame_view.dart';
+import '../../../../core/services/facebook_auth_service.dart';
 
 /// Definición de paletas de fondo temáticas seleccionables por el usuario.
 class LobbyThemeOption {
@@ -196,6 +197,8 @@ class _ProfileAndLevelModalState extends State<ProfileAndLevelModal>
   late int _tempAvatarIndex;
   late String _tempFrameId;
   late String _tempThemeId;
+  late bool _tempUseFacebookAvatar;
+  bool _isFacebookLoading = false;
 
   @override
   void initState() {
@@ -207,6 +210,7 @@ class _ProfileAndLevelModalState extends State<ProfileAndLevelModal>
     _tempAvatarIndex = widget.session.avatarIndex;
     _tempFrameId = widget.session.selectedFrameId;
     _tempThemeId = widget.session.selectedThemeId;
+    _tempUseFacebookAvatar = widget.session.useFacebookAvatar;
   }
 
   @override
@@ -225,8 +229,121 @@ class _ProfileAndLevelModalState extends State<ProfileAndLevelModal>
       avatarIndex: _tempAvatarIndex,
       frameId: _tempFrameId,
       themeId: _tempThemeId,
+      useFacebookAvatar: _tempUseFacebookAvatar,
     );
     Navigator.of(context).pop();
+  }
+
+  Future<void> _handleFacebookLogin() async {
+    if (_isFacebookLoading) return;
+    setState(() => _isFacebookLoading = true);
+
+    try {
+      final res = await FacebookAuthService.instance.login();
+      if (!mounted) return;
+
+      if (res.isSuccess && res.userData != null) {
+        final user = res.userData!;
+        widget.session.linkFacebook(
+          id: user.id,
+          name: user.name,
+          avatarUrl: user.avatarUrl,
+          email: user.email,
+        );
+        setState(() {
+          _nameController.text = user.name;
+          _tempUseFacebookAvatar = (user.avatarUrl != null && user.avatarUrl!.isNotEmpty);
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: const Color(0xFF1877F2),
+            content: Text(
+              'Cuenta de Facebook vinculada con exito: ${user.name}',
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ),
+        );
+      } else if (res.isCancelled) {
+        // Cancelado por el usuario
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: Colors.red.shade800,
+            content: Text(
+              res.errorMessage ?? 'Error al vincular con Facebook.',
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: Colors.red.shade800,
+          content: Text(
+            'Error inesperado: $e',
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isFacebookLoading = false);
+      }
+    }
+  }
+
+  Future<void> _confirmUnlinkFacebook() async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppPalette.cartoonBgDark,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(18),
+          side: const BorderSide(color: AppPalette.cartoonBorder, width: 2),
+        ),
+        title: const Text(
+          'Desvincular Facebook',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900),
+        ),
+        content: const Text(
+          '¿Deseas desvincular tu cuenta de Facebook? Tu progreso local se mantendra, pero dejaras de sincronizar con tu perfil de Facebook.',
+          style: TextStyle(color: Colors.white70, fontSize: 13),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('CANCELAR', style: TextStyle(color: Colors.white60)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text(
+              'DESVINCULAR',
+              style: TextStyle(color: Color(0xFFF87171), fontWeight: FontWeight.w900),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true && mounted) {
+      await FacebookAuthService.instance.logout();
+      if (!mounted) return;
+      widget.session.unlinkFacebook();
+      setState(() {
+        _tempUseFacebookAvatar = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          backgroundColor: AppPalette.cartoonBgDark,
+          content: Text(
+            'Cuenta de Facebook desvinculada.',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+        ),
+      );
+    }
   }
 
   @override
@@ -326,6 +443,7 @@ return Dialog(
         children: [
           UserFrameView(
             avatarIndex: _tempAvatarIndex,
+            avatarUrl: _tempUseFacebookAvatar ? widget.session.facebookAvatarUrl : null,
             frameId: _tempFrameId,
             size: 48,
             showLevelBadge: false, // Sin insignia numérica de nivel
@@ -407,7 +525,7 @@ child: const Icon(Icons.close_rounded, color: Colors.white, size: 18),
       children: [
         // Campo de edición de nombre
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
           child: TextField(
             controller: _nameController,
             maxLength: 14,
@@ -436,9 +554,12 @@ child: const Icon(Icons.close_rounded, color: Colors.white, size: 18),
           ),
         ),
 
+        // Tarjeta de vinculación con Facebook
+        _buildFacebookCard(),
+
         // Encabezado de Héroes disponibles
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+          padding: const EdgeInsets.fromLTRB(16, 6, 16, 4),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -480,24 +601,25 @@ child: const Icon(Icons.close_rounded, color: Colors.white, size: 18),
         // Grid de Avatares Héroes
         Expanded(
           child: GridView.builder(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+            padding: const EdgeInsets.fromLTRB(16, 6, 16, 16),
             physics: const BouncingScrollPhysics(),
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 4,
-              mainAxisSpacing: 12,
-              crossAxisSpacing: 12,
+              mainAxisSpacing: 10,
+              crossAxisSpacing: 10,
               childAspectRatio: 0.85,
             ),
             itemCount: heroes.length,
             itemBuilder: (context, i) {
               final hero = heroes[i];
-              final isSelected = _tempAvatarIndex == hero.id;
+              final isSelected = !_tempUseFacebookAvatar && _tempAvatarIndex == hero.id;
 
               return TactilePressable(
                 depth: 2.5,
                 onTap: () {
                   setState(() {
                     _tempAvatarIndex = hero.id;
+                    _tempUseFacebookAvatar = false;
                   });
                 },
                 child: Column(
@@ -548,6 +670,267 @@ child: const Icon(Icons.close_rounded, color: Colors.white, size: 18),
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildFacebookCard() {
+    final isLinked = widget.session.isFacebookLinked;
+
+    if (!isLinked) {
+      return Container(
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Color(0xFF1877F2), Color(0xFF0D5BBF)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: const Color(0xFF60A5FA), width: 1.5),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x551877F2),
+              blurRadius: 6,
+              offset: Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 36,
+              height: 36,
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.facebook,
+                color: Color(0xFF1877F2),
+                size: 26,
+              ),
+            ),
+            const SizedBox(width: 10),
+            const Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Vincular con Facebook',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w900,
+                      fontSize: 12.5,
+                    ),
+                  ),
+                  SizedBox(height: 1),
+                  Text(
+                    'Respalda progreso y usa tu foto real',
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            _isFacebookLoading
+                ? const SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2.2,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    ),
+                  )
+                : App3dButton(
+                    onPressed: _handleFacebookLogin,
+                    height: 32,
+                    depth: 3,
+                    borderRadius: 9,
+                    variant: App3dButtonVariant.gold,
+                    label: 'CONECTAR',
+                    textStyle: const TextStyle(
+                      color: Color(0xFF0F172A),
+                      fontWeight: FontWeight.w900,
+                      fontSize: 10.5,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+          ],
+        ),
+      );
+    }
+
+    // Ya vinculado con Facebook
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: AppPalette.cartoonCardDark,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: _tempUseFacebookAvatar ? const Color(0xFF1877F2) : AppPalette.cartoonBorder,
+          width: _tempUseFacebookAvatar ? 2.0 : 1.5,
+        ),
+        boxShadow: _tempUseFacebookAvatar
+            ? const [
+                BoxShadow(
+                  color: Color(0x441877F2),
+                  blurRadius: 8,
+                  spreadRadius: 1,
+                ),
+              ]
+            : null,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            children: [
+              Stack(
+                children: [
+                  Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(color: const Color(0xFF1877F2), width: 1.8),
+                    ),
+                    child: ClipOval(
+                      child: (widget.session.facebookAvatarUrl != null &&
+                              widget.session.facebookAvatarUrl!.isNotEmpty)
+                          ? Image.network(
+                              widget.session.facebookAvatarUrl!,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) => const Icon(
+                                Icons.facebook,
+                                color: Color(0xFF1877F2),
+                                size: 24,
+                              ),
+                            )
+                          : const Icon(
+                              Icons.facebook,
+                              color: Color(0xFF1877F2),
+                              size: 24,
+                            ),
+                    ),
+                  ),
+                  Positioned(
+                    bottom: 0,
+                    right: 0,
+                    child: Container(
+                      padding: const EdgeInsets.all(2),
+                      decoration: const BoxDecoration(
+                        color: Color(0xFF10B981),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.check,
+                        color: Colors.white,
+                        size: 9,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Row(
+                      children: [
+                        Icon(Icons.facebook, color: Color(0xFF1877F2), size: 13),
+                        SizedBox(width: 4),
+                        Text(
+                          'Conectado con Facebook',
+                          style: TextStyle(
+                            color: Color(0xFF60A5FA),
+                            fontSize: 10,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 1),
+                    Text(
+                      widget.session.facebookName ?? widget.session.name,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w900,
+                        fontSize: 12,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+              TactilePressable(
+                depth: 2,
+                onTap: _confirmUnlinkFacebook,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.red.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.red.withValues(alpha: 0.4)),
+                  ),
+                  child: const Text(
+                    'Desvincular',
+                    style: TextStyle(
+                      color: Color(0xFFF87171),
+                      fontSize: 10,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          // Interruptor para usar la foto de Facebook
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+            decoration: BoxDecoration(
+              color: AppPalette.cartoonBgDark,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: AppPalette.cartoonBorder),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Usar foto de Facebook como avatar',
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                Switch(
+                  value: _tempUseFacebookAvatar,
+                  activeThumbColor: const Color(0xFF1877F2),
+                  activeTrackColor: const Color(0xFF60A5FA).withValues(alpha: 0.5),
+                  inactiveThumbColor: Colors.white54,
+                  inactiveTrackColor: Colors.white12,
+                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  onChanged: (val) {
+                    setState(() {
+                      _tempUseFacebookAvatar = val;
+                    });
+                  },
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
