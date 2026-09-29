@@ -5,6 +5,7 @@ import '../../../core/presentation/widgets/app_3d_button.dart';
 import '../../../core/presentation/widgets/spanish_card_view.dart';
 import '../../../core/services/user_profile_service.dart';
 import '../../../core/services/patch_notes_service.dart';
+import '../../../core/services/facebook_auth_service.dart';
 import '../domain/models/caida_match_config.dart';
 import '../economy/daily_challenge_system.dart';
 import '../economy/player_session.dart';
@@ -59,6 +60,7 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
   bool _isMatandoCantos = true;
   int _selectedTotalPlayers = 2;
   bool _selectedTeams = false;
+  bool _isFacebookLoginLoading = false;
 
 
   @override
@@ -118,8 +120,239 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
     if (mounted) setState(() {});
   }
 
-  void _openProfileAndLevelModal({int initialTabIndex = 0}) {
-    ProfileAndLevelModal.show(context, session: _session, initialTabIndex: initialTabIndex);
+  Future<void> _openProfileAndLevelModal({int initialTabIndex = 0}) async {
+    await ProfileAndLevelModal.show(context, session: _session, initialTabIndex: initialTabIndex);
+    if (mounted) setState(() {});
+  }
+
+  Future<void> _handleFacebookLoginFromLobby() async {
+    if (_isFacebookLoginLoading) return;
+    setState(() => _isFacebookLoginLoading = true);
+
+    try {
+      final res = await FacebookAuthService.instance.login();
+      if (!mounted) return;
+
+      if (res.isSuccess && res.userData != null) {
+        final user = res.userData!;
+        final rewarded = _session.linkFacebook(
+          id: user.id,
+          name: user.name,
+          avatarUrl: user.avatarUrl,
+          email: user.email,
+        );
+        if (user.avatarUrl != null && user.avatarUrl!.isNotEmpty) {
+          _session.setUseFacebookAvatar(true);
+        }
+        await _session.save();
+
+        if (mounted) {
+          setState(() {});
+          if (rewarded) {
+            _showFacebookRewardCelebrationDialog();
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                backgroundColor: const Color(0xFF1877F2),
+                content: Text('Cuenta de Facebook vinculada con exito: ${user.name}'),
+              ),
+            );
+          }
+        }
+      } else if (!res.isCancelled && res.errorMessage != null && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: Colors.redAccent,
+            content: Text(res.errorMessage!),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isFacebookLoginLoading = false);
+      }
+    }
+  }
+
+  void _showFacebookRewardCelebrationDialog() {
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 360),
+          padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Color(0xFF1E1B4B), Color(0xFF0F172A)],
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+            ),
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: const Color(0xFF38BDF8), width: 2.2),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x6638BDF8),
+                blurRadius: 20,
+                offset: Offset(0, 8),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 60,
+                height: 60,
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Color(0xFF38BDF8), Color(0xFF1877F2)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Color(0x661877F2),
+                      blurRadius: 12,
+                      offset: Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: const Icon(
+                  Icons.card_giftcard_rounded,
+                  color: Colors.white,
+                  size: 32,
+                ),
+              ),
+              const SizedBox(height: 14),
+              const Text(
+                '¡BIENVENIDO A CAIDAGO!',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Color(0xFFFDE047),
+                  fontWeight: FontWeight.w900,
+                  fontSize: 16,
+                  letterSpacing: 0.8,
+                ),
+              ),
+              const SizedBox(height: 6),
+              const Text(
+                'Has vinculado tu cuenta con Facebook y desbloqueado tu paquete de bienvenida exclusivo:',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Colors.white70,
+                  fontSize: 12,
+                  height: 1.3,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                decoration: BoxDecoration(
+                  color: AppPalette.cartoonBgDark,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: AppPalette.cartoonBorder, width: 1.5),
+                ),
+                child: const Column(
+                  children: [
+                    Row(
+                      children: [
+                        Icon(Icons.monetization_on_rounded, color: Color(0xFFFBBF24), size: 22),
+                        SizedBox(width: 10),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '+2,500 Monedas',
+                              style: TextStyle(
+                                color: Color(0xFFFDE047),
+                                fontWeight: FontWeight.w900,
+                                fontSize: 13,
+                              ),
+                            ),
+                            Text(
+                              'Para jugar partidas y salas VIP',
+                              style: TextStyle(color: Colors.white54, fontSize: 10),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    Divider(color: Colors.white12, height: 16),
+                    Row(
+                      children: [
+                        Icon(Icons.stars_rounded, color: Color(0xFFFB7185), size: 22),
+                        SizedBox(width: 10),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '+5 Chapas',
+                              style: TextStyle(
+                                color: Color(0xFFFB7185),
+                                fontWeight: FontWeight.w900,
+                                fontSize: 13,
+                              ),
+                            ),
+                            Text(
+                              'Moneda exclusiva para marcos',
+                              style: TextStyle(color: Colors.white54, fontSize: 10),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    Divider(color: Colors.white12, height: 16),
+                    Row(
+                      children: [
+                        Icon(Icons.bolt_rounded, color: Color(0xFF38BDF8), size: 22),
+                        SizedBox(width: 10),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '+200 XP',
+                              style: TextStyle(
+                                color: Color(0xFF38BDF8),
+                                fontWeight: FontWeight.w900,
+                                fontSize: 13,
+                              ),
+                            ),
+                            Text(
+                              'Impulso directo para tu nivel',
+                              style: TextStyle(color: Colors.white54, fontSize: 10),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 18),
+              App3dButton(
+                onPressed: () => Navigator.of(ctx).pop(),
+                width: double.infinity,
+                height: 44,
+                depth: 3.5,
+                borderRadius: 14,
+                variant: App3dButtonVariant.emerald,
+                label: '¡EXCELENTE!',
+                textStyle: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w900,
+                  fontSize: 13,
+                  letterSpacing: 0.8,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   void _openBotCustomization() {
@@ -725,6 +958,48 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
             onPressed: () => PatchNotesService.showPatchNotesModal(context),
             child: const Icon(Icons.campaign_rounded, color: AppPalette.cartoonCardText, size: 22),
           ),
+          if (!_session.isFacebookLinked) ...[
+            const SizedBox(width: 8),
+            TactilePressable(
+              depth: 2,
+              onTap: _handleFacebookLoginFromLobby,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF1877F2), Color(0xFF0D5BBF)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: const Color(0xFF93C5FD), width: 1.5),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Color(0xFF0C4A6E),
+                      blurRadius: 0,
+                      offset: Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.facebook, color: Colors.white, size: 16),
+                    SizedBox(width: 5),
+                    Text(
+                      'CONECTAR',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w900,
+                        fontSize: 11,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
           const Spacer(),
 
           // Chip de Trofeos con gradiente Dorado y efecto táctil
@@ -951,7 +1226,13 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
         children: [
           // 1. Tarjeta de Perfil y Nivel
           _buildProfileLevelCard(),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
+
+          // Banner destacado de Facebook si no está vinculado
+          if (!_session.isFacebookLinked) ...[
+            _buildFacebookLobbyBanner(),
+            const SizedBox(height: 12),
+          ],
 
           // 2. Área Hero con 4 Ases y Botón JUGAR
           _buildHeroPlaySection(),
@@ -1098,38 +1379,42 @@ Text(
 
             // Derecha: Botón de personalización / perfil y regalo FB si no está vinculado
             if (!_session.isFacebookLinked) ...[
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF1877F2), Color(0xFF0D5BBF)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: const Color(0xFF60A5FA), width: 1.2),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Color(0x551877F2),
-                      blurRadius: 4,
-                      offset: Offset(0, 1),
+              TactilePressable(
+                depth: 2,
+                onTap: _handleFacebookLoginFromLobby,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF1877F2), Color(0xFF0D5BBF)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
                     ),
-                  ],
-                ),
-                child: const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.facebook, color: Colors.white, size: 14),
-                    SizedBox(width: 4),
-                    Text(
-                      '+2500',
-                      style: TextStyle(
-                        color: Color(0xFFFDE047),
-                        fontSize: 10,
-                        fontWeight: FontWeight.w900,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: const Color(0xFF60A5FA), width: 1.2),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Color(0x551877F2),
+                        blurRadius: 4,
+                        offset: Offset(0, 1),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.facebook, color: Colors.white, size: 14),
+                      SizedBox(width: 4),
+                      Text(
+                        '+2500',
+                        style: TextStyle(
+                          color: Color(0xFFFDE047),
+                          fontSize: 10,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
               const SizedBox(width: 6),
@@ -1150,6 +1435,120 @@ Text(
                 ],
               ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Banner llamativo y destacado en el Lobby para vincular con Facebook
+  Widget _buildFacebookLobbyBanner() {
+    return TactilePressable(
+      depth: 3,
+      onTap: _handleFacebookLoginFromLobby,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Color(0xFF1E3A8A), Color(0xFF1D4ED8), Color(0xFF172554)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color(0xFF60A5FA), width: 1.8),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x661D4ED8),
+              blurRadius: 8,
+              offset: Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 42,
+              height: 42,
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.facebook,
+                color: Color(0xFF1877F2),
+                size: 30,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    children: [
+                      const Text(
+                        'Vincular con Facebook',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w900,
+                          fontSize: 13,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFDE047),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: const Text(
+                          'REGALO',
+                          style: TextStyle(
+                            color: Color(0xFF0F172A),
+                            fontWeight: FontWeight.w900,
+                            fontSize: 8,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 2),
+                  const Text(
+                    '¡Recibe +2,500 Monedas, +5 Chapas y Avatar!',
+                    style: TextStyle(
+                      color: Color(0xFFFDE047),
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            _isFacebookLoginLoading
+                ? const SizedBox(
+                    width: 28,
+                    height: 28,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2.5,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    ),
+                  )
+                : App3dButton(
+                    onPressed: _handleFacebookLoginFromLobby,
+                    height: 36,
+                    depth: 3,
+                    borderRadius: 10,
+                    variant: App3dButtonVariant.gold,
+                    label: 'CONECTAR',
+                    textStyle: const TextStyle(
+                      color: Color(0xFF0F172A),
+                      fontWeight: FontWeight.w900,
+                      fontSize: 11,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
           ],
         ),
       ),
