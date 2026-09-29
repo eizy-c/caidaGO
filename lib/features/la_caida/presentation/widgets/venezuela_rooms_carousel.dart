@@ -479,60 +479,23 @@ class _VenezuelaRoomsCarouselScreenState extends State<VenezuelaRoomsCarouselScr
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // Fila con subtítulo temático e indicador de jugadores en línea
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Flexible(
-                          child: Text(
-                            '"${room.subtitle}"',
-                            style: TextStyle(
-                              color: isUnlocked
-                                  ? (room.isFrozenTheme
-                                      ? const Color(0xFFBAE6FD)
-                                      : room.accentColor)
-                                  : Colors.white38,
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                              fontStyle: FontStyle.italic,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        const SizedBox(width: 4),
-                        // Indicador de jugadores en línea claro y descriptivo
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-                          decoration: BoxDecoration(
-                            color: Colors.black.withValues(alpha: 0.65),
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(color: Colors.white24, width: 0.8),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Container(
-                                width: 6,
-                                height: 6,
-                                decoration: const BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: Color(0xFF22C55E),
-                                ),
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                '${room.simulatedActivePlayers} en línea',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 9.5,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
+                    // Subtítulo temático de la región
+                    Text(
+                      '"${room.subtitle}"',
+                      style: TextStyle(
+                        color: isUnlocked
+                            ? (room.isFrozenTheme
+                                ? const Color(0xFFBAE6FD)
+                                : room.accentColor)
+                            : Colors.white38,
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.bold,
+                        fontStyle: FontStyle.italic,
+                        letterSpacing: 0.3,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.center,
                     ),
 
                     // Centro / Espacio ilustrativo temático
