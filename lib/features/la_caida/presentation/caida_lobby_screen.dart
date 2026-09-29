@@ -105,6 +105,7 @@ class _CaidaLobbyScreenState extends State<CaidaLobbyScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    precacheImage(const AssetImage('assets/app/logo-caidago.png'), context);
     SpanishCardView.precacheAllCards(context);
     UserFrameView.precacheAllAssets(context);
   }
@@ -1618,11 +1619,20 @@ Text(
     );
   }
 
-  /// Área Hero Central con 4 Ases y Gran Botón 3D de JUGAR
+  /// Área Hero Central con Logotipo Oficial de Caída, 4 Ases y Gran Botón 3D de JUGAR
   Widget _buildHeroPlaySection() {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
+        // Logotipo oficial 3D de La Caída (optimizado)
+        Image.asset(
+          'assets/app/logo-caidago.png',
+          height: 64,
+          fit: BoxFit.contain,
+          filterQuality: FilterQuality.medium,
+        ),
+        const SizedBox(height: 8),
+
         // Resplandor de rayos y Abanico de los 4 Ases
         Stack(
           alignment: Alignment.center,
@@ -1630,7 +1640,7 @@ Text(
             // Resplandor azul detrás de las cartas
             Container(
               width: 220,
-              height: 100,
+              height: 90,
               decoration: BoxDecoration(
                 gradient: RadialGradient(
                   colors: [
@@ -1641,7 +1651,7 @@ Text(
                 ),
               ),
             ),
-            const FourAcesDisplayView(cardWidth: 62),
+            const FourAcesDisplayView(cardWidth: 58),
           ],
         ),
         const SizedBox(height: 12),

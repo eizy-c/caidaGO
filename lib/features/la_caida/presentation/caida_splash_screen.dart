@@ -1,4 +1,3 @@
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../../../core/presentation/widgets/spanish_card_view.dart';
 import '../../../core/services/debug_logger.dart';
@@ -7,7 +6,6 @@ import '../../../core/theme/app_palette.dart';
 import '../economy/player_session.dart';
 import 'caida_lobby_screen.dart';
 import 'widgets/profile_options_dialog.dart';
-import 'widgets/four_aces_display_view.dart';
 
 /// Pantalla de bienvenida y portada estilizada para La Caída (CaidaGO),
 /// con paleta Cartoon Indigo/Púrpura, abanico de cartas, logotipo 3D,
@@ -77,6 +75,8 @@ class _CaidaSplashScreenState extends State<CaidaSplashScreen>
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    precacheImage(const AssetImage('assets/app/logo-cartas-caidago.png'), context);
+    precacheImage(const AssetImage('assets/app/logo-caidago.png'), context);
     SpanishCardView.precacheAllCards(context);
   }
 
@@ -169,7 +169,7 @@ class _CaidaSplashScreenState extends State<CaidaSplashScreen>
                 children: [
                   const Spacer(flex: 2),
 
-                  // A. Abanico de los 4 Ases con animación de flotación suave
+                  // Logotipo Oficial con Cartas de CaidaGO (optimizado) con animación flotante
                   AnimatedBuilder(
                     animation: _floatingAnimation,
                     builder: (context, child) {
@@ -178,12 +178,13 @@ class _CaidaSplashScreenState extends State<CaidaSplashScreen>
                         child: child,
                       );
                     },
-                    child: const FourAcesDisplayView(cardWidth: 52),
+                    child: Image.asset(
+                      'assets/app/logo-cartas-caidago.png',
+                      width: 250,
+                      fit: BoxFit.contain,
+                      filterQuality: FilterQuality.medium,
+                    ),
                   ),
-                  const SizedBox(height: 12),
-
-                  // B. Logotipo 3D "CAIDAGO" + Badge "Tradicional"
-                  _buildBrandLogo(),
 
                   const Spacer(flex: 3),
 
@@ -205,113 +206,6 @@ class _CaidaSplashScreenState extends State<CaidaSplashScreen>
     );
   }
 
-  /// Logotipo 3D "CAIDAGO" con sombra profunda y badge "Tradicional"
-  Widget _buildBrandLogo() {
-    return Stack(
-      clipBehavior: Clip.none,
-      alignment: Alignment.center,
-      children: [
-        // Sombra 3D profunda inferior
-        Transform.translate(
-          offset: const Offset(0, 7),
-          child: Text(
-            'CAIDAGO',
-            style: TextStyle(
-              fontSize: 54,
-              fontWeight: FontWeight.w900,
-              letterSpacing: 3.5,
-              foreground: Paint()
-                ..style = PaintingStyle.fill
-                ..color = const Color(0xFF0F0B38),
-            ),
-          ),
-        ),
-
-        // Trazo exterior cartoon
-        Text(
-          'CAIDAGO',
-          style: TextStyle(
-            fontSize: 54,
-            fontWeight: FontWeight.w900,
-            letterSpacing: 3.5,
-            foreground: Paint()
-              ..style = PaintingStyle.stroke
-              ..strokeWidth = 7
-              ..strokeCap = StrokeCap.round
-              ..strokeJoin = StrokeJoin.round
-              ..color = const Color(0xFF1E1763),
-          ),
-        ),
-
-        // Relleno degradado cian/celeste brillante
-        ShaderMask(
-          shaderCallback: (bounds) => const LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFFFFFFFF),
-              Color(0xFF67E8F9),
-              Color(0xFF06B6D4),
-              Color(0xFF0284C7),
-            ],
-            stops: [0.0, 0.3, 0.7, 1.0],
-          ).createShader(bounds),
-          child: const Text(
-            'CAIDAGO',
-            style: TextStyle(
-              fontSize: 54,
-              fontWeight: FontWeight.w900,
-              letterSpacing: 3.5,
-              color: Colors.white,
-            ),
-          ),
-        ),
-
-        // Rótulo "Tradicional" estilo píldora neón
-        Positioned(
-          bottom: -10,
-          right: -14,
-          child: Transform.rotate(
-            angle: -math.pi / 22,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFFA855F7), Color(0xFF7C3AED), Color(0xFF6D28D9)],
-                ),
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: Colors.white.withValues(alpha: 0.8), width: 1.8),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFFA855F7).withValues(alpha: 0.7),
-                    blurRadius: 12,
-                    spreadRadius: 1,
-                    offset: const Offset(0, 3),
-                  ),
-                ],
-              ),
-              child: const Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.star_rounded, color: AppPalette.cartoonYellow, size: 13),
-                  SizedBox(width: 4),
-                  Text(
-                    'Tradicional',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 0.5,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
 
   /// Fila de las 3 Tarjetas 3D independientes: ESTRATEGIA, CONCENTRACIÓN y DIVERSIÓN
   Widget _buildThreeFeatureCardsRow() {
