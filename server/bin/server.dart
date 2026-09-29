@@ -10,6 +10,7 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 import '../lib/game_room.dart';
 import '../lib/models.dart';
 import '../lib/room_manager.dart';
+import '../lib/web_pages.dart';
 
 void main(List<String> args) async {
   final roomManager = RoomManager.instance;
@@ -44,7 +45,31 @@ void main(List<String> args) async {
     );
   });
 
-  // 3. Manejador de WebSocket para comunicación en tiempo real
+  // 3. Endpoint HTTP Política de Privacidad (Requerido por Meta y Google Play)
+  app.get('/privacy', (Request request) {
+    return Response.ok(
+      WebPages.privacyPolicyHtml,
+      headers: {'content-type': 'text/html; charset=utf-8', 'access-control-allow-origin': '*'},
+    );
+  });
+
+  // 4. Endpoint HTTP Instrucciones de Eliminación de Datos de Usuario (Requerido por Meta)
+  app.get('/data-deletion', (Request request) {
+    return Response.ok(
+      WebPages.dataDeletionInstructionsHtml,
+      headers: {'content-type': 'text/html; charset=utf-8', 'access-control-allow-origin': '*'},
+    );
+  });
+
+  // 5. Página de bienvenida raíz
+  app.get('/', (Request request) {
+    return Response.ok(
+      WebPages.privacyPolicyHtml,
+      headers: {'content-type': 'text/html; charset=utf-8', 'access-control-allow-origin': '*'},
+    );
+  });
+
+  // 6. Manejador de WebSocket para comunicación en tiempo real
   final wsHandler = webSocketHandler((WebSocketChannel channel) {
     String? assignedPlayerId;
     String? currentRoomId;
