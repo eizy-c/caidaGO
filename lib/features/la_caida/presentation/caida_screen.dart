@@ -494,9 +494,15 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
       final voiceKey = msg.data['voiceSoundKey'] as String?;
       if (netSeat != null && chatMsg != null) {
         final localIdx = _networkSeatToLocalIndex(netSeat);
-        if (localIdx >= 0 && localIdx < _players.length) {
+        // Ignorar si el mensaje proviene de este mismo usuario local (ya se mostró al pulsar enviar)
+        if (localIdx > 0 && localIdx < _players.length) {
           _showPlayerChatCallout(localIdx, chatMsg, voiceSoundKey: voiceKey, broadcast: false);
-          _broadcastNetworkMessage(msg);
+          // Si somos el host de un servidor P2P local (LocalGameHost), retransmitir a los otros clientes (excluyendo al remitente)
+          if (_host != null) {
+            _host!.broadcastMessage(msg, excludePlayerId: playerId);
+          }
+          // NOTA: Si estamos en una sala con servidor central en la nube (_host == null), el servidor ya
+          // se encarga de retransmitir el mensaje a los rivales. Nunca debemos retransmitir hacia atrás.
         }
       }
     }
@@ -575,7 +581,8 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
       final voiceKey = msg.data['voiceSoundKey'] as String?;
       if (netSeat != null && chatMsg != null) {
         final localIdx = _networkSeatToLocalIndex(netSeat);
-        if (localIdx >= 0 && localIdx < _players.length) {
+        // Ignorar si es un eco del propio usuario local (ya se mostró en su chat al pulsar enviar)
+        if (localIdx > 0 && localIdx < _players.length) {
           _showPlayerChatCallout(localIdx, chatMsg, voiceSoundKey: voiceKey, broadcast: false);
         }
       }
@@ -3700,6 +3707,9 @@ child: Icon(icon, color: iconColor, size: 20),
     });
 
     // Guardar en el historial de chat efímero de la partida
+    if (_matchChatHistory.length >= 60) {
+      _matchChatHistory.removeAt(0);
+    }
     _matchChatHistory.add(ChatMessageItem(
       senderName: player.name,
       senderAvatarId: player.avatarId,

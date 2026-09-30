@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../../../core/presentation/widgets/cartoon_widgets.dart';
 import '../../../../core/services/haptic_service.dart';
@@ -51,6 +52,17 @@ class _MultiplayerChatDrawerState extends State<MultiplayerChatDrawer> {
   final FocusNode _focusNode = FocusNode();
   final ScrollController _scrollController = ScrollController();
   bool _isRecordingVoice = false;
+  Timer? _voiceTimer;
+  DateTime? _lastSendTime;
+
+  bool _canSend() {
+    final now = DateTime.now();
+    if (_lastSendTime != null && now.difference(_lastSendTime!) < const Duration(milliseconds: 350)) {
+      return false; // Prevenir envíos múltiples accidentales o spam
+    }
+    _lastSendTime = now;
+    return true;
+  }
 
   // Reacciones rápidas curadas (Frases, Emojis y Voces Criollas)
   static const List<String> _quickPhrases = [
@@ -97,6 +109,7 @@ class _MultiplayerChatDrawerState extends State<MultiplayerChatDrawer> {
 
   @override
   void dispose() {
+    _voiceTimer?.cancel();
     _textController.dispose();
     _focusNode.dispose();
     _scrollController.dispose();
@@ -106,17 +119,20 @@ class _MultiplayerChatDrawerState extends State<MultiplayerChatDrawer> {
   void _sendTextMessage(String text) {
     final trimmed = text.trim();
     if (trimmed.isEmpty) return;
+    if (!_canSend()) return;
     HapticService.instance.onSelection();
     widget.onSendMessage(trimmed);
     _textController.clear();
   }
 
   void _sendQuickReaction(String reaction) {
+    if (!_canSend()) return;
     HapticService.instance.onSelection();
     widget.onSendMessage(reaction);
   }
 
   void _sendVoice(String label, String soundKey) {
+    if (!_canSend()) return;
     HapticService.instance.onSelection();
     widget.onSendMessage(label, voiceSoundKey: soundKey);
   }
@@ -124,14 +140,22 @@ class _MultiplayerChatDrawerState extends State<MultiplayerChatDrawer> {
   void _toggleVoiceRecording() {
     HapticService.instance.onSelection();
     if (_isRecordingVoice) {
+      _voiceTimer?.cancel();
+      _voiceTimer = null;
       setState(() => _isRecordingVoice = false);
-      widget.onSendMessage('Mensaje de Voz', voiceSoundKey: 'voice_note');
+      if (_canSend()) {
+        widget.onSendMessage('Mensaje de Voz', voiceSoundKey: 'voice_note');
+      }
     } else {
       setState(() => _isRecordingVoice = true);
-      Future.delayed(const Duration(seconds: 3), () {
+      _voiceTimer?.cancel();
+      _voiceTimer = Timer(const Duration(seconds: 3), () {
         if (mounted && _isRecordingVoice) {
           setState(() => _isRecordingVoice = false);
-          widget.onSendMessage('Mensaje de Voz', voiceSoundKey: 'voice_note');
+          _voiceTimer = null;
+          if (_canSend()) {
+            widget.onSendMessage('Mensaje de Voz', voiceSoundKey: 'voice_note');
+          }
         }
       });
     }

@@ -386,14 +386,15 @@ class LocalGameHost {
     ));
   }
 
-  void broadcastMessage(NetworkGameMessage message) {
+  void broadcastMessage(NetworkGameMessage message, {String? excludePlayerId}) {
     final raw = message.serializeSecure(
       pinCode: _roomInfo?.pinCode,
       roomId: _roomInfo?.roomId,
     );
-    for (final socket in _clientSockets.values) {
+    for (final entry in _clientSockets.entries) {
+      if (excludePlayerId != null && entry.key == excludePlayerId) continue;
       try {
-        socket.add(raw);
+        entry.value.add(raw);
       } catch (_) {}
     }
   }

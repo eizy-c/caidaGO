@@ -281,11 +281,8 @@ class GameRoom {
     switch (msg.type) {
       case 'CHAT_MESSAGE':
       case 'VOICE_SOUND':
-      case 'PLAY_CARD':
-      case 'CALL_CANTO':
-      case 'FALLEN_CARD':
       case 'EMOJI_REACTION':
-        // Reenviar a todos (o a los demás) manteniendo al emisor identificado
+        // Reenviar a los demás rivales, excluyendo al emisor que ya lo mostró localmente
         broadcast(
           NetworkGameMessage(
             type: msg.type,
@@ -294,7 +291,22 @@ class GameRoom {
               'senderPlayerId': fromPlayerId,
             },
           ),
-          excludePlayerId: msg.type == 'PLAY_CARD' ? null : null,
+          excludePlayerId: fromPlayerId,
+        );
+        break;
+
+      case 'PLAY_CARD':
+      case 'CALL_CANTO':
+      case 'FALLEN_CARD':
+        // Reenviar a todos manteniendo al emisor identificado
+        broadcast(
+          NetworkGameMessage(
+            type: msg.type,
+            data: {
+              ...msg.data,
+              'senderPlayerId': fromPlayerId,
+            },
+          ),
         );
         break;
 
