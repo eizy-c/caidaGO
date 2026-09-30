@@ -80,8 +80,7 @@ class PlayerSession extends ChangeNotifier {
     this._useFacebookAvatar = true,
     this._hasClaimedFacebookReward = false,
   })  : _selectedCardBackId = selectedCardBackId ?? 'classic_criollo',
-        _unlockedCardBackIds = unlockedCardBackIds ??
-            {'classic_criollo', 'oro_imperial', 'azul_nocturno'},
+        _unlockedCardBackIds = unlockedCardBackIds ?? {'classic_criollo'},
         _tickets = tickets.clamp(0, _maxTickets),
         _lastTicketRegen = (lastTicketRegen ?? DateTime.now()).toUtc(),
         _chests = chests ?? List.generate(4, (i) => ChestSlotModel.empty(i)),
@@ -122,8 +121,7 @@ class PlayerSession extends ChangeNotifier {
       selectedFrameId: selectedFrameId ?? 'rank_novato',
       selectedThemeId: selectedThemeId ?? 'royal_blue',
       selectedCardBackId: selectedCardBackId ?? 'classic_criollo',
-      unlockedCardBackIds: unlockedCardBackIds ??
-          {'classic_criollo', 'oro_imperial', 'azul_nocturno'},
+      unlockedCardBackIds: unlockedCardBackIds ?? {'classic_criollo'},
       coins: coins ?? 0,
       tickets: tickets ?? defaultMaxTickets,
       maxTickets: defaultMaxTickets,
@@ -846,7 +844,7 @@ class PlayerSession extends ChangeNotifier {
     final parsedUnlockedBacks = (json['unlockedCardBackIds'] as List?)
             ?.map((e) => e.toString())
             .toSet() ??
-        {'classic_criollo', 'oro_imperial', 'azul_nocturno'};
+        {'classic_criollo'};
 
     return PlayerSession(
       id: json['id'] as String? ?? 'user_${DateTime.now().millisecondsSinceEpoch}',

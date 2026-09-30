@@ -32,33 +32,13 @@ class CardBackOption {
     // --- Reversos por Defecto ---
     CardBackOption(
       id: 'classic_criollo',
-      name: 'Clásico Criollo',
-      subtitle: 'El tradicional dorso ornamental de la baraja española',
-      assetPath: 'assets/cards/REV-CARD.png',
+      name: 'Clásico CaidaGO',
+      subtitle: 'El diseño oficial y tradicional de los naipes CaidaGO',
+      assetPath: 'assets/cards/reversos/default.webp',
       isDefault: true,
       primaryColor: Color(0xFF1E1B4B),
       accentColor: Color(0xFF38BDF8),
       icon: Icons.auto_awesome_rounded,
-    ),
-    CardBackOption(
-      id: 'oro_imperial',
-      name: 'Oro Imperial',
-      subtitle: 'Dorso con filigranas doradas y marco de prestigio',
-      assetPath: 'assets/cards/reversos/oro_imperial.webp',
-      isDefault: true,
-      primaryColor: Color(0xFF78350F),
-      accentColor: Color(0xFFFBBF24),
-      icon: Icons.shield_rounded,
-    ),
-    CardBackOption(
-      id: 'azul_nocturno',
-      name: 'Azul Nocturno',
-      subtitle: 'Grecas simétricas sobre fondo azul índigo profundo',
-      assetPath: 'assets/cards/reversos/azul_nocturno.webp',
-      isDefault: true,
-      primaryColor: Color(0xFF1E1B4B),
-      accentColor: Color(0xFF818CF8),
-      icon: Icons.nights_stay_rounded,
     ),
 
     // --- Reversos Desbloqueables por cada Sala VIP de Venezuela (1 a 7) ---
