@@ -697,18 +697,48 @@ class _InventoryModalState extends State<InventoryModal>
     );
   }
 
-  // --- TAB 5: REVERSOS DE CARTAS (Coleccionables y Salas VIP) ---
+  // --- TAB 5: REVERSOS DE CARTAS (Solo ganados / en posesión) ---
   Widget _buildCardBacksTab(PlayerSession session) {
-    final allBacks = CardBackOption.allCardBacks;
+    final ownedBacks = CardBackOption.allCardBacks
+        .where((back) => session.isCardBackUnlocked(back.id))
+        .toList();
+
+    if (ownedBacks.isEmpty) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.style_rounded, color: Colors.white24, size: 54),
+              SizedBox(height: 12),
+              Text(
+                'Sin reversos adicionales',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w900,
+                  fontSize: 16,
+                ),
+              ),
+              SizedBox(height: 6),
+              Text(
+                'Gana partidas en las distintas Salas VIP para obtener nuevos diseños de reversos.',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.white60, fontSize: 12),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
 
     return ListView.builder(
       padding: const EdgeInsets.all(16),
       physics: const BouncingScrollPhysics(),
-      itemCount: allBacks.length,
+      itemCount: ownedBacks.length,
       itemBuilder: (context, index) {
-        final back = allBacks[index];
+        final back = ownedBacks[index];
         final isEquipped = session.selectedCardBackId == back.id;
-        final isUnlocked = session.isCardBackUnlocked(back.id);
 
         return Container(
           margin: const EdgeInsets.only(bottom: 12),
@@ -719,12 +749,12 @@ class _InventoryModalState extends State<InventoryModal>
             border: Border.all(
               color: isEquipped
                   ? const Color(0xFFFDE047)
-                  : (isUnlocked ? back.accentColor.withValues(alpha: 0.5) : AppPalette.cartoonBorder),
+                  : back.accentColor.withValues(alpha: 0.5),
               width: isEquipped ? 2.5 : 1.5,
             ),
             boxShadow: isEquipped
-                ? [
-                    const BoxShadow(
+                ? const [
+                    BoxShadow(
                       color: Color(0x50FDE047),
                       blurRadius: 10,
                       offset: Offset(0, 3),
@@ -758,43 +788,33 @@ class _InventoryModalState extends State<InventoryModal>
 
               const SizedBox(width: 14),
 
-              // Nombre, Descripción y Requisito
+              // Nombre y Descripción
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            back.name,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w900,
-                              fontSize: 13,
-                            ),
-                          ),
-                        ),
-                        if (!isUnlocked) ...[
-                          const SizedBox(width: 4),
-                          const Icon(Icons.lock_rounded, size: 14, color: Color(0xFFFBBF24)),
-                        ],
-                      ],
+                    Text(
+                      back.name,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w900,
+                        fontSize: 13,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 3),
                     Text(
                       back.subtitle,
                       style: const TextStyle(color: Colors.white60, fontSize: 10),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 4),
-                    Text(
-                      isUnlocked
-                          ? 'Desbloqueado para jugar'
-                          : (back.requiredRoomId != null
-                              ? 'Gana una partida en Sala ${back.name.split('•').first.trim()}'
-                              : 'Reverso especial'),
+                    const Text(
+                      'Desbloqueado para jugar',
                       style: TextStyle(
-                        color: isUnlocked ? const Color(0xFF10B981) : const Color(0xFFF87171),
+                        color: Color(0xFF10B981),
                         fontSize: 10,
                         fontWeight: FontWeight.bold,
                       ),
@@ -808,7 +828,7 @@ class _InventoryModalState extends State<InventoryModal>
               // Botón de selección / equipar
               TactilePressable(
                 depth: 2.5,
-                onTap: isUnlocked && !isEquipped
+                onTap: !isEquipped
                     ? () {
                         HapticService.instance.onSelection();
                         session.selectCardBack(back.id);
@@ -819,23 +839,21 @@ class _InventoryModalState extends State<InventoryModal>
                   decoration: BoxDecoration(
                     gradient: isEquipped
                         ? AppGradients.greenAccept
-                        : (isUnlocked ? AppGradients.cyanAccent : null),
-                    color: isUnlocked ? null : Colors.white12,
+                        : AppGradients.cyanAccent,
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(color: AppPalette.cartoonBorder, width: 1.2),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      if (isEquipped)
-                        const Icon(Icons.check_rounded, color: Colors.white, size: 12)
-                      else if (!isUnlocked)
-                        const Icon(Icons.lock_rounded, color: Colors.white38, size: 12),
-                      if (isEquipped || !isUnlocked) const SizedBox(width: 4),
+                      if (isEquipped) ...[
+                        const Icon(Icons.check_rounded, color: Colors.white, size: 12),
+                        const SizedBox(width: 4),
+                      ],
                       Text(
-                        isEquipped ? 'ACTIVO' : (isUnlocked ? 'EQUIPAR' : 'BLOQUEADO'),
-                        style: TextStyle(
-                          color: isUnlocked ? Colors.white : Colors.white38,
+                        isEquipped ? 'ACTIVO' : 'EQUIPAR',
+                        style: const TextStyle(
+                          color: Colors.white,
                           fontSize: 10,
                           fontWeight: FontWeight.w900,
                         ),
