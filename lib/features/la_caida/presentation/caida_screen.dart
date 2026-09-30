@@ -1076,10 +1076,37 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
         if (dealResult.dealerPoints > 0) {
           _addPoints(dealer, dealResult.dealerPoints);
           _triggerCallout(dealer, 'Canto de Mesa (+${dealResult.dealerPoints} pts)');
+          _addAuditLog(
+            playerName: dealer.name,
+            type: AuditEntryType.puntos,
+            description: 'Canto de Mesa acertado: +${dealResult.dealerPoints} pts para el repartidor',
+            points: dealResult.dealerPoints,
+            isUserTeam: dealer.id == 'user' || (_isTeams && dealer.teamId == _players[0].teamId),
+          );
         }
         if (dealResult.opponentPoints > 0) {
           _addPoints(opponent, dealResult.opponentPoints);
-          _triggerCallout(opponent, '+${dealResult.opponentPoints} pt (Mesa)');
+          if (dealResult.discardedRepeats.isNotEmpty) {
+            final repeatCount = dealResult.discardedRepeats.length;
+            final repeatCardNames = dealResult.discardedRepeats.map((c) => c.shortCode).join(', ');
+            _triggerCallout(opponent, '¡Punto por repetida! (+$repeatCount pt)');
+            _addAuditLog(
+              playerName: opponent.name,
+              type: AuditEntryType.puntos,
+              description: 'Canto de Mesa: $repeatCount carta(s) repetida(s) [$repeatCardNames] descartada(s). (+$repeatCount pt para rivales)',
+              points: repeatCount,
+              isUserTeam: opponent.id == 'user' || (_isTeams && opponent.teamId == _players[0].teamId),
+            );
+          } else {
+            _triggerCallout(opponent, '+1 pt (Mesa sin aciertos)');
+            _addAuditLog(
+              playerName: opponent.name,
+              type: AuditEntryType.puntos,
+              description: 'Canto de Mesa: El repartidor no acertó ningún número (+1 pt para rivales)',
+              points: dealResult.opponentPoints,
+              isUserTeam: opponent.id == 'user' || (_isTeams && opponent.teamId == _players[0].teamId),
+            );
+          }
         }
 
         if (_checkGameOver()) return;
@@ -1236,12 +1263,44 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
       if (dealResult.dealerPoints > 0) {
         _addPoints(dealer, dealResult.dealerPoints);
         _triggerCallout(dealer, 'Canto de Mesa (+${dealResult.dealerPoints} pts)');
+        _addAuditLog(
+          playerName: dealer.name,
+          type: AuditEntryType.puntos,
+          description: 'Canto de Mesa acertado: +${dealResult.dealerPoints} pts para el repartidor',
+          points: dealResult.dealerPoints,
+          isUserTeam: dealer.id == 'user' || (_isTeams && dealer.teamId == _players[0].teamId),
+        );
         await _safeDelay(const Duration(milliseconds: 500));
       }
       if (dealResult.opponentPoints > 0) {
         _addPoints(opponent, dealResult.opponentPoints);
-        _triggerCallout(opponent, '+${dealResult.opponentPoints} pt (Mesa)');
-        await _safeDelay(const Duration(milliseconds: 500));
+        if (dealResult.discardedRepeats.isNotEmpty) {
+          final repeatCount = dealResult.discardedRepeats.length;
+          final repeatCardNames = dealResult.discardedRepeats.map((c) => c.shortCode).join(', ');
+          _triggerCallout(opponent, '¡Punto por repetida! (+$repeatCount pt)');
+          _addAuditLog(
+            playerName: opponent.name,
+            type: AuditEntryType.puntos,
+            description: 'Canto de Mesa: $repeatCount carta(s) repetida(s) [$repeatCardNames] descartada(s). (+$repeatCount pt para rivales)',
+            points: repeatCount,
+            isUserTeam: opponent.id == 'user' || (_isTeams && opponent.teamId == _players[0].teamId),
+          );
+          AudioService().playCardSlide();
+          HapticService.instance.onSelection();
+          await _safeDelay(const Duration(milliseconds: 600));
+        }
+        final noHitPoints = dealResult.opponentPoints - dealResult.discardedRepeats.length;
+        if (noHitPoints > 0) {
+          _triggerCallout(opponent, '+1 pt (Mesa sin aciertos)');
+          _addAuditLog(
+            playerName: opponent.name,
+            type: AuditEntryType.puntos,
+            description: 'Canto de Mesa: El repartidor no acertó ningún número (+1 pt para rivales)',
+            points: noHitPoints,
+            isUserTeam: opponent.id == 'user' || (_isTeams && opponent.teamId == _players[0].teamId),
+          );
+          await _safeDelay(const Duration(milliseconds: 500));
+        }
       }
 
       if (_checkGameOver()) return;
@@ -1273,6 +1332,7 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
 
     // Al recibir las 3 cartas, se canta únicamente la presencia del canto sin sumar puntos aún
     _announceInitialCantos();
+    if (_isGameOver) return;
 
     _currentTurnIndex = _manoIndex;
     _selectedCard = null;
@@ -1421,14 +1481,15 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
 
         setState(() {
           _activeTrajectories = sweepFlights;
+          // Retirar de inmediato los naipes estáticos de la mesa para que no se dupliquen con las trayectorias de vuelo
+          _placedTableCards.clear();
+          _tableCards.clear();
         });
 
         await _safeDelay(const Duration(milliseconds: 580));
         if (!mounted) return;
         setState(() {
           _activeTrajectories = [];
-          _placedTableCards.clear();
-          _tableCards.clear();
         });
       } else {
         _tableCards.clear();
@@ -1495,10 +1556,17 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
 
   void _announceInitialCantos() {
     int delayMs = 0;
+    _PlayerState? trivilinWinner;
+    TrivilinCanto? trivilinCanto;
+
     for (final p in _players) {
       p.pendingCanto = CaidaRulesEngine.evaluateCantos(p.hand);
       if (p.pendingCanto != null) {
-        // En el reparto inicial solo se canta la presencia del canto sin sumar puntos aún
+        if (p.pendingCanto is TrivilinCanto) {
+          trivilinWinner = p;
+          trivilinCanto = p.pendingCanto as TrivilinCanto;
+        }
+        // En el reparto inicial se canta la presencia del canto
         _triggerCallout(p, p.pendingCanto!.name);
         final cantoName = p.pendingCanto!.name;
         if (delayMs == 0) {
@@ -1516,6 +1584,27 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
         }
         delayMs += 1100;
       }
+    }
+
+    // 🏆 REGLA TRADICIONAL DE ORO: ¡Trivilín es Nocaut Instantáneo (+24 pts)!
+    // Si algún jugador recibe Trivilín, la partida concluye de inmediato sin jugar la mano.
+    if (trivilinWinner != null && trivilinCanto != null) {
+      _addPoints(trivilinWinner, trivilinCanto.points);
+      if (trivilinWinner.id == 'user' || (_isTeams && trivilinWinner.teamId == _players[0].teamId)) {
+        _matchUserCantos++;
+        _matchUserTrivilins++;
+        PlayerStatsModel.shared.recordCanto(trivilinCanto.name);
+      }
+      _addAuditLog(
+        playerName: trivilinWinner.name,
+        type: AuditEntryType.canto,
+        description: '¡TRIVILÍN! Nocaut absoluto (+24 pts). ¡Fin de la partida!',
+        points: trivilinCanto.points,
+      );
+      _triggerCallout(trivilinWinner, '¡¡TRIVILÍN!! ¡Victoria por Nocaut!');
+      AudioService().playCanto('trivilin');
+      _finishGame();
+      return;
     }
   }
 
