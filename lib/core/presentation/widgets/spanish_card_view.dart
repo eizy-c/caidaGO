@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../../models/cards/card_suit.dart';
 import '../../models/cards/spanish_card.dart';
 import '../../../features/la_caida/economy/player_session.dart';
+import '../../../features/la_caida/domain/models/card_back_option.dart';
 
 /// Componente visual de alta fidelidad para naipes de la Baraja Española tradicional.
 /// Soporta renderizado frontal detallado, reverso ornamental clásico y estado compacto.
@@ -106,6 +107,9 @@ class SpanishCardView extends StatelessWidget {
   static Future<void> precacheAllCards(BuildContext context) async {
     final futures = <Future>[];
     futures.add(precacheImage(const AssetImage(backAssetPath), context));
+    for (final back in CardBackOption.allCardBacks) {
+      futures.add(precacheImage(AssetImage(back.assetPath), context));
+    }
     for (final suit in CardSuit.values) {
       for (int n = 1; n <= 12; n++) {
         if (n == 8 || n == 9) continue;
