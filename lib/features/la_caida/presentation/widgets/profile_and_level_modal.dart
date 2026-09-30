@@ -8,6 +8,8 @@ import '../../economy/player_stats_model.dart';
 import '../../economy/rank_system.dart';
 import '../../economy/trophy_session_manager.dart';
 import '../../economy/venezuela_room_tier.dart';
+import '../../domain/models/card_back_option.dart';
+import '../../../../core/presentation/widgets/spanish_card_view.dart';
 import 'avatar_view.dart';
 import 'user_frame_view.dart';
 import '../../../../core/services/facebook_auth_service.dart';
@@ -198,19 +200,21 @@ class _ProfileAndLevelModalState extends State<ProfileAndLevelModal>
   late int _tempAvatarIndex;
   late String _tempFrameId;
   late String _tempThemeId;
+  late String _tempCardBackId;
   late bool _tempUseFacebookAvatar;
   bool _isFacebookLoading = false;
 
   @override
   void initState() {
     super.initState();
-    // 3 pestañas: 0 = Avatar, 1 = Marcos, 2 = Fondos
-    final initIndex = widget.initialTabIndex.clamp(0, 2);
-    _tabController = TabController(length: 3, vsync: this, initialIndex: initIndex);
+    // 4 pestañas: 0 = Avatar, 1 = Marcos, 2 = Fondos, 3 = Reversos
+    final initIndex = widget.initialTabIndex.clamp(0, 3);
+    _tabController = TabController(length: 4, vsync: this, initialIndex: initIndex);
     _nameController = TextEditingController(text: widget.session.name);
     _tempAvatarIndex = widget.session.avatarIndex;
     _tempFrameId = widget.session.selectedFrameId;
     _tempThemeId = widget.session.selectedThemeId;
+    _tempCardBackId = widget.session.selectedCardBackId;
     _tempUseFacebookAvatar = widget.session.useFacebookAvatar;
   }
 
@@ -230,6 +234,7 @@ class _ProfileAndLevelModalState extends State<ProfileAndLevelModal>
       avatarIndex: _tempAvatarIndex,
       frameId: _tempFrameId,
       themeId: _tempThemeId,
+      cardBackId: _tempCardBackId,
       useFacebookAvatar: _tempUseFacebookAvatar,
     );
     Navigator.of(context).pop();
@@ -577,11 +582,12 @@ class _ProfileAndLevelModalState extends State<ProfileAndLevelModal>
                     Tab(icon: Icon(Icons.person_rounded, size: 20), text: 'Avatar'),
                     Tab(icon: Icon(Icons.filter_frames_rounded, size: 20), text: 'Marcos'),
                     Tab(icon: Icon(Icons.palette_rounded, size: 20), text: 'Fondos'),
+                    Tab(icon: Icon(Icons.style_rounded, size: 20), text: 'Reversos'),
                   ],
                 ),
               ),
 
-              // 3. Contenido de las 3 pestañas
+              // 3. Contenido de las 4 pestañas
               Expanded(
                 child: TabBarView(
                   controller: _tabController,
@@ -589,6 +595,7 @@ class _ProfileAndLevelModalState extends State<ProfileAndLevelModal>
                     _buildAvatarTab(),
                     _buildFramesTab(),
                     _buildThemesTab(),
+                    _buildCardBacksTab(),
                   ],
                 ),
               ),
@@ -1466,6 +1473,160 @@ child: const Icon(Icons.close_rounded, color: Colors.white, size: 18),
                       if (isSelected || !isUnlocked) const SizedBox(width: 3),
                       Text(
                         isSelected ? 'APLICADO' : (isUnlocked ? 'APLICAR' : 'BLOQUEADO'),
+                        style: TextStyle(
+                          color: isUnlocked ? Colors.white : Colors.white38,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  // --- PESTAÑA 4: REVERSOS DE CARTAS COLECCIONABLES ---
+  Widget _buildCardBacksTab() {
+    final allBacks = CardBackOption.allCardBacks;
+    return ListView.builder(
+      padding: const EdgeInsets.all(14),
+      physics: const BouncingScrollPhysics(),
+      itemCount: allBacks.length,
+      itemBuilder: (context, index) {
+        final back = allBacks[index];
+        final isSelected = _tempCardBackId == back.id;
+        final isUnlocked = widget.session.isCardBackUnlocked(back.id);
+
+        return Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: AppPalette.cartoonCardDark,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: isSelected
+                  ? AppPalette.cartoonCyan
+                  : (isUnlocked ? back.accentColor.withValues(alpha: 0.5) : AppPalette.cartoonBorder),
+              width: isSelected ? 2.5 : 1.5,
+            ),
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: AppPalette.cartoonCyan.withValues(alpha: 0.35),
+                      blurRadius: 10,
+                      offset: const Offset(0, 3),
+                    ),
+                  ]
+                : null,
+          ),
+          child: Row(
+            children: [
+              // Previsualización de la carta con el reverso
+              Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Colors.black45,
+                      blurRadius: 6,
+                      offset: Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: SpanishCardView.back(
+                    customBackAssetPath: back.assetPath,
+                    width: 50,
+                    height: 75,
+                  ),
+                ),
+              ),
+
+              const SizedBox(width: 14),
+
+              // Nombre, Descripción y Requisito
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            back.name,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w900,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ),
+                        if (!isUnlocked) ...[
+                          const SizedBox(width: 4),
+                          const Icon(Icons.lock_rounded, size: 14, color: Color(0xFFFBBF24)),
+                        ],
+                      ],
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      back.subtitle,
+                      style: const TextStyle(color: Colors.white60, fontSize: 10),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      isUnlocked
+                          ? 'Desbloqueado para jugar'
+                          : (back.requiredRoomId != null
+                              ? 'Gana una partida en Sala ${back.name.split('•').first.trim()}'
+                              : 'Reverso especial'),
+                      style: TextStyle(
+                        color: isUnlocked ? const Color(0xFF10B981) : const Color(0xFFF87171),
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(width: 8),
+
+              // Botón de selección / equipar
+              TactilePressable(
+                depth: 2.5,
+                onTap: isUnlocked
+                    ? () {
+                        setState(() {
+                          _tempCardBackId = back.id;
+                        });
+                      }
+                    : null,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    gradient: isSelected
+                        ? AppGradients.greenAccept
+                        : (isUnlocked ? AppGradients.cyanAccent : null),
+                    color: isUnlocked ? null : Colors.white12,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: AppPalette.cartoonBorder, width: 1.2),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (isSelected)
+                        const Icon(Icons.check_rounded, color: Colors.white, size: 12)
+                      else if (!isUnlocked)
+                        const Icon(Icons.lock_rounded, color: Colors.white38, size: 12),
+                      if (isSelected || !isUnlocked) const SizedBox(width: 3),
+                      Text(
+                        isSelected ? 'EQUIPADO' : (isUnlocked ? 'EQUIPAR' : 'BLOQUEADO'),
                         style: TextStyle(
                           color: isUnlocked ? Colors.white : Colors.white38,
                           fontSize: 10,

@@ -21,6 +21,7 @@ import '../domain/caida_models.dart';
 import '../domain/caida_rules_engine.dart';
 import '../domain/caida_ai_engine.dart';
 import '../domain/models/caida_match_config.dart';
+import '../domain/models/card_back_option.dart';
 import '../domain/models/mano_draw_session.dart';
 import '../domain/models/match_play_tracker.dart';
 import '../domain/models/player_callout.dart';
@@ -2322,6 +2323,24 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
       completedChallenges.addAll(challengeSys.recordAction(ChallengeActionType.playVip, 1));
       if (userWon) {
         completedChallenges.addAll(challengeSys.recordAction(ChallengeActionType.winVip, 1));
+      }
+    }
+    final effectiveRoomId = _venezuelaRoom?.id;
+    if (effectiveRoomId != null && userWon) {
+      final unlocked = session.unlockRoomCardBack(effectiveRoomId);
+      if (unlocked) {
+        final opt = CardBackOption.getByRoomId(effectiveRoomId);
+        if (opt != null) {
+          GameToastQueue.showAchievement(
+            context,
+            title: '¡REVERSO DESBLOQUEADO!',
+            subtitle: opt.name,
+            icon: Icons.style_rounded,
+            iconColor: opt.accentColor,
+            coinReward: 0,
+            xpReward: 0,
+          );
+        }
       }
     }
     if (_matchUserCaidas > 0) {

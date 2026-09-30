@@ -66,6 +66,7 @@ flutter:
 
   assets:
     - assets/cards/
+    - assets/cards/reversos/
     - assets/cards/BASTON/
     - assets/cards/OROS/
     - assets/cards/COPAS/

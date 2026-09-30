@@ -6,6 +6,7 @@ import 'chest_slot_model.dart';
 import 'user_progress.dart';
 import 'booster_model.dart';
 import 'player_stats_model.dart';
+import '../domain/models/card_back_option.dart';
 
 /// Modelo y gestor de sesión local persistente del jugador para La Caída.
 /// Implementa regeneración pasiva por tiempo (1 ticket cada 20 min), personalización (fondos, marcos, avatares),
@@ -23,6 +24,8 @@ class PlayerSession extends ChangeNotifier {
   int _avatarIndex;
   String _selectedFrameId;
   String _selectedThemeId;
+  String _selectedCardBackId;
+  Set<String> _unlockedCardBackIds;
   int _coins;
   int _tickets;
   int _maxTickets;
@@ -54,6 +57,8 @@ class PlayerSession extends ChangeNotifier {
     this._avatarIndex = 2,
     this._selectedFrameId = 'rank_novato',
     this._selectedThemeId = 'royal_blue',
+    String? selectedCardBackId,
+    Set<String>? unlockedCardBackIds,
     this._coins = 0,
     int tickets = defaultMaxTickets,
     this._maxTickets = defaultMaxTickets,
@@ -74,7 +79,10 @@ class PlayerSession extends ChangeNotifier {
     this._facebookEmail,
     this._useFacebookAvatar = true,
     this._hasClaimedFacebookReward = false,
-  })  : _tickets = tickets.clamp(0, _maxTickets),
+  })  : _selectedCardBackId = selectedCardBackId ?? 'classic_criollo',
+        _unlockedCardBackIds = unlockedCardBackIds ??
+            {'classic_criollo', 'oro_imperial', 'azul_nocturno'},
+        _tickets = tickets.clamp(0, _maxTickets),
         _lastTicketRegen = (lastTicketRegen ?? DateTime.now()).toUtc(),
         _chests = chests ?? List.generate(4, (i) => ChestSlotModel.empty(i)),
         _botNames = botNames != null && botNames.length >= 3
@@ -99,6 +107,8 @@ class PlayerSession extends ChangeNotifier {
     int? avatarIndex,
     String? selectedFrameId,
     String? selectedThemeId,
+    String? selectedCardBackId,
+    Set<String>? unlockedCardBackIds,
     int? coins,
     int? tickets,
     bool hasCompletedTutorial = false,
@@ -111,6 +121,9 @@ class PlayerSession extends ChangeNotifier {
       avatarIndex: avatarIndex ?? 2,
       selectedFrameId: selectedFrameId ?? 'rank_novato',
       selectedThemeId: selectedThemeId ?? 'royal_blue',
+      selectedCardBackId: selectedCardBackId ?? 'classic_criollo',
+      unlockedCardBackIds: unlockedCardBackIds ??
+          {'classic_criollo', 'oro_imperial', 'azul_nocturno'},
       coins: coins ?? 0,
       tickets: tickets ?? defaultMaxTickets,
       maxTickets: defaultMaxTickets,
@@ -137,6 +150,39 @@ class PlayerSession extends ChangeNotifier {
     notifyListeners();
     save();
   }
+
+  // Getters y métodos de Reversos de Cartas
+  String get selectedCardBackId => _selectedCardBackId;
+  Set<String> get unlockedCardBackIds => Set.unmodifiable(_unlockedCardBackIds);
+  String get activeCardBackAssetPath =>
+      CardBackOption.getById(_selectedCardBackId).assetPath;
+
+  bool isCardBackUnlocked(String id) => _unlockedCardBackIds.contains(id);
+
+  bool selectCardBack(String id) {
+    if (!_unlockedCardBackIds.contains(id)) return false;
+    _selectedCardBackId = id;
+    notifyListeners();
+    save();
+    return true;
+  }
+
+  bool unlockCardBack(String id) {
+    if (_unlockedCardBackIds.contains(id)) return false;
+    _unlockedCardBackIds.add(id);
+    notifyListeners();
+    save();
+    return true;
+  }
+
+  bool unlockRoomCardBack(int roomId) {
+    final opt = CardBackOption.getByRoomId(roomId);
+    if (opt != null) {
+      return unlockCardBack(opt.id);
+    }
+    return false;
+  }
+
   int get coins => _coins;
   int get chapas => _chapas;
   int get tickets => _tickets;
@@ -264,12 +310,16 @@ class PlayerSession extends ChangeNotifier {
     int? avatarIndex,
     String? frameId,
     String? themeId,
+    String? cardBackId,
     bool? useFacebookAvatar,
   }) {
     if (name != null) _name = name;
     if (avatarIndex != null) _avatarIndex = avatarIndex;
     if (frameId != null) _selectedFrameId = frameId;
     if (themeId != null) _selectedThemeId = themeId;
+    if (cardBackId != null && _unlockedCardBackIds.contains(cardBackId)) {
+      _selectedCardBackId = cardBackId;
+    }
     if (useFacebookAvatar != null) _useFacebookAvatar = useFacebookAvatar;
     _isFirstTime = false;
     notifyListeners();
@@ -720,6 +770,8 @@ class PlayerSession extends ChangeNotifier {
       'avatarIndex': _avatarIndex,
       'selectedFrameId': _selectedFrameId,
       'selectedThemeId': _selectedThemeId,
+      'selectedCardBackId': _selectedCardBackId,
+      'unlockedCardBackIds': _unlockedCardBackIds.toList(),
       'coins': _coins,
       'chapas': _chapas,
       'tickets': _tickets,
@@ -790,12 +842,20 @@ class PlayerSession extends ChangeNotifier {
       }).toList();
     }
 
+    final parsedBackId = json['selectedCardBackId'] as String? ?? 'classic_criollo';
+    final parsedUnlockedBacks = (json['unlockedCardBackIds'] as List?)
+            ?.map((e) => e.toString())
+            .toSet() ??
+        {'classic_criollo', 'oro_imperial', 'azul_nocturno'};
+
     return PlayerSession(
       id: json['id'] as String? ?? 'user_${DateTime.now().millisecondsSinceEpoch}',
       name: json['name'] as String? ?? 'Jugador',
       avatarIndex: json['avatarIndex'] as int? ?? 2,
       selectedFrameId: json['selectedFrameId'] as String? ?? 'rank_novato',
       selectedThemeId: json['selectedThemeId'] as String? ?? 'royal_blue',
+      selectedCardBackId: parsedBackId,
+      unlockedCardBackIds: parsedUnlockedBacks,
       coins: json['coins'] as int? ?? 0,
       chapas: json['chapas'] as int? ?? 0,
       tickets: parsedTickets,

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../../models/cards/card_suit.dart';
 import '../../models/cards/spanish_card.dart';
+import '../../../features/la_caida/economy/player_session.dart';
 
 /// Componente visual de alta fidelidad para naipes de la Baraja Española tradicional.
 /// Soporta renderizado frontal detallado, reverso ornamental clásico y estado compacto.
@@ -13,6 +14,7 @@ class SpanishCardView extends StatelessWidget {
   final double? width;
   final double? height;
   final VoidCallback? onTap;
+  final String? customBackAssetPath;
 
   const SpanishCardView({
     super.key,
@@ -22,6 +24,7 @@ class SpanishCardView extends StatelessWidget {
     this.width,
     this.height,
     this.onTap,
+    this.customBackAssetPath,
   });
 
   /// Factory para representar el reverso de una carta oculta en el mazo o mano rival.
@@ -31,6 +34,7 @@ class SpanishCardView extends StatelessWidget {
     this.height,
     this.isSelected = false,
     this.onTap,
+    this.customBackAssetPath,
   })  : card = const SpanishCard(number: 1, suit: CardSuit.oros),
         isFaceUp = false;
 
@@ -400,8 +404,10 @@ class SpanishCardView extends StatelessWidget {
   }
 
   Widget _buildBack(double w, double h) {
+    final effectiveAsset = customBackAssetPath ??
+        PlayerSession.shared.activeCardBackAssetPath;
     return Image.asset(
-      backAssetPath,
+      effectiveAsset,
       width: w,
       height: h,
       fit: BoxFit.cover,
