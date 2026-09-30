@@ -793,10 +793,20 @@ class PlayerSession extends ChangeNotifier {
     };
   }
 
+  static const List<String> legacyStorageKeys = [
+    'caida_player_session_v3',
+    'caida_player_session_v2',
+    'caida_player_session_v1',
+    'caida_player_session',
+    'caida_user_progress',
+    'user_session',
+    'player_session',
+  ];
+
   factory PlayerSession.fromJson(Map<String, dynamic> json) {
-    final parsedMaxTickets = json['maxTickets'] as int? ?? defaultMaxTickets;
-    final parsedTickets = (json['tickets'] as int? ?? defaultMaxTickets).clamp(0, parsedMaxTickets);
-    final regenString = json['lastTicketRegen'] as String?;
+    final parsedMaxTickets = (json['maxTickets'] as num?)?.toInt() ?? defaultMaxTickets;
+    final parsedTickets = ((json['tickets'] as num?)?.toInt() ?? defaultMaxTickets).clamp(0, parsedMaxTickets);
+    final regenString = json['lastTicketRegen']?.toString();
     final parsedRegen = regenString != null
         ? DateTime.tryParse(regenString)?.toUtc() ?? DateTime.now().toUtc()
         : DateTime.now().toUtc();
@@ -806,7 +816,11 @@ class PlayerSession extends ChangeNotifier {
       final list = json['chests'] as List;
       parsedChests = List.generate(4, (i) {
         if (i < list.length && list[i] is Map<String, dynamic>) {
-          return ChestSlotModel.fromJson(list[i] as Map<String, dynamic>);
+          try {
+            return ChestSlotModel.fromJson(list[i] as Map<String, dynamic>);
+          } catch (_) {
+            return ChestSlotModel.empty(i);
+          }
         }
         return ChestSlotModel.empty(i);
       });
@@ -821,59 +835,69 @@ class PlayerSession extends ChangeNotifier {
     if (json['boosterInventory'] is Map) {
       final map = json['boosterInventory'] as Map;
       map.forEach((k, v) {
-        final type = BoosterType.values.firstWhere(
-          (t) => t.name == k,
-          orElse: () => BoosterType.xp,
-        );
-        parsedInventory[type] = v as int;
+        try {
+          final type = BoosterType.values.firstWhere(
+            (t) => t.name == k.toString(),
+            orElse: () => BoosterType.xp,
+          );
+          if (v is num) {
+            parsedInventory[type] = v.toInt();
+          }
+        } catch (_) {}
       });
     }
 
     List<BoosterType> parsedActive = [];
     if (json['activeBoosters'] is List) {
       final list = json['activeBoosters'] as List;
-      parsedActive = list.map((e) {
-        return BoosterType.values.firstWhere(
-          (t) => t.name == e,
-          orElse: () => BoosterType.xp,
-        );
-      }).toList();
+      for (final e in list) {
+        try {
+          final type = BoosterType.values.firstWhere(
+            (t) => t.name == e.toString(),
+            orElse: () => BoosterType.xp,
+          );
+          parsedActive.add(type);
+        } catch (_) {}
+      }
     }
 
-    final parsedBackId = json['selectedCardBackId'] as String? ?? 'classic_criollo';
-    final parsedUnlockedBacks = (json['unlockedCardBackIds'] as List?)
-            ?.map((e) => e.toString())
-            .toSet() ??
-        {'classic_criollo'};
+    final parsedBackId = json['selectedCardBackId']?.toString() ?? 'classic_criollo';
+    Set<String> parsedUnlockedBacks = {'classic_criollo'};
+    if (json['unlockedCardBackIds'] is Iterable) {
+      parsedUnlockedBacks = (json['unlockedCardBackIds'] as Iterable)
+          .map((e) => e.toString())
+          .toSet();
+      parsedUnlockedBacks.add('classic_criollo');
+    }
 
     return PlayerSession(
-      id: json['id'] as String? ?? 'user_${DateTime.now().millisecondsSinceEpoch}',
-      name: json['name'] as String? ?? 'Jugador',
-      avatarIndex: json['avatarIndex'] as int? ?? 2,
-      selectedFrameId: json['selectedFrameId'] as String? ?? 'rank_novato',
-      selectedThemeId: json['selectedThemeId'] as String? ?? 'royal_blue',
+      id: json['id']?.toString() ?? 'user_${DateTime.now().millisecondsSinceEpoch}',
+      name: json['name']?.toString() ?? 'Jugador',
+      avatarIndex: (json['avatarIndex'] as num?)?.toInt() ?? 2,
+      selectedFrameId: json['selectedFrameId']?.toString() ?? 'rank_novato',
+      selectedThemeId: json['selectedThemeId']?.toString() ?? 'royal_blue',
       selectedCardBackId: parsedBackId,
       unlockedCardBackIds: parsedUnlockedBacks,
-      coins: json['coins'] as int? ?? 0,
-      chapas: json['chapas'] as int? ?? 0,
+      coins: (json['coins'] as num?)?.toInt() ?? 0,
+      chapas: (json['chapas'] as num?)?.toInt() ?? 0,
       tickets: parsedTickets,
       maxTickets: parsedMaxTickets,
-      xp: json['xp'] as int? ?? 0,
-      level: json['level'] as int? ?? 0,
+      xp: (json['xp'] as num?)?.toInt() ?? 0,
+      level: (json['level'] as num?)?.toInt() ?? 0,
       lastTicketRegen: parsedRegen,
-      hasCompletedTutorial: json['hasCompletedTutorial'] as bool? ?? false,
-      isFirstTime: json['isFirstTime'] as bool? ?? false,
+      hasCompletedTutorial: json['hasCompletedTutorial'] == true,
+      isFirstTime: json['isFirstTime'] == true,
       chests: parsedChests,
       botNames: parsedBotNames,
       boosterInventory: parsedInventory,
       activeBoosters: parsedActive,
-      isFacebookLinked: json['isFacebookLinked'] as bool? ?? false,
-      facebookId: json['facebookId'] as String?,
-      facebookName: json['facebookName'] as String?,
-      facebookAvatarUrl: json['facebookAvatarUrl'] as String?,
-      facebookEmail: json['facebookEmail'] as String?,
-      useFacebookAvatar: json['useFacebookAvatar'] as bool? ?? true,
-      hasClaimedFacebookReward: json['hasClaimedFacebookReward'] as bool? ?? false,
+      isFacebookLinked: json['isFacebookLinked'] == true,
+      facebookId: json['facebookId']?.toString(),
+      facebookName: json['facebookName']?.toString(),
+      facebookAvatarUrl: json['facebookAvatarUrl']?.toString(),
+      facebookEmail: json['facebookEmail']?.toString(),
+      useFacebookAvatar: json['useFacebookAvatar'] != false,
+      hasClaimedFacebookReward: json['hasClaimedFacebookReward'] == true,
     );
   }
 
@@ -888,31 +912,46 @@ class PlayerSession extends ChangeNotifier {
 
   /// Carga la sesión del jugador desde SharedPreferences.
   /// Si no existe, crea una nueva sesión por defecto para novatos (0 monedas, 3 tickets).
-  /// Realiza la regeneración pasiva de tickets offline inmediatamente al cargar.
+  /// Soporta migración de versiones anteriores y evita sobreescritura accidental.
   static Future<PlayerSession> load({SharedPreferences? prefs, DateTime? nowUtc}) async {
-    try {
-      final p = prefs ?? await SharedPreferences.getInstance();
-      final raw = p.getString(storageKey);
-      if (raw != null && raw.isNotEmpty) {
-        final Map<String, dynamic> decoded = jsonDecode(raw) as Map<String, dynamic>;
-        final session = PlayerSession.fromJson(decoded);
-        session.regenerateTicketsPassive(nowUtc: nowUtc);
-        _shared = session;
-        if (PlayerStatsModel.shared.totalEarnings < session.coins) {
-          PlayerStatsModel.shared.recordEarnings(session.coins - PlayerStatsModel.shared.totalEarnings);
-        }
-        return session;
-      }
-    } catch (_) {}
+    final p = prefs ?? await SharedPreferences.getInstance();
 
-    // Si no hay datos guardados o hubo un error, inicializar por defecto para novatos
+    for (final key in legacyStorageKeys) {
+      try {
+        final raw = p.getString(key);
+        if (raw != null && raw.isNotEmpty) {
+          final Map<String, dynamic> decoded = jsonDecode(raw) as Map<String, dynamic>;
+          final session = PlayerSession.fromJson(decoded);
+          session.regenerateTicketsPassive(nowUtc: nowUtc);
+          _shared = session;
+          if (PlayerStatsModel.shared.totalEarnings < session.coins) {
+            PlayerStatsModel.shared.recordEarnings(session.coins - PlayerStatsModel.shared.totalEarnings);
+          }
+          // Si se cargó desde una clave heredada, migrar y persistir en la clave actual
+          if (key != storageKey) {
+            await session.save(prefs: p);
+          }
+          return session;
+        }
+      } catch (e, stack) {
+        DebugLogger.instance.log(
+          'Error cargando sesión con clave $key: $e',
+          category: 'Economía',
+          level: LogLevel.warning,
+          error: e,
+          stackTrace: stack,
+        );
+      }
+    }
+
+    // Si verdaderamente no hay datos guardados previamente, inicializar por defecto para novatos
     final newSession = PlayerSession.createDefault(
       coins: 0,
       tickets: defaultMaxTickets,
       hasCompletedTutorial: false,
       isFirstTime: true,
     );
-    await newSession.save(prefs: prefs);
+    await newSession.save(prefs: p);
     _shared = newSession;
     if (PlayerStatsModel.shared.totalEarnings < newSession.coins) {
       PlayerStatsModel.shared.recordEarnings(newSession.coins - PlayerStatsModel.shared.totalEarnings);

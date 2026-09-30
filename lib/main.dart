@@ -6,6 +6,7 @@ import 'core/services/user_profile_service.dart';
 import 'core/stats/stats_repository.dart';
 import 'features/la_caida/economy/player_session.dart';
 import 'features/la_caida/economy/player_stats_model.dart';
+import 'features/la_caida/economy/trophy_session_manager.dart';
 import 'features/la_caida/presentation/caida_splash_screen.dart';
 
 void main() async {
@@ -21,6 +22,7 @@ void main() async {
   await LocalizationService.instance.init();
   await PlayerSession.load();
   await PlayerStatsModel.shared.load();
+  await TrophySessionManager.shared.initialize();
 
   runApp(CaidaGoApp(statsRepository: statsRepository));
 }

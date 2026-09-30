@@ -273,42 +273,56 @@ class PlayerStatsModel extends ChangeNotifier {
         'claimedAchievementIds': claimedAchievementIds.toList(),
       };
 
+  static const List<String> legacyStorageKeys = [
+    'caida_player_game_stats_v3',
+    'caida_player_game_stats_v2',
+    'caida_player_game_stats_v1',
+    'caida_player_game_stats',
+    'player_stats',
+  ];
+
   factory PlayerStatsModel.fromJson(Map<String, dynamic> json) {
     final claimed = (json['claimedAchievementIds'] as List?)
             ?.map((e) => e.toString())
             .toSet() ??
         <String>{};
 
+    int toInt(dynamic v, [int fallback = 0]) {
+      if (v is num) return v.toInt();
+      if (v is String) return int.tryParse(v) ?? fallback;
+      return fallback;
+    }
+
     return PlayerStatsModel(
-      trophies: json['trophies'] as int? ?? 0,
-      highestRankIndex: json['highestRankIndex'] as int? ?? 0,
-      totalEarnings: json['totalEarnings'] as int? ?? 0,
-      gamesPlayed: json['gamesPlayed'] as int? ?? 0,
-      gamesWon: json['gamesWon'] as int? ?? 0,
-      currentStreak: json['currentStreak'] as int? ?? 0,
-      maxStreak: json['maxStreak'] as int? ?? 0,
-      soloWins: json['soloWins'] as int? ?? 0,
-      teamWins: json['teamWins'] as int? ?? 0,
-      onlineMatchesPlayed: json['onlineMatchesPlayed'] as int? ?? 0,
-      onlineMatchesWon: json['onlineMatchesWon'] as int? ?? 0,
-      botMatchesPlayed: json['botMatchesPlayed'] as int? ?? 0,
-      botMatchesWon: json['botMatchesWon'] as int? ?? 0,
-      vipMatchesPlayed: json['vipMatchesPlayed'] as int? ?? 0,
-      vipMatchesWon: json['vipMatchesWon'] as int? ?? 0,
-      matches1v1Played: json['matches1v1Played'] as int? ?? (json['soloWins'] as int? ?? 0),
-      matches1v1Won: json['matches1v1Won'] as int? ?? (json['soloWins'] as int? ?? 0),
-      matches2v2Played: json['matches2v2Played'] as int? ?? (json['teamWins'] as int? ?? 0),
-      matches2v2Won: json['matches2v2Won'] as int? ?? (json['teamWins'] as int? ?? 0),
-      caidasMade: json['caidasMade'] as int? ?? 0,
-      caidasReceived: json['caidasReceived'] as int? ?? 0,
-      mesasLimpias: json['mesasLimpias'] as int? ?? 0,
-      caidasWithLimpia: json['caidasWithLimpia'] as int? ?? 0,
-      registros: json['registros'] as int? ?? 0,
-      totalCardsWon: json['totalCardsWon'] as int? ?? 0,
-      rondas: json['rondas'] as int? ?? 0,
-      patrullas: json['patrullas'] as int? ?? 0,
-      vigias: json['vigias'] as int? ?? 0,
-      trivilines: json['trivilines'] as int? ?? 0,
+      trophies: toInt(json['trophies']),
+      highestRankIndex: toInt(json['highestRankIndex']),
+      totalEarnings: toInt(json['totalEarnings']),
+      gamesPlayed: toInt(json['gamesPlayed']),
+      gamesWon: toInt(json['gamesWon']),
+      currentStreak: toInt(json['currentStreak']),
+      maxStreak: toInt(json['maxStreak']),
+      soloWins: toInt(json['soloWins']),
+      teamWins: toInt(json['teamWins']),
+      onlineMatchesPlayed: toInt(json['onlineMatchesPlayed']),
+      onlineMatchesWon: toInt(json['onlineMatchesWon']),
+      botMatchesPlayed: toInt(json['botMatchesPlayed']),
+      botMatchesWon: toInt(json['botMatchesWon']),
+      vipMatchesPlayed: toInt(json['vipMatchesPlayed']),
+      vipMatchesWon: toInt(json['vipMatchesWon']),
+      matches1v1Played: toInt(json['matches1v1Played'], toInt(json['soloWins'])),
+      matches1v1Won: toInt(json['matches1v1Won'], toInt(json['soloWins'])),
+      matches2v2Played: toInt(json['matches2v2Played'], toInt(json['teamWins'])),
+      matches2v2Won: toInt(json['matches2v2Won'], toInt(json['teamWins'])),
+      caidasMade: toInt(json['caidasMade']),
+      caidasReceived: toInt(json['caidasReceived']),
+      mesasLimpias: toInt(json['mesasLimpias']),
+      caidasWithLimpia: toInt(json['caidasWithLimpia']),
+      registros: toInt(json['registros']),
+      totalCardsWon: toInt(json['totalCardsWon']),
+      rondas: toInt(json['rondas']),
+      patrullas: toInt(json['patrullas']),
+      vigias: toInt(json['vigias']),
+      trivilines: toInt(json['trivilines']),
       claimedAchievementIds: claimed,
     );
   }
@@ -349,23 +363,31 @@ class PlayerStatsModel extends ChangeNotifier {
     save();
   }
 
-  /// Carga las estadísticas desde SharedPreferences
+  /// Carga las estadísticas desde SharedPreferences con migración de claves
   Future<void> load({SharedPreferences? prefs}) async {
-    try {
-      final p = prefs ?? await SharedPreferences.getInstance();
-      final raw = p.getString(storageKey);
-      if (raw != null && raw.isNotEmpty) {
-        final data = jsonDecode(raw) as Map<String, dynamic>;
-        final loaded = PlayerStatsModel.fromJson(data);
-        _copyFrom(loaded);
-        notifyListeners();
+    final p = prefs ?? await SharedPreferences.getInstance();
+
+    for (final key in legacyStorageKeys) {
+      try {
+        final raw = p.getString(key);
+        if (raw != null && raw.isNotEmpty) {
+          final data = jsonDecode(raw) as Map<String, dynamic>;
+          final loaded = PlayerStatsModel.fromJson(data);
+          _copyFrom(loaded);
+          notifyListeners();
+          // Si cargó desde una clave heredada, migrar a storageKey
+          if (key != storageKey) {
+            save(prefs: p);
+          }
+          return;
+        }
+      } catch (e) {
+        DebugLogger.instance.log(
+          'Error cargando PlayerStatsModel con clave $key: $e',
+          category: 'Sistema',
+          level: LogLevel.warning,
+        );
       }
-    } catch (e) {
-      DebugLogger.instance.log(
-        'Error cargando PlayerStatsModel: $e',
-        category: 'Sistema',
-        level: LogLevel.warning,
-      );
     }
   }
 

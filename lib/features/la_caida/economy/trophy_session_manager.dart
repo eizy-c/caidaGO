@@ -24,8 +24,14 @@ class TrophySessionManager extends ChangeNotifier {
   int _coins = 0;
   bool _isLoaded = false;
 
+  static const List<String> legacyTrophiesKeys = [
+    'caida_venezuela_trophies_v1',
+    'caida_trophies',
+    'venezuela_trophies',
+  ];
+
   TrophySessionManager() {
-    _initialize();
+    initialize();
   }
 
   bool get isLoaded => _isLoaded;
@@ -33,18 +39,32 @@ class TrophySessionManager extends ChangeNotifier {
   Map<int, int> get roomTrophies => Map.unmodifiable(_roomTrophies);
 
   /// Inicializa la sesión cargando los datos guardados o sincronizando con PlayerSession.
-  Future<void> _initialize() async {
+  Future<void> initialize() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final trophiesJson = prefs.getString(_storageKeyTrophies);
+      String? trophiesJson;
+
+      for (final key in legacyTrophiesKeys) {
+        final raw = prefs.getString(key);
+        if (raw != null && raw.isNotEmpty) {
+          trophiesJson = raw;
+          if (key != _storageKeyTrophies) {
+            await prefs.setString(_storageKeyTrophies, raw);
+          }
+          break;
+        }
+      }
 
       if (trophiesJson != null && trophiesJson.isNotEmpty) {
         final Map<String, dynamic> decoded = jsonDecode(trophiesJson);
         decoded.forEach((key, val) {
           final roomId = int.tryParse(key);
-          if (roomId != null && val is int) {
-            final room = VenezuelaRoomCatalog.getById(roomId);
-            _roomTrophies[roomId] = val.clamp(0, room.trophyCap);
+          if (roomId != null) {
+            final int? trophyVal = val is num ? val.toInt() : (val is String ? int.tryParse(val) : null);
+            if (trophyVal != null) {
+              final room = VenezuelaRoomCatalog.getById(roomId);
+              _roomTrophies[roomId] = trophyVal.clamp(0, room.trophyCap);
+            }
           }
         });
       }
