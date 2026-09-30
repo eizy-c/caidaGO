@@ -170,15 +170,16 @@ class ProfileAndLevelModal extends StatefulWidget {
     this.initialTabIndex = 0,
   });
 
-static Future<void> show(
+  static Future<void> show(
     BuildContext context, {
     required PlayerSession session,
     int initialTabIndex = 0,
   }) {
-    return showDialog(
+    return showModalBottomSheet<void>(
       context: context,
-      barrierColor: Colors.black87,
-
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      enableDrag: true,
       builder: (_) => ProfileAndLevelModal(
         session: session,
         initialTabIndex: initialTabIndex,
@@ -527,31 +528,37 @@ class _ProfileAndLevelModalState extends State<ProfileAndLevelModal>
 
   @override
   Widget build(BuildContext context) {
-return Dialog(
-      backgroundColor: Colors.transparent,
-      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 420, maxHeight: 620),
+    return SafeArea(
+      child: Align(
+        alignment: Alignment.bottomCenter,
         child: Container(
+          constraints: BoxConstraints(
+            maxWidth: 620,
+            maxHeight: MediaQuery.of(context).size.height * 0.88,
+          ),
           decoration: BoxDecoration(
             gradient: const LinearGradient(
               colors: [Color(0xFF2E267D), Color(0xFF26206D)],
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
             ),
-            borderRadius: BorderRadius.circular(24),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
             border: Border.all(color: AppPalette.cartoonBorder, width: 2.2),
             boxShadow: const [
-              BoxShadow(color: Colors.black87, blurRadius: 20, offset: Offset(0, 8)),
+              BoxShadow(color: Colors.black87, blurRadius: 20, offset: Offset(0, -6)),
             ],
           ),
-          child: Column(
-            children: [
-              // 1. Cabecera superior con Avatar y Rango (sin nivel) y botón de cierre táctil
-              _buildHeader(),
+          child: Material(
+            color: Colors.transparent,
+            child: ClipRRect(
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(26)),
+              child: Column(
+                children: [
+                  // 1. Cabecera superior con Avatar y Rango (sin nivel) y botón de cierre táctil
+                  _buildHeader(),
 
-              // 2. Barra de Pestañas Cartoon (Avatar, Marcos, Fondos)
-              Container(
+                  // 2. Barra de Pestañas Cartoon (Avatar, Marcos, Fondos)
+                  Container(
                 decoration: const BoxDecoration(
                   color: AppPalette.cartoonBgDark,
                   border: Border(
@@ -609,7 +616,9 @@ return Dialog(
           ),
         ),
       ),
-    );
+    ),
+  ),
+);
   }
 
   Widget _buildHeader() {

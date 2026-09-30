@@ -22,6 +22,18 @@ class PlayerStatsModel extends ChangeNotifier {
   int soloWins;
   int teamWins;
 
+  // --- MODALIDADES Y SALAS ---
+  int onlineMatchesPlayed;
+  int onlineMatchesWon;
+  int botMatchesPlayed;
+  int botMatchesWon;
+  int vipMatchesPlayed;
+  int vipMatchesWon;
+  int matches1v1Played;
+  int matches1v1Won;
+  int matches2v2Played;
+  int matches2v2Won;
+
   // --- JUGADAS Y MESA (CAÍDA) ---
   int caidasMade;
   int caidasReceived;
@@ -49,6 +61,16 @@ class PlayerStatsModel extends ChangeNotifier {
     this.maxStreak = 0,
     this.soloWins = 0,
     this.teamWins = 0,
+    this.onlineMatchesPlayed = 0,
+    this.onlineMatchesWon = 0,
+    this.botMatchesPlayed = 0,
+    this.botMatchesWon = 0,
+    this.vipMatchesPlayed = 0,
+    this.vipMatchesWon = 0,
+    this.matches1v1Played = 0,
+    this.matches1v1Won = 0,
+    this.matches2v2Played = 0,
+    this.matches2v2Won = 0,
     this.caidasMade = 0,
     this.caidasReceived = 0,
     this.mesasLimpias = 0,
@@ -73,10 +95,21 @@ class PlayerStatsModel extends ChangeNotifier {
   int get winRatePercentage =>
       gamesPlayed == 0 ? 0 : ((gamesWon / gamesPlayed) * 100).round();
 
+  /// Registra ingresos de monedas acumuladas de por vida (partidas, cofres, recompensas, retos, etc.)
+  void recordEarnings(int amount) {
+    if (amount <= 0) return;
+    totalEarnings += amount;
+    notifyListeners();
+    save();
+  }
+
   /// Registra el fin de una partida oficial
   void recordGameResult({
     required bool won,
     required bool isTeams,
+    bool isOnline = false,
+    bool isBot = true,
+    bool isVip = false,
     int coinsWon = 0,
     int cardsWon = 0,
     int caidas = 0,
@@ -89,6 +122,22 @@ class PlayerStatsModel extends ChangeNotifier {
     caidasMade += caidas;
     mesasLimpias += limpias;
 
+    if (isTeams) {
+      matches2v2Played++;
+    } else {
+      matches1v1Played++;
+    }
+
+    if (isOnline) {
+      onlineMatchesPlayed++;
+    } else {
+      botMatchesPlayed++;
+    }
+
+    if (isVip) {
+      vipMatchesPlayed++;
+    }
+
     if (won) {
       gamesWon++;
       currentStreak++;
@@ -97,8 +146,18 @@ class PlayerStatsModel extends ChangeNotifier {
       }
       if (isTeams) {
         teamWins++;
+        matches2v2Won++;
       } else {
         soloWins++;
+        matches1v1Won++;
+      }
+      if (isOnline) {
+        onlineMatchesWon++;
+      } else {
+        botMatchesWon++;
+      }
+      if (isVip) {
+        vipMatchesWon++;
       }
     } else {
       currentStreak = 0;
@@ -191,6 +250,16 @@ class PlayerStatsModel extends ChangeNotifier {
         'maxStreak': maxStreak,
         'soloWins': soloWins,
         'teamWins': teamWins,
+        'onlineMatchesPlayed': onlineMatchesPlayed,
+        'onlineMatchesWon': onlineMatchesWon,
+        'botMatchesPlayed': botMatchesPlayed,
+        'botMatchesWon': botMatchesWon,
+        'vipMatchesPlayed': vipMatchesPlayed,
+        'vipMatchesWon': vipMatchesWon,
+        'matches1v1Played': matches1v1Played,
+        'matches1v1Won': matches1v1Won,
+        'matches2v2Played': matches2v2Played,
+        'matches2v2Won': matches2v2Won,
         'caidasMade': caidasMade,
         'caidasReceived': caidasReceived,
         'mesasLimpias': mesasLimpias,
@@ -220,6 +289,16 @@ class PlayerStatsModel extends ChangeNotifier {
       maxStreak: json['maxStreak'] as int? ?? 0,
       soloWins: json['soloWins'] as int? ?? 0,
       teamWins: json['teamWins'] as int? ?? 0,
+      onlineMatchesPlayed: json['onlineMatchesPlayed'] as int? ?? 0,
+      onlineMatchesWon: json['onlineMatchesWon'] as int? ?? 0,
+      botMatchesPlayed: json['botMatchesPlayed'] as int? ?? 0,
+      botMatchesWon: json['botMatchesWon'] as int? ?? 0,
+      vipMatchesPlayed: json['vipMatchesPlayed'] as int? ?? 0,
+      vipMatchesWon: json['vipMatchesWon'] as int? ?? 0,
+      matches1v1Played: json['matches1v1Played'] as int? ?? (json['soloWins'] as int? ?? 0),
+      matches1v1Won: json['matches1v1Won'] as int? ?? (json['soloWins'] as int? ?? 0),
+      matches2v2Played: json['matches2v2Played'] as int? ?? (json['teamWins'] as int? ?? 0),
+      matches2v2Won: json['matches2v2Won'] as int? ?? (json['teamWins'] as int? ?? 0),
       caidasMade: json['caidasMade'] as int? ?? 0,
       caidasReceived: json['caidasReceived'] as int? ?? 0,
       mesasLimpias: json['mesasLimpias'] as int? ?? 0,
@@ -245,6 +324,16 @@ class PlayerStatsModel extends ChangeNotifier {
     maxStreak = 0;
     soloWins = 0;
     teamWins = 0;
+    onlineMatchesPlayed = 0;
+    onlineMatchesWon = 0;
+    botMatchesPlayed = 0;
+    botMatchesWon = 0;
+    vipMatchesPlayed = 0;
+    vipMatchesWon = 0;
+    matches1v1Played = 0;
+    matches1v1Won = 0;
+    matches2v2Played = 0;
+    matches2v2Won = 0;
     caidasMade = 0;
     caidasReceived = 0;
     mesasLimpias = 0;
@@ -302,6 +391,16 @@ class PlayerStatsModel extends ChangeNotifier {
     maxStreak = other.maxStreak;
     soloWins = other.soloWins;
     teamWins = other.teamWins;
+    onlineMatchesPlayed = other.onlineMatchesPlayed;
+    onlineMatchesWon = other.onlineMatchesWon;
+    botMatchesPlayed = other.botMatchesPlayed;
+    botMatchesWon = other.botMatchesWon;
+    vipMatchesPlayed = other.vipMatchesPlayed;
+    vipMatchesWon = other.vipMatchesWon;
+    matches1v1Played = other.matches1v1Played;
+    matches1v1Won = other.matches1v1Won;
+    matches2v2Played = other.matches2v2Played;
+    matches2v2Won = other.matches2v2Won;
     caidasMade = other.caidasMade;
     caidasReceived = other.caidasReceived;
     mesasLimpias = other.mesasLimpias;

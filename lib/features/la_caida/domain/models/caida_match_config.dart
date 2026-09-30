@@ -23,6 +23,7 @@ class CaidaMatchConfig {
   final bool isHost;
   final List<String>? playerNames;
   final List<int>? playerAvatarIds;
+  final List<String?>? playerAvatarUrls;
   final List<String>? playerFrameIds;
   final List<bool>? playerIsBots;
   final LocalGameHost? host;
@@ -47,6 +48,7 @@ class CaidaMatchConfig {
     this.isHost = false,
     this.playerNames,
     this.playerAvatarIds,
+    this.playerAvatarUrls,
     this.playerFrameIds,
     this.playerIsBots,
     this.host,
@@ -142,6 +144,7 @@ class CaidaMatchConfig {
     bool? isHost,
     List<String>? playerNames,
     List<int>? playerAvatarIds,
+    List<String?>? playerAvatarUrls,
     List<String>? playerFrameIds,
     List<bool>? playerIsBots,
     LocalGameHost? host,
@@ -166,6 +169,7 @@ class CaidaMatchConfig {
       isHost: isHost ?? this.isHost,
       playerNames: playerNames ?? this.playerNames,
       playerAvatarIds: playerAvatarIds ?? this.playerAvatarIds,
+      playerAvatarUrls: playerAvatarUrls ?? this.playerAvatarUrls,
       playerFrameIds: playerFrameIds ?? this.playerFrameIds,
       playerIsBots: playerIsBots ?? this.playerIsBots,
       host: host ?? this.host,

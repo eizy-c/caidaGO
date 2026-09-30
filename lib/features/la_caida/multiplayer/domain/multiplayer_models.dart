@@ -13,6 +13,7 @@ class RoomSeat {
   final String? playerId;
   final String name;
   final int avatarId;
+  final String? avatarUrl;
   final String frameId;
   final bool isBot;
   final bool isReady;
@@ -24,6 +25,7 @@ class RoomSeat {
     this.playerId,
     required this.name,
     this.avatarId = 0,
+    this.avatarUrl,
     this.frameId = 'rank_novato',
     this.isBot = false,
     this.isReady = false,
@@ -38,6 +40,7 @@ class RoomSeat {
     String? playerId,
     String? name,
     int? avatarId,
+    String? avatarUrl,
     String? frameId,
     bool? isBot,
     bool? isReady,
@@ -49,6 +52,7 @@ class RoomSeat {
       playerId: playerId ?? this.playerId,
       name: name ?? this.name,
       avatarId: avatarId ?? this.avatarId,
+      avatarUrl: avatarUrl ?? this.avatarUrl,
       frameId: frameId ?? this.frameId,
       isBot: isBot ?? this.isBot,
       isReady: isReady ?? this.isReady,
@@ -62,6 +66,7 @@ class RoomSeat {
         'playerId': playerId,
         'name': name,
         'avatarId': avatarId,
+        'avatarUrl': avatarUrl,
         'frameId': frameId,
         'isBot': isBot,
         'isReady': isReady,
@@ -74,6 +79,7 @@ class RoomSeat {
         playerId: json['playerId'] as String?,
         name: json['name'] as String? ?? 'Jugador',
         avatarId: json['avatarId'] as int? ?? 0,
+        avatarUrl: json['avatarUrl'] as String?,
         frameId: json['frameId'] as String? ?? 'rank_novato',
         isBot: json['isBot'] as bool? ?? false,
         isReady: json['isReady'] as bool? ?? false,
@@ -88,6 +94,7 @@ class MultiplayerRoomInfo {
   final String roomName;
   final String hostName;
   final int hostAvatarId;
+  final String? hostAvatarUrl;
   final String hostFrameId;
   final String hostIp;
   final int port;
@@ -106,6 +113,7 @@ class MultiplayerRoomInfo {
     required this.roomName,
     required this.hostName,
     this.hostAvatarId = 0,
+    this.hostAvatarUrl,
     this.hostFrameId = 'rank_novato',
     required this.hostIp,
     this.port = 45456,
@@ -130,6 +138,7 @@ class MultiplayerRoomInfo {
         'roomName': roomName,
         'hostName': hostName,
         'hostAvatarId': hostAvatarId,
+        'hostAvatarUrl': hostAvatarUrl,
         'hostFrameId': hostFrameId,
         'hostIp': hostIp,
         'port': port,
@@ -150,6 +159,7 @@ class MultiplayerRoomInfo {
         roomName: json['roomName'] as String? ?? 'Sala CaidaGO',
         hostName: json['hostName'] as String? ?? 'Anfitrión',
         hostAvatarId: json['hostAvatarId'] as int? ?? 0,
+        hostAvatarUrl: json['hostAvatarUrl'] as String?,
         hostFrameId: json['hostFrameId'] as String? ?? 'rank_novato',
         hostIp: json['hostIp'] as String? ?? '127.0.0.1',
         port: json['port'] as int? ?? 45456,

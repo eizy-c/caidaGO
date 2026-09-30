@@ -51,7 +51,7 @@ class _MultiplayerChatDrawerState extends State<MultiplayerChatDrawer> {
   final TextEditingController _textController = TextEditingController();
   final FocusNode _focusNode = FocusNode();
   final ScrollController _scrollController = ScrollController();
-  bool _isRecordingVoice = false;
+  final bool _isRecordingVoice = false;
   Timer? _voiceTimer;
   DateTime? _lastSendTime;
 
@@ -64,7 +64,7 @@ class _MultiplayerChatDrawerState extends State<MultiplayerChatDrawer> {
     return true;
   }
 
-  // Reacciones rápidas curadas (Frases, Emojis y Voces Criollas)
+  // Reacciones rápidas curadas (Frases, Emojis y Voces Criollas oficiales)
   static const List<String> _quickPhrases = [
     '¡Buena jugada! 👏',
     '¡Me caí! 💥',
@@ -81,6 +81,11 @@ class _MultiplayerChatDrawerState extends State<MultiplayerChatDrawer> {
     {'label': '¡Limpia! 📢', 'key': 'limpia'},
     {'label': '¡Ronda! 📢', 'key': 'ronda'},
     {'label': '¡Últimas! 📢', 'key': 'ultimas'},
+    {'label': '¡Patrulla! 📢', 'key': 'patrulla'},
+    {'label': '¡Vigía! 📢', 'key': 'vigia'},
+    {'label': '¡Registro! 📢', 'key': 'registro'},
+    {'label': '¡Cuatro! 📢', 'key': 'cuatro'},
+    {'label': '¡Uno! 📢', 'key': 'uno'},
   ];
 
   @override
@@ -120,9 +125,9 @@ class _MultiplayerChatDrawerState extends State<MultiplayerChatDrawer> {
     final trimmed = text.trim();
     if (trimmed.isEmpty) return;
     if (!_canSend()) return;
+    _textController.clear();
     HapticService.instance.onSelection();
     widget.onSendMessage(trimmed);
-    _textController.clear();
   }
 
   void _sendQuickReaction(String reaction) {
@@ -139,25 +144,9 @@ class _MultiplayerChatDrawerState extends State<MultiplayerChatDrawer> {
 
   void _toggleVoiceRecording() {
     HapticService.instance.onSelection();
-    if (_isRecordingVoice) {
-      _voiceTimer?.cancel();
-      _voiceTimer = null;
-      setState(() => _isRecordingVoice = false);
-      if (_canSend()) {
-        widget.onSendMessage('Mensaje de Voz', voiceSoundKey: 'voice_note');
-      }
-    } else {
-      setState(() => _isRecordingVoice = true);
-      _voiceTimer?.cancel();
-      _voiceTimer = Timer(const Duration(seconds: 3), () {
-        if (mounted && _isRecordingVoice) {
-          setState(() => _isRecordingVoice = false);
-          _voiceTimer = null;
-          if (_canSend()) {
-            widget.onSendMessage('Mensaje de Voz', voiceSoundKey: 'voice_note');
-          }
-        }
-      });
+    // Enviar directamente el grito criollo de Caída oficial con efecto de voz sincronizado
+    if (_canSend()) {
+      widget.onSendMessage('¡Caída! 📢', voiceSoundKey: 'caida');
     }
   }
 

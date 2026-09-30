@@ -189,6 +189,7 @@ class PlayerSession extends ChangeNotifier {
       _coins += facebookRewardCoins;
       _chapas += facebookRewardChapas;
       _addXpInternal(facebookRewardXp);
+      PlayerStatsModel.shared.recordEarnings(facebookRewardCoins);
       rewardAwarded = true;
       DebugLogger.instance.log(
         'Recompensa de bienvenida de Facebook otorgada: +$facebookRewardCoins monedas, +$facebookRewardChapas chapas, +$facebookRewardXp XP.',
@@ -207,6 +208,7 @@ class PlayerSession extends ChangeNotifier {
     _coins += facebookRewardCoins;
     _chapas += facebookRewardChapas;
     _addXpInternal(facebookRewardXp);
+    PlayerStatsModel.shared.recordEarnings(facebookRewardCoins);
     notifyListeners();
     save();
     return true;
@@ -326,6 +328,7 @@ class PlayerSession extends ChangeNotifier {
   void completeTutorialReward({int coinReward = 1000}) {
     if (_hasCompletedTutorial) return;
     _coins += coinReward;
+    PlayerStatsModel.shared.recordEarnings(coinReward);
     _hasCompletedTutorial = true;
     _isFirstTime = false;
     _addXpInternal(150);
@@ -507,6 +510,7 @@ class PlayerSession extends ChangeNotifier {
     if (amount <= 0) return;
 
     _coins += amount;
+    PlayerStatsModel.shared.recordEarnings(amount);
     final int gainedXp = xpGain ?? (amount ~/ 4).clamp(25, 2000);
     _addXpInternal(gainedXp);
     DebugLogger.instance.log(
@@ -685,6 +689,7 @@ class PlayerSession extends ChangeNotifier {
 
     _coins += coinsReward;
     _addXpInternal(xpReward);
+    PlayerStatsModel.shared.recordEarnings(coinsReward);
 
     if (boosterReward != null) {
       addBooster(boosterReward);
@@ -835,6 +840,9 @@ class PlayerSession extends ChangeNotifier {
         final session = PlayerSession.fromJson(decoded);
         session.regenerateTicketsPassive(nowUtc: nowUtc);
         _shared = session;
+        if (PlayerStatsModel.shared.totalEarnings < session.coins) {
+          PlayerStatsModel.shared.recordEarnings(session.coins - PlayerStatsModel.shared.totalEarnings);
+        }
         return session;
       }
     } catch (_) {}
@@ -848,6 +856,9 @@ class PlayerSession extends ChangeNotifier {
     );
     await newSession.save(prefs: prefs);
     _shared = newSession;
+    if (PlayerStatsModel.shared.totalEarnings < newSession.coins) {
+      PlayerStatsModel.shared.recordEarnings(newSession.coins - PlayerStatsModel.shared.totalEarnings);
+    }
     return newSession;
   }
 

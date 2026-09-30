@@ -27,6 +27,7 @@ class TablePlayerBadge extends StatelessWidget {
   final Color? turnGlowColor;
   final bool isMano;
   final int? avatarId;
+  final String? avatarUrl;
   final String? frameId;
   final int? playerLevel;
   final VoidCallback? onTap;
@@ -49,6 +50,7 @@ class TablePlayerBadge extends StatelessWidget {
     this.turnGlowColor,
     this.isMano = false,
     this.avatarId,
+    this.avatarUrl,
     this.frameId,
     this.playerLevel,
     this.onTap,
@@ -117,6 +119,7 @@ class TablePlayerBadge extends StatelessWidget {
                           borderRadius: BorderRadius.circular(14),
                           child: UserFrameView(
                             avatarIndex: avatarId!,
+                            avatarUrl: avatarUrl,
                             frameId: frameId ?? 'rank_novato',
                             size: avatarSize,
                             showLevelBadge: false,

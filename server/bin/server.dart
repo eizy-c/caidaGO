@@ -113,6 +113,7 @@ void main(List<String> args) async {
           final roomName = message.data['roomName'] as String? ?? 'Mesa CaidaGO';
           final hostName = message.data['hostName'] as String? ?? 'Anfitrión';
           final avatarId = message.data['avatarId'] as int? ?? 0;
+          final avatarUrl = message.data['avatarUrl'] as String?;
           final frameId = message.data['frameId'] as String? ?? 'rank_novato';
           final targetPlayers = message.data['targetPlayers'] as int? ?? 2;
           final isPrivate = message.data['isPrivate'] as bool? ?? false;
@@ -127,6 +128,7 @@ void main(List<String> args) async {
             hostPlayerId: pId,
             hostName: hostName,
             hostAvatarId: avatarId,
+            hostAvatarUrl: avatarUrl,
             hostFrameId: frameId,
             targetPlayers: targetPlayers,
             isPrivate: isPrivate,
@@ -150,6 +152,7 @@ void main(List<String> args) async {
 
           final playerName = message.data['name'] as String? ?? 'Jugador';
           final avatarId = message.data['avatarId'] as int? ?? 0;
+          final avatarUrl = message.data['avatarUrl'] as String?;
           final frameId = message.data['frameId'] as String? ?? 'rank_novato';
           final targetRoomId = message.data['roomId'] as String?;
           final pinCode = message.data['pinCode'] as String?;
@@ -176,6 +179,7 @@ void main(List<String> args) async {
             playerId: pId,
             playerName: playerName,
             avatarId: avatarId,
+            avatarUrl: avatarUrl,
             frameId: frameId,
             socket: channel,
             pinCode: pinCode,
@@ -196,6 +200,7 @@ void main(List<String> args) async {
 
           final playerName = message.data['name'] as String? ?? 'Jugador';
           final avatarId = message.data['avatarId'] as int? ?? 0;
+          final avatarUrl = message.data['avatarUrl'] as String?;
           final frameId = message.data['frameId'] as String? ?? 'rank_novato';
           final targetPlayers = message.data['targetPlayers'] as int? ?? 2;
           final regionalRoomId = message.data['regionalRoomId'] as int?;
@@ -205,6 +210,7 @@ void main(List<String> args) async {
             playerId: pId,
             playerName: playerName,
             avatarId: avatarId,
+            avatarUrl: avatarUrl,
             frameId: frameId,
             targetPlayers: targetPlayers,
             regionalRoomId: regionalRoomId,

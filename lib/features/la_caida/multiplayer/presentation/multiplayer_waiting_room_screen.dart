@@ -278,6 +278,7 @@ class _MultiplayerWaitingRoomScreenState
             isHost: _isEffectiveHost,
             playerNames: sortedSeats.map((s) => s.name).toList(),
             playerAvatarIds: sortedSeats.map((s) => s.avatarId).toList(),
+            playerAvatarUrls: sortedSeats.map((s) => s.avatarUrl).toList(),
             playerFrameIds: sortedSeats.map((s) => s.frameId).toList(),
             playerIsBots: sortedSeats.map((s) => s.isBot).toList(),
             host: widget.isHost ? widget.host : null,

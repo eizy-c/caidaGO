@@ -58,6 +58,7 @@ class _PlayerState {
   final Color color;
   final int teamId;
   final int avatarId;
+  final String? avatarUrl;
   final String? frameId;
   final int? level;
   List<SpanishCard> hand = [];
@@ -92,6 +93,7 @@ class _PlayerState {
     required this.color,
     this.teamId = 0,
     this.avatarId = 2,
+    this.avatarUrl,
     this.frameId,
     this.level,
   });
@@ -202,6 +204,7 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
 
   // Historial de chat efímero de la partida (se vacía al terminar la partida)
   final List<ChatMessageItem> _matchChatHistory = [];
+  final Set<String> _processedChatMessageIds = <String>{};
   bool _isMultiplayerDisconnected = false;
 
   // Sistema de Nivel
@@ -489,6 +492,14 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
         }
       }
     } else if (msg.type == 'CHAT_MESSAGE') {
+      final msgId = msg.data['msgId'] as String?;
+      if (msgId != null) {
+        if (_processedChatMessageIds.contains(msgId)) return;
+        _processedChatMessageIds.add(msgId);
+        if (_processedChatMessageIds.length > 200) {
+          _processedChatMessageIds.remove(_processedChatMessageIds.first);
+        }
+      }
       final netSeat = msg.data['seatIndex'] as int?;
       final chatMsg = msg.data['message'] as String?;
       final voiceKey = msg.data['voiceSoundKey'] as String?;
@@ -576,6 +587,14 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
         }
       }
     } else if (msg.type == 'CHAT_MESSAGE') {
+      final msgId = msg.data['msgId'] as String?;
+      if (msgId != null) {
+        if (_processedChatMessageIds.contains(msgId)) return;
+        _processedChatMessageIds.add(msgId);
+        if (_processedChatMessageIds.length > 200) {
+          _processedChatMessageIds.remove(_processedChatMessageIds.first);
+        }
+      }
       final netSeat = msg.data['seatIndex'] as int?;
       final chatMsg = msg.data['message'] as String?;
       final voiceKey = msg.data['voiceSoundKey'] as String?;
@@ -928,16 +947,25 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
 
     // 1. Asiento 0: Jugador local (abajo en pantalla con avatar y marco personalizado)
     final customAvatars = widget.config?.playerAvatarIds;
+    final customAvatarUrls = widget.config?.playerAvatarUrls;
     final customFrames = widget.config?.playerFrameIds;
     final customNames = widget.config?.playerNames;
     final customIsBots = widget.config?.playerIsBots;
 
-    final userAvatarId = (customAvatars != null && customAvatars.isNotEmpty)
-        ? customAvatars[0]
+    final mySeat = _myLocalSeatIndex;
+
+    final userAvatarId = (customAvatars != null && mySeat < customAvatars.length)
+        ? customAvatars[mySeat]
         : session.avatarIndex;
-    final userFrameId = (customFrames != null && customFrames.isNotEmpty)
-        ? customFrames[0]
+    final userAvatarUrl = (customAvatarUrls != null && mySeat < customAvatarUrls.length)
+        ? customAvatarUrls[mySeat]
+        : session.activeAvatarUrl;
+    final userFrameId = (customFrames != null && mySeat < customFrames.length)
+        ? customFrames[mySeat]
         : session.selectedFrameId;
+    final localUserName = (customNames != null && mySeat < customNames.length)
+        ? customNames[mySeat]
+        : effectiveUserName;
 
     final computedColors = _computeRoomPlayerColors(
       room: _venezuelaRoom,
@@ -947,11 +975,12 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
 
     _players.add(_PlayerState(
       id: 'user',
-      name: effectiveUserName,
+      name: localUserName,
       isBot: false,
-      color: computedColors[0],
+      color: computedColors[mySeat % computedColors.length],
       teamId: teams ? 1 : 0,
       avatarId: userAvatarId,
+      avatarUrl: userAvatarUrl,
       frameId: userFrameId,
       level: _userLevel,
     ));
@@ -967,22 +996,27 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
     final rivalCount = totalPlayers - 1;
 
     for (int i = 1; i <= rivalCount; i++) {
-      final isTeammate = (totalPlayers == 4 && teams && i == 2);
-      final rawName = (customNames != null && i < customNames.length)
-          ? customNames[i]
+      final globalSeat = (mySeat + i) % totalPlayers;
+      final isTeammate = (totalPlayers == 4 && teams && (globalSeat % 2 == mySeat % 2));
+      final rawName = (customNames != null && globalSeat < customNames.length)
+          ? customNames[globalSeat]
           : effectiveBotNames[(i - 1) % effectiveBotNames.length];
       final playerName = isTeammate ? '$rawName (Compañero)' : rawName;
 
-      final rivalAvatarId = (customAvatars != null && i < customAvatars.length)
-          ? customAvatars[i]
+      final rivalAvatarId = (customAvatars != null && globalSeat < customAvatars.length)
+          ? customAvatars[globalSeat]
           : botAvatars[(i - 1) % botAvatars.length];
 
-      final rivalFrameId = (customFrames != null && i < customFrames.length)
-          ? customFrames[i]
+      final rivalAvatarUrl = (customAvatarUrls != null && globalSeat < customAvatarUrls.length)
+          ? customAvatarUrls[globalSeat]
+          : null;
+
+      final rivalFrameId = (customFrames != null && globalSeat < customFrames.length)
+          ? customFrames[globalSeat]
           : botFrames[(i - 1) % botFrames.length];
 
-      final bool isBotPlayer = (customIsBots != null && i < customIsBots.length)
-          ? customIsBots[i]
+      final bool isBotPlayer = (customIsBots != null && globalSeat < customIsBots.length)
+          ? customIsBots[globalSeat]
           : (rawName.contains('(Bot)') ||
               rawName.startsWith('Bot ') ||
               (!_isMultiplayerNetwork && customNames == null));
@@ -991,9 +1025,10 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
         id: 'player_$i',
         name: playerName,
         isBot: isBotPlayer,
-        color: computedColors[i % computedColors.length],
-        teamId: teams ? (i % 2 == 0 ? 1 : 2) : i,
+        color: computedColors[globalSeat % computedColors.length],
+        teamId: teams ? (isTeammate ? 1 : 2) : i,
         avatarId: rivalAvatarId,
+        avatarUrl: rivalAvatarUrl,
         frameId: rivalFrameId,
         level: (session.level - 1 + i).clamp(1, 10),
       ));
@@ -1351,7 +1386,7 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
       ));
     }
 
-    if (activePlayer.isBot) {
+    if (!_isClientDevice && activePlayer.isBot) {
       _botTimer?.cancel();
       _botTimer = Timer(const Duration(milliseconds: 650), () {
         if (mounted && !_isGameOver && _currentTurnIndex == _players.indexOf(activePlayer)) {
@@ -1704,14 +1739,16 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
     final active = _players[_currentTurnIndex];
     if (active.hand.isNotEmpty) {
       if (active.isBot) {
-        _botPlay(active);
+        if (!_isClientDevice) {
+          _botPlay(active);
+        }
       } else {
         final chosen = _chooseBestBotCard(active);
         if (_isClientDevice) {
           _client?.sendMessage(NetworkGameMessage(
             type: 'PLAY_CARD_REQUEST',
             data: {
-              'seatIndex': _currentTurnIndex,
+              'seatIndex': _myLocalSeatIndex,
               'card': chosen.toJson(),
             },
           ));
@@ -2043,7 +2080,7 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
 
     setState(() {});
 
-    if (nextPlayer.isBot) {
+    if (!_isClientDevice && nextPlayer.isBot) {
       _botTimer?.cancel();
       _botTimer = Timer(const Duration(milliseconds: 650), () {
         if (mounted && !_isGameOver && _currentTurnIndex == _players.indexOf(nextPlayer)) {
@@ -2249,8 +2286,14 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
     PlayerStatsModel.shared.recordGameResult(
       won: userWon,
       isTeams: _isTeams,
+      isOnline: _isMultiplayerNetwork,
+      isBot: !_isMultiplayerNetwork,
+      isVip: _vipTier != null,
       coinsWon: vipCoinsWon,
       cardsWon: _players[0].totalMatchCardsWon,
+      caidas: _matchUserCaidas,
+      limpias: _matchUserLimpias,
+      cantos: _matchUserCantos,
     );
 
     // Nuevos logros desbloqueados tras esta partida
@@ -3819,7 +3862,10 @@ child: Icon(icon, color: iconColor, size: 20),
     // Reenviar a la red si estamos en partida multijugador con el asiento global
     if (broadcast && _isMultiplayerNetwork) {
       final netSeat = _localIndexToNetworkSeat(playerIndex);
+      final msgId = '${netSeat}_${DateTime.now().microsecondsSinceEpoch}';
+      _processedChatMessageIds.add(msgId);
       final netData = <String, dynamic>{
+        'msgId': msgId,
         'seatIndex': netSeat,
         'message': message,
       };
@@ -3901,6 +3947,7 @@ child: Icon(icon, color: iconColor, size: 20),
             avatarColor: rival.color,
             turnGlowColor: rival.color,
             avatarId: rival.avatarId,
+            avatarUrl: rival.avatarUrl,
             frameId: rival.frameId,
             isMano: _manoIndex == 1,
             isCompact: isCompact,
@@ -3930,6 +3977,7 @@ child: Icon(icon, color: iconColor, size: 20),
             avatarColor: rival1.color,
             turnGlowColor: rival1.color,
             avatarId: rival1.avatarId,
+            avatarUrl: rival1.avatarUrl,
             frameId: rival1.frameId,
             isMano: _manoIndex == 1,
             isCompact: isCompact,
@@ -3956,6 +4004,7 @@ child: Icon(icon, color: iconColor, size: 20),
             avatarColor: rival2.color,
             turnGlowColor: rival2.color,
             avatarId: rival2.avatarId,
+            avatarUrl: rival2.avatarUrl,
             frameId: rival2.frameId,
             isMano: _manoIndex == 2,
             isCompact: isCompact,
@@ -3987,6 +4036,7 @@ child: Icon(icon, color: iconColor, size: 20),
             avatarColor: rival1.color,
             turnGlowColor: rival1.color,
             avatarId: rival1.avatarId,
+            avatarUrl: rival1.avatarUrl,
             frameId: rival1.frameId,
             isMano: _manoIndex == 1,
             isCompact: isCompact,
@@ -4013,6 +4063,7 @@ child: Icon(icon, color: iconColor, size: 20),
             avatarColor: rival2.color,
             turnGlowColor: rival2.color,
             avatarId: rival2.avatarId,
+            avatarUrl: rival2.avatarUrl,
             frameId: rival2.frameId,
             isMano: _manoIndex == 2,
             isCompact: isCompact,
@@ -4040,6 +4091,7 @@ child: Icon(icon, color: iconColor, size: 20),
             avatarColor: rival3.color,
             turnGlowColor: rival3.color,
             avatarId: rival3.avatarId,
+            avatarUrl: rival3.avatarUrl,
             frameId: rival3.frameId,
             isMano: _manoIndex == 3,
             isCompact: isCompact,
@@ -4070,6 +4122,7 @@ child: Icon(icon, color: iconColor, size: 20),
         avatarColor: user.color,
         turnGlowColor: user.color,
         avatarId: user.avatarId,
+        avatarUrl: user.avatarUrl,
         frameId: user.frameId,
         isMano: _manoIndex == 0,
         isCompact: isCompact,

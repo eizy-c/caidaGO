@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'core/services/debug_logger.dart';
+import 'core/services/localization_service.dart';
 import 'core/services/user_profile_service.dart';
 import 'core/stats/stats_repository.dart';
 import 'features/la_caida/economy/player_session.dart';
@@ -13,10 +14,11 @@ void main() async {
   // 1. Inicialización de captura global de errores y diagnósticos (DebugLogger)
   DebugLogger.initialize();
 
-  // 2. Precarga persistente de datos del usuario, sesión de La Caída y estadísticas
+  // 2. Precarga persistente de datos del usuario, sesión de La Caída, estadísticas y localización
   final statsRepository = SharedPrefsStatsRepository();
   await statsRepository.load();
   await UserProfileService().load();
+  await LocalizationService.instance.init();
   await PlayerSession.load();
   await PlayerStatsModel.shared.load();
 

@@ -3,6 +3,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../core/presentation/widgets/cartoon_widgets.dart';
 import '../../../core/services/audio_service.dart';
 import '../../../core/services/feedback_service.dart';
+import '../../../core/services/localization_service.dart';
 import '../../../core/theme/app_palette.dart';
 import 'widgets/privacy_policy_dialog.dart';
 
@@ -18,13 +19,73 @@ class AboutSettingsScreen extends StatefulWidget {
 
 class _AboutSettingsScreenState extends State<AboutSettingsScreen> {
   bool _soundEnabled = true;
-  final String _selectedLanguage = 'Español';
-
+  AppLanguage _selectedLanguage = AppLanguage.spanish;
 
   @override
   void initState() {
     super.initState();
     _soundEnabled = !AudioService().isMuted;
+    _selectedLanguage = LocalizationService.instance.currentLanguage;
+  }
+
+  void _showLanguageDialog() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppPalette.cartoonBgDark,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: const BorderSide(color: AppPalette.cartoonBorder, width: 2),
+        ),
+        title: const CartoonStrokeText('SELECCIONAR IDIOMA', fontSize: 18),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: AppLanguage.values.map((lang) {
+            final isSelected = lang == _selectedLanguage;
+            return Container(
+              margin: const EdgeInsets.only(bottom: 8),
+              child: TactilePressable(
+                depth: 2.5,
+                onTap: () {
+                  setState(() {
+                    _selectedLanguage = lang;
+                  });
+                  LocalizationService.instance.setLanguage(lang);
+                  Navigator.of(ctx).pop();
+                },
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: isSelected ? const Color(0xFF3B32B0) : const Color(0xFF26206D),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: isSelected ? AppPalette.cartoonCyan : AppPalette.cartoonBorder,
+                      width: isSelected ? 2 : 1,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        lang.displayName,
+                        style: TextStyle(
+                          color: isSelected ? Colors.white : Colors.white70,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                      ),
+                      if (isSelected)
+                        const Icon(Icons.check_circle_rounded, color: AppPalette.cartoonCyan, size: 20),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+      ),
+    );
   }
 
   void _toggleSound(bool value) {
@@ -576,26 +637,30 @@ child: Container(
                 ),
 
                 const SizedBox(height: 10),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF262169),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppPalette.cartoonBorder, width: 1.5),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        _selectedLanguage,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
+                TactilePressable(
+                  depth: 2.5,
+                  onTap: _showLanguageDialog,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF262169),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppPalette.cartoonBorder, width: 1.5),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          _selectedLanguage.displayName,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                      ),
-                      const Icon(Icons.keyboard_arrow_down_rounded, color: Colors.white70, size: 18),
-                    ],
+                        const Icon(Icons.keyboard_arrow_down_rounded, color: Colors.white70, size: 18),
+                      ],
+                    ),
                   ),
                 ),
               ],
