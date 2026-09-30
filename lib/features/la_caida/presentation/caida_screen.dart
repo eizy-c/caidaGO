@@ -1,10 +1,10 @@
 import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../../core/models/cards/spanish_card.dart';
 import '../../../core/models/cards/spanish_deck.dart';
-import '../../../core/presentation/widgets/game_rules_dialog.dart';
 import '../../../core/presentation/widgets/game_table_header.dart';
 import '../../../core/presentation/widgets/spanish_card_view.dart';
 import '../../../core/presentation/widgets/table_player_badge.dart';
@@ -14,7 +14,6 @@ import '../../../core/presentation/widgets/cartoon_widgets.dart';
 import '../../../core/theme/app_palette.dart';
 import '../../../core/services/audio_service.dart';
 import '../../../core/services/debug_logger.dart';
-import '../../../core/services/feedback_service.dart';
 import '../../../core/services/haptic_service.dart';
 import '../../../core/services/user_profile_service.dart';
 import '../domain/caida_models.dart';
@@ -45,8 +44,8 @@ import 'widgets/caida_game_over_modal.dart';
 import 'widgets/card_flight_overlay.dart';
 import 'widgets/deck_stack_view.dart';
 import 'widgets/table_canto_dialog.dart';
-import 'widgets/privacy_policy_dialog.dart';
 import 'widgets/multiplayer_chat_drawer.dart';
+import 'widgets/player_quick_profile_dialog.dart';
 import 'caida_lobby_screen.dart';
 import '../multiplayer/domain/multiplayer_models.dart';
 import '../multiplayer/network/local_game_client.dart';
@@ -291,6 +290,7 @@ class _CaidaScreenState extends State<CaidaScreen> with TickerProviderStateMixin
 
   // Chat lateral deslizable (Multijugador y partidas)
   bool _isChatDrawerOpen = false;
+  bool _muteRivalChat = false;
   late AnimationController _chatSlideController;
   late Animation<Offset> _chatSlideAnimation;
   final ValueNotifier<int> _currentPingNotifier = ValueNotifier<int>(28);
@@ -2696,178 +2696,307 @@ child: Icon(icon, color: iconColor, size: 20),
     );
   }
 
+  Future<void> _confirmRestartMatch() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      barrierColor: Colors.black87,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppPalette.cartoonBgDark,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: const BorderSide(color: AppPalette.cartoonBorder, width: 2.0),
+        ),
+        title: const Row(
+          children: [
+            Icon(Icons.refresh_rounded, color: AppPalette.cartoonCyan, size: 26),
+            SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                '¿Reiniciar mano actual?',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          _isMultiplayerNetwork
+              ? 'Como anfitrión, reiniciarás la mano actual para todos los jugadores en la sala.'
+              : 'Se volverán a barajar y repartir las cartas de la ronda.',
+          style: const TextStyle(
+            color: Color(0xFFCBD5E1),
+            fontSize: 13.5,
+            height: 1.45,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('CANCELAR', style: TextStyle(color: Colors.white60, fontWeight: FontWeight.bold)),
+          ),
+          App3dButton(
+            label: 'REINICIAR',
+            variant: App3dButtonVariant.cyan,
+            depth: 3.0,
+            onPressed: () => Navigator.of(ctx).pop(true),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      _initMatch(_playerCount, _isTeams, _players[0].name);
+    }
+  }
+
   void _openMatchSettings() {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (ctx) => Container(
-        decoration: const BoxDecoration(
-          color: AppPalette.cartoonBgDark,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-          border: Border(
-            top: BorderSide(color: AppPalette.cartoonBorder, width: 2.0),
-            left: BorderSide(color: AppPalette.cartoonBorder, width: 2.0),
-            right: BorderSide(color: AppPalette.cartoonBorder, width: 2.0),
-          ),
-        ),
-        child: SafeArea(
-          child: Container(
-            constraints: BoxConstraints(
-              maxHeight: MediaQuery.of(ctx).size.height * 0.85,
-            ),
-            child: SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 44,
-                    height: 5,
-                    margin: const EdgeInsets.only(bottom: 14),
-                    decoration: BoxDecoration(
-                      color: Colors.white24,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                  const CartoonStrokeText(
-                    'OPCIONES DE PARTIDA',
-                    fontSize: 16,
-                    textColor: AppPalette.cartoonYellow,
-                  ),
-                  const SizedBox(height: 16),
-                  _buildSettingsOptionCard(
-                    icon: AudioService().isMuted ? Icons.volume_off_rounded : Icons.volume_up_rounded,
-                    iconColor: AudioService().isMuted ? AppPalette.cartoonRed : AppPalette.cartoonCyan,
-                    title: AudioService().isMuted ? 'Efectos de sonido: Silenciado' : 'Efectos de sonido: Activado',
-                    trailing: CartoonSwitch(
-                      value: !AudioService().isMuted,
-                      onChanged: (val) {
-                        setState(() {
-                          AudioService().toggleMute();
-                        });
-                        Navigator.pop(ctx);
-                        _openMatchSettings();
-                      },
-                    ),
-                  ),
-                  _buildSettingsOptionCard(
-                    icon: Icons.record_voice_over_rounded,
-                    iconColor: AppPalette.cartoonCyan,
-                    title: 'Canto de Mesa: ${_cantoDirection == DealDirection.ascending ? "Ascendente (1..4)" : "Descendente (4..1)"}',
-                    subtitle: 'Cambiar dirección del conteo inicial del repartidor',
-                    trailing: const Icon(Icons.chevron_right_rounded, color: Colors.white54, size: 20),
-                    onTap: () async {
-                      Navigator.pop(ctx);
-                      final dir = await TableCantoDialog.show(context);
-                      if (dir != null) {
-                        setState(() => _cantoDirection = dir);
-                      }
-                    },
-                  ),
-                  _buildSettingsOptionCard(
-                    icon: Icons.refresh_rounded,
-                    iconColor: AppPalette.cartoonCyan,
-                    title: 'Reiniciar mano actual',
-                    subtitle: 'Vuelve a repartir las cartas de la ronda',
-                    trailing: const Icon(Icons.chevron_right_rounded, color: Colors.white54, size: 20),
-                    onTap: () {
-                      Navigator.pop(ctx);
-                      _initMatch(_playerCount, _isTeams, _players[0].name);
-                    },
-                  ),
-                  _buildSettingsOptionCard(
-                    icon: Icons.exit_to_app_rounded,
-                    iconColor: const Color(0xFFEF4444),
-                    title: 'Abandonar partida',
-                    subtitle: 'Salir sin registrar victoria ni derrota en estadísticas',
-                    isDanger: true,
-                    trailing: const Icon(Icons.warning_amber_rounded, color: Color(0xFFEF4444), size: 20),
-                    onTap: () {
-                      Navigator.pop(ctx);
-                      _confirmAbandonMatch();
-                    },
-                  ),
-                  _buildSettingsOptionCard(
-                    icon: Icons.smart_toy_rounded,
-                    iconColor: const Color(0xFF818CF8),
-                    title: 'Personalizar Bots (IA)',
-                    subtitle: 'Configurar nombres de rivales y compañeros',
-                    trailing: const Icon(Icons.chevron_right_rounded, color: Colors.white54, size: 20),
-                    onTap: () {
-                      Navigator.pop(ctx);
-                      BotCustomizationModal.show(
-                        context,
-                        session: PlayerSession.shared,
-                        onSaved: (_) {
-                          setState(() {});
-                        },
-                      );
-                    },
-                  ),
-                  _buildSettingsOptionCard(
-                    icon: Icons.feedback_rounded,
-                    iconColor: const Color(0xFFF59E0B),
-                    title: 'Buzón de Sugerencias',
-                    subtitle: 'Comparte tus ideas o reportes con el equipo',
-                    trailing: const Icon(Icons.open_in_new_rounded, color: Colors.white54, size: 18),
-                    onTap: () {
-                      Navigator.pop(ctx);
-                      FeedbackService.openFeedbackForm(context: context);
-                    },
-                  ),
-                  _buildSettingsOptionCard(
-                    icon: Icons.help_outline_rounded,
-                    iconColor: AppPalette.cartoonYellow,
-                    title: 'Reglas de CaidaGO',
-                    trailing: const Icon(Icons.chevron_right_rounded, color: Colors.white54, size: 20),
-                    onTap: () {
-                      Navigator.pop(ctx);
-                      GameRulesDialog.show(context, 'la_caida');
-                    },
-                  ),
-                  _buildSettingsOptionCard(
-                    icon: Icons.privacy_tip_rounded,
-                    iconColor: const Color(0xFF38BDF8),
-                    title: 'Política de Privacidad',
-                    trailing: const Icon(Icons.chevron_right_rounded, color: Colors.white54, size: 20),
-                    onTap: () {
-                      Navigator.pop(ctx);
-                      PrivacyPolicyDialog.show(context);
-                    },
-                  ),
-                  _buildSettingsOptionCard(
-                    icon: Icons.verified_user_rounded,
-                    iconColor: const Color(0xFF34D399),
-                    title: 'Licencias y Software Libre',
-                    trailing: const Icon(Icons.chevron_right_rounded, color: Colors.white54, size: 20),
-                    onTap: () {
-                      Navigator.pop(ctx);
-                      showLicensePage(
-                        context: context,
-                        applicationName: 'CaidaGO',
-                        applicationVersion: '1.0.0',
-                        applicationLegalese: '© 2026 CaidaGO • Desarrollado por Eizy Systems\nTodos los derechos reservados.',
-                      );
-                    },
-                  ),
-                  const Divider(color: Colors.white12, height: 24),
-                  const Text(
-                    'CaidaGO v1.0.0\nDesarrollado por Eizy Systems • 2026\n© 2026 CaidaGO. Todos los derechos reservados.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Colors.white38,
-                      fontSize: 11,
-                      height: 1.35,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setModalState) {
+          final isHostOrBots = !_isMultiplayerNetwork || _isHostDevice;
+          final roomCode = widget.config?.multiplayerRoom?.roomId ??
+              _host?.roomInfo?.roomId;
+
+          return Container(
+            decoration: const BoxDecoration(
+              color: AppPalette.cartoonBgDark,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+              border: Border(
+                top: BorderSide(color: AppPalette.cartoonBorder, width: 2.0),
+                left: BorderSide(color: AppPalette.cartoonBorder, width: 2.0),
+                right: BorderSide(color: AppPalette.cartoonBorder, width: 2.0),
               ),
             ),
-          ),
-        ),
+            child: SafeArea(
+              child: Container(
+                constraints: BoxConstraints(
+                  maxHeight: MediaQuery.of(ctx).size.height * 0.85,
+                ),
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 44,
+                        height: 5,
+                        margin: const EdgeInsets.only(bottom: 14),
+                        decoration: BoxDecoration(
+                          color: Colors.white24,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      const CartoonStrokeText(
+                        'OPCIONES DE PARTIDA',
+                        fontSize: 16,
+                        textColor: AppPalette.cartoonYellow,
+                      ),
+                      const SizedBox(height: 16),
+
+                      // 1. Información de Sala en Multijugador (Código y Latencia)
+                      if (_isMultiplayerNetwork && roomCode != null) ...[
+                        Container(
+                          margin: const EdgeInsets.only(bottom: 10),
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF1E1B4B),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: AppPalette.cartoonCyan.withValues(alpha: 0.5), width: 1.5),
+                          ),
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: AppPalette.cartoonCyan.withValues(alpha: 0.18),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: const Icon(Icons.wifi_rounded, color: AppPalette.cartoonCyan, size: 20),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'SALA ONLINE: $roomCode',
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w900,
+                                        letterSpacing: 0.5,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      _isHostDevice
+                                          ? 'Eres el Anfitrión • Ping: ${_currentPingNotifier.value}ms'
+                                          : 'Conectado a la sala • Ping: ${_currentPingNotifier.value}ms',
+                                      style: const TextStyle(color: Colors.white60, fontSize: 10.5),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              TactilePressable(
+                                depth: 2.0,
+                                onTap: () {
+                                  Clipboard.setData(ClipboardData(text: roomCode));
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text('Código $roomCode copiado al portapapeles'),
+                                      backgroundColor: AppPalette.cartoonDeepIndigo,
+                                      duration: const Duration(seconds: 2),
+                                    ),
+                                  );
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                  decoration: BoxDecoration(
+                                    gradient: AppGradients.cyanAccent,
+                                    borderRadius: BorderRadius.circular(10),
+                                    border: Border.all(color: AppPalette.cartoonBorder, width: 1.0),
+                                  ),
+                                  child: const Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(Icons.copy_rounded, color: Colors.white, size: 12),
+                                      SizedBox(width: 4),
+                                      Text(
+                                        'COPIAR',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w900,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+
+                      // 2. Efectos de Sonido (SFX)
+                      _buildSettingsOptionCard(
+                        icon: AudioService().isMuted ? Icons.volume_off_rounded : Icons.volume_up_rounded,
+                        iconColor: AudioService().isMuted ? AppPalette.cartoonRed : AppPalette.cartoonCyan,
+                        title: AudioService().isMuted ? 'Efectos de sonido: Silenciado' : 'Efectos de sonido: Activado',
+                        trailing: CartoonSwitch(
+                          value: !AudioService().isMuted,
+                          onChanged: (val) {
+                            setState(() {
+                              AudioService().toggleMute();
+                            });
+                            setModalState(() {});
+                          },
+                        ),
+                      ),
+
+                      // 3. Vibración y Respuesta Háptica
+                      _buildSettingsOptionCard(
+                        icon: HapticService.instance.isEnabled ? Icons.vibration_rounded : Icons.phone_android_rounded,
+                        iconColor: HapticService.instance.isEnabled ? const Color(0xFF10B981) : Colors.white38,
+                        title: HapticService.instance.isEnabled ? 'Vibración táctil: Activada' : 'Vibración táctil: Desactivada',
+                        trailing: CartoonSwitch(
+                          value: HapticService.instance.isEnabled,
+                          onChanged: (val) {
+                            setState(() {
+                              HapticService.instance.isEnabled = val;
+                              if (val) HapticService.instance.onSelection();
+                            });
+                            setModalState(() {});
+                          },
+                        ),
+                      ),
+
+                      // 4. Silenciar Chat y Reacciones (Solo Online)
+                      if (_isMultiplayerNetwork) ...[
+                        _buildSettingsOptionCard(
+                          icon: _muteRivalChat ? Icons.speaker_notes_off_rounded : Icons.forum_rounded,
+                          iconColor: _muteRivalChat ? AppPalette.cartoonRed : const Color(0xFFF59E0B),
+                          title: _muteRivalChat ? 'Chat de rivales: Silenciado' : 'Chat de rivales: Visible',
+                          subtitle: 'Oculta bocadillos y emojis de los rivales en mesa',
+                          trailing: CartoonSwitch(
+                            value: !_muteRivalChat,
+                            onChanged: (val) {
+                              setState(() {
+                                _muteRivalChat = !val;
+                              });
+                              setModalState(() {});
+                            },
+                          ),
+                        ),
+                      ],
+
+                      // 5. Personalizar Bots (Solo contra Bots / Offline)
+                      if (!_isMultiplayerNetwork) ...[
+                        _buildSettingsOptionCard(
+                          icon: Icons.smart_toy_rounded,
+                          iconColor: const Color(0xFF818CF8),
+                          title: 'Personalizar Bots (IA)',
+                          subtitle: 'Configurar nombres de rivales y compañeros',
+                          trailing: const Icon(Icons.chevron_right_rounded, color: Colors.white54, size: 20),
+                          onTap: () {
+                            Navigator.pop(ctx);
+                            BotCustomizationModal.show(
+                              context,
+                              session: PlayerSession.shared,
+                              onSaved: (_) {
+                                setState(() {});
+                              },
+                            );
+                          },
+                        ),
+                      ],
+
+                      // 6. Reiniciar mano actual (Solo Host o partida contra Bots)
+                      if (isHostOrBots) ...[
+                        _buildSettingsOptionCard(
+                          icon: Icons.refresh_rounded,
+                          iconColor: AppPalette.cartoonCyan,
+                          title: 'Reiniciar mano actual',
+                          subtitle: _isMultiplayerNetwork
+                              ? 'Reinicia la ronda para todos en la sala (Host)'
+                              : 'Vuelve a barajar y repartir las cartas',
+                          trailing: const Icon(Icons.chevron_right_rounded, color: Colors.white54, size: 20),
+                          onTap: () {
+                            Navigator.pop(ctx);
+                            _confirmRestartMatch();
+                          },
+                        ),
+                      ],
+
+                      // 7. Abandonar partida
+                      _buildSettingsOptionCard(
+                        icon: Icons.exit_to_app_rounded,
+                        iconColor: const Color(0xFFEF4444),
+                        title: 'Abandonar partida',
+                        subtitle: _isMultiplayerNetwork
+                            ? 'Salir de la sala multijugador'
+                            : 'Salir sin registrar victoria ni derrota en estadísticas',
+                        isDanger: true,
+                        trailing: const Icon(Icons.warning_amber_rounded, color: Color(0xFFEF4444), size: 20),
+                        onTap: () {
+                          Navigator.pop(ctx);
+                          _confirmAbandonMatch();
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
       ),
     );
   }
@@ -3847,6 +3976,12 @@ child: Icon(icon, color: iconColor, size: 20),
   }) {
     if (playerIndex < 0 || playerIndex >= _players.length) return;
     final player = _players[playerIndex];
+
+    // Si el chat de rivales está silenciado, ignorar bocadillos y sonidos de rivales
+    if (_muteRivalChat && playerIndex != 0) {
+      return;
+    }
+
     player.currentCallout = message;
     player.calloutTimer?.cancel();
     player.calloutTimer = Timer(const Duration(milliseconds: 3800), () {
@@ -3939,6 +4074,56 @@ child: Icon(icon, color: iconColor, size: 20),
     );
   }
 
+  void _showPlayerProfile(int playerIndex) {
+    if (playerIndex < 0 || playerIndex >= _players.length) return;
+    HapticService.instance.onSelection();
+    final player = _players[playerIndex];
+    final isLocalUser = playerIndex == 0;
+    final isTeammate = _isTeams && _players.length == 4 && player.teamId == _players[0].teamId && !isLocalUser;
+
+    int trophies = 0;
+    int gamesWon = 0;
+    int gamesPlayed = 0;
+    int caidas = 0;
+
+    if (isLocalUser) {
+      final stats = PlayerStatsModel.shared;
+      trophies = stats.trophies;
+      gamesWon = stats.gamesWon;
+      gamesPlayed = stats.gamesPlayed;
+      caidas = stats.caidasMade;
+    } else if (player.isBot) {
+      final seed = player.name.hashCode.abs();
+      trophies = 150 + (seed % 950);
+      gamesPlayed = 40 + (seed % 160);
+      gamesWon = (gamesPlayed * (0.46 + ((seed % 18) / 100))).round();
+      caidas = (gamesPlayed * 0.72).round();
+    } else {
+      trophies = 300 + (player.level ?? 1) * 70;
+      gamesPlayed = 50 + (player.level ?? 1) * 15;
+      gamesWon = (gamesPlayed * 0.53).round();
+      caidas = (gamesPlayed * 0.68).round();
+    }
+
+    PlayerQuickProfileDialog.show(
+      context,
+      playerName: player.name,
+      avatarId: player.avatarId,
+      avatarUrl: player.avatarUrl,
+      frameId: player.frameId,
+      level: player.level ?? 1,
+      isLocalUser: isLocalUser,
+      isBot: player.isBot,
+      isTeammate: isTeammate,
+      trophies: trophies,
+      gamesWon: gamesWon,
+      gamesPlayed: gamesPlayed,
+      caidasMade: caidas,
+      matchScore: player.score,
+      matchCardsWon: player.cardsWon,
+    );
+  }
+
   List<Widget> _buildOpponents({
     bool isCompact = false,
     double topY = 10.0,
@@ -3970,6 +4155,7 @@ child: Icon(icon, color: iconColor, size: 20),
             frameId: rival.frameId,
             isMano: _manoIndex == 1,
             isCompact: isCompact,
+            onTap: () => _showPlayerProfile(1),
           ),
         ),
       );
@@ -4000,6 +4186,7 @@ child: Icon(icon, color: iconColor, size: 20),
             frameId: rival1.frameId,
             isMano: _manoIndex == 1,
             isCompact: isCompact,
+            onTap: () => _showPlayerProfile(1),
           ),
         ),
       );
@@ -4027,6 +4214,7 @@ child: Icon(icon, color: iconColor, size: 20),
             frameId: rival2.frameId,
             isMano: _manoIndex == 2,
             isCompact: isCompact,
+            onTap: () => _showPlayerProfile(2),
           ),
         ),
       );
@@ -4059,6 +4247,7 @@ child: Icon(icon, color: iconColor, size: 20),
             frameId: rival1.frameId,
             isMano: _manoIndex == 1,
             isCompact: isCompact,
+            onTap: () => _showPlayerProfile(1),
           ),
         ),
       );
@@ -4086,6 +4275,7 @@ child: Icon(icon, color: iconColor, size: 20),
             frameId: rival2.frameId,
             isMano: _manoIndex == 2,
             isCompact: isCompact,
+            onTap: () => _showPlayerProfile(2),
           ),
         ),
       );
@@ -4114,6 +4304,7 @@ child: Icon(icon, color: iconColor, size: 20),
             frameId: rival3.frameId,
             isMano: _manoIndex == 3,
             isCompact: isCompact,
+            onTap: () => _showPlayerProfile(3),
           ),
         ),
       );
@@ -4145,6 +4336,7 @@ child: Icon(icon, color: iconColor, size: 20),
         frameId: user.frameId,
         isMano: _manoIndex == 0,
         isCompact: isCompact,
+        onTap: () => _showPlayerProfile(0),
       ),
     );
   }
