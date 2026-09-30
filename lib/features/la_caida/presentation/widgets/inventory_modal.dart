@@ -8,9 +8,10 @@ import '../../../../core/presentation/widgets/cartoon_widgets.dart';
 import '../../../../core/theme/app_palette.dart';
 import '../../../../core/services/haptic_service.dart';
 import 'avatar_view.dart';
-import 'chest_slots_view.dart';
 import 'profile_and_level_modal.dart';
 import 'user_frame_view.dart';
+import '../../domain/models/card_back_option.dart';
+import '../../../../core/presentation/widgets/spanish_card_view.dart';
 
 /// Modal centralizado de Inventario para CaidaGO:
 /// Solo muestra elementos que el usuario posee, ha comprado o ha desbloqueado.
@@ -18,7 +19,7 @@ import 'user_frame_view.dart';
 /// - Pestaña 2: Marcos (Desbloqueados)
 /// - Pestaña 3: Avatares (Héroes disponibles)
 /// - Pestaña 4: Fondos (Desbloqueados)
-/// - Pestaña 5: Cofres (Slots y recompensas)
+/// - Pestaña 5: Reversos (Cartas coleccionables y salas VIP)
 class InventoryModal extends StatefulWidget {
   const InventoryModal({super.key});
 
@@ -189,8 +190,8 @@ class _InventoryModalState extends State<InventoryModal>
                         text: 'Fondos',
                       ),
                       Tab(
-                        icon: Icon(Icons.inventory_2_rounded, size: 16),
-                        text: 'Cofres',
+                        icon: Icon(Icons.style_rounded, size: 16),
+                        text: 'Reversos',
                       ),
                     ],
                   ),
@@ -207,7 +208,7 @@ class _InventoryModalState extends State<InventoryModal>
                       _buildFramesTab(session, stats.trophies),
                       _buildAvatarsTab(session),
                       _buildThemesTab(session),
-                      _buildChestsTab(session),
+                      _buildCardBacksTab(session),
                     ],
                   ),
                 ),
@@ -696,37 +697,157 @@ class _InventoryModalState extends State<InventoryModal>
     );
   }
 
-  // --- TAB 5: COFRES ---
-  Widget _buildChestsTab(PlayerSession session) {
-    return SingleChildScrollView(
+  // --- TAB 5: REVERSOS DE CARTAS (Coleccionables y Salas VIP) ---
+  Widget _buildCardBacksTab(PlayerSession session) {
+    final allBacks = CardBackOption.allCardBacks;
+
+    return ListView.builder(
       padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: AppPalette.cartoonCardDark,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: AppPalette.cartoonBorder, width: 1.5),
+      physics: const BouncingScrollPhysics(),
+      itemCount: allBacks.length,
+      itemBuilder: (context, index) {
+        final back = allBacks[index];
+        final isEquipped = session.selectedCardBackId == back.id;
+        final isUnlocked = session.isCardBackUnlocked(back.id);
+
+        return Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: AppPalette.cartoonCardDark,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: isEquipped
+                  ? const Color(0xFFFDE047)
+                  : (isUnlocked ? back.accentColor.withValues(alpha: 0.5) : AppPalette.cartoonBorder),
+              width: isEquipped ? 2.5 : 1.5,
             ),
-            child: const Row(
-              children: [
-                Icon(Icons.info_outline_rounded, color: Colors.white70, size: 20),
-                SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    'Gana partidas para obtener cofres con monedas, XP, potenciadores y trofeos.',
-                    style: TextStyle(color: Colors.white70, fontSize: 12),
+            boxShadow: isEquipped
+                ? [
+                    const BoxShadow(
+                      color: Color(0x50FDE047),
+                      blurRadius: 10,
+                      offset: Offset(0, 3),
+                    ),
+                  ]
+                : null,
+          ),
+          child: Row(
+            children: [
+              // Previsualización de la carta con el reverso
+              Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Colors.black45,
+                      blurRadius: 6,
+                      offset: Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: SpanishCardView.back(
+                    customBackAssetPath: back.assetPath,
+                    width: 50,
+                    height: 75,
                   ),
                 ),
-              ],
-            ),
+              ),
+
+              const SizedBox(width: 14),
+
+              // Nombre, Descripción y Requisito
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            back.name,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w900,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ),
+                        if (!isUnlocked) ...[
+                          const SizedBox(width: 4),
+                          const Icon(Icons.lock_rounded, size: 14, color: Color(0xFFFBBF24)),
+                        ],
+                      ],
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      back.subtitle,
+                      style: const TextStyle(color: Colors.white60, fontSize: 10),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      isUnlocked
+                          ? 'Desbloqueado para jugar'
+                          : (back.requiredRoomId != null
+                              ? 'Gana una partida en Sala ${back.name.split('•').first.trim()}'
+                              : 'Reverso especial'),
+                      style: TextStyle(
+                        color: isUnlocked ? const Color(0xFF10B981) : const Color(0xFFF87171),
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(width: 8),
+
+              // Botón de selección / equipar
+              TactilePressable(
+                depth: 2.5,
+                onTap: isUnlocked && !isEquipped
+                    ? () {
+                        HapticService.instance.onSelection();
+                        session.selectCardBack(back.id);
+                      }
+                    : null,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    gradient: isEquipped
+                        ? AppGradients.greenAccept
+                        : (isUnlocked ? AppGradients.cyanAccent : null),
+                    color: isUnlocked ? null : Colors.white12,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: AppPalette.cartoonBorder, width: 1.2),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (isEquipped)
+                        const Icon(Icons.check_rounded, color: Colors.white, size: 12)
+                      else if (!isUnlocked)
+                        const Icon(Icons.lock_rounded, color: Colors.white38, size: 12),
+                      if (isEquipped || !isUnlocked) const SizedBox(width: 4),
+                      Text(
+                        isEquipped ? 'ACTIVO' : (isUnlocked ? 'EQUIPAR' : 'BLOQUEADO'),
+                        style: TextStyle(
+                          color: isUnlocked ? Colors.white : Colors.white38,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 16),
-          ChestSlotsView(session: session),
-        ],
-      ),
+        );
+      },
     );
   }
 }
